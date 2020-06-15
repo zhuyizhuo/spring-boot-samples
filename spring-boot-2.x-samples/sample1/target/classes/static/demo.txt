@@ -1,1 +1,0 @@
-Hello world. this is static demo txt . Not Exists META-INF.

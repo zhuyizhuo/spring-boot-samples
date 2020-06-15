@@ -1,1 +1,0 @@
-Hello world. this is resources demo txt . Not Exists META-INF.
