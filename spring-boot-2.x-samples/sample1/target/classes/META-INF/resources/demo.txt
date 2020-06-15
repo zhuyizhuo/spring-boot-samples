@@ -1,0 +1,1 @@
+Hello world. this is META-INF resources demo txt .
