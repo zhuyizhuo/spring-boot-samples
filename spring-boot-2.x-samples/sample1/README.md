@@ -10,7 +10,7 @@ http://localhost:8081/demofile.txt
 
 可删除 /META-INF/resources 下的 demo.txt 继续访问
 http://localhost:8081/demo.txt
-查看结果
+查看结果，验证目录的优先级。
 依此类推其他目录。
 
 2. application.properties 中配置 customize.upload-path 为本地目录，在目录中创建一个 local.txt 文件，内容为 Hello world. 
