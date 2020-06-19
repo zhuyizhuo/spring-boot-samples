@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/swagger")
 public class SwaggerController {
 
-    @ApiOperation(value = "演示接口",httpMethod = "GET",tags = "相同的 tags 会合并为一个列表")
+    @ApiOperation(value = "演示接口", notes = "这是一个演示接口",httpMethod = "GET",tags = "相同的 tags 会合并为一个列表")
     @GetMapping("/demo")
     public Object demo(){
         return "this is swagger simple demo.";

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/demo")
 public class DemoController {
 
-    @ApiOperation(value = "打招呼",httpMethod = "GET")
+    @ApiOperation(value = "打招呼",notes = "这是接口 notes!",httpMethod = "GET")
     @ApiImplicitParam(dataType = "string",name = "name",value = "姓名", required = false)
     @GetMapping("/hello")
     public String hello(String name){
