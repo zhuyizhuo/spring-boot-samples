@@ -1,21 +1,20 @@
 package com.github.zhuyizhuo.flyway.demo.migration;
 
-import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.MigrationVersion;
 import org.flywaydb.core.api.migration.Context;
+import org.flywaydb.core.api.migration.JavaMigration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * 起名遵循 Flyway 的起名规则
+ * 自定义类名 需实现 JavaMigration
  */
-@Component
-public class V1_1__UpdateUserName extends BaseJavaMigration {
+public class UpdateUserName implements JavaMigration {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
@@ -39,10 +38,29 @@ public class V1_1__UpdateUserName extends BaseJavaMigration {
             }
         });
     }
+    /** 版本号为 1.1 */
+    @Override
+    public MigrationVersion getVersion() {
+        return MigrationVersion.fromVersion("1.1");
+    }
+    /** 描述 */
+    @Override
+    public String getDescription() {
+        return "update user name";
+    }
+
+    @Override
+    public boolean isUndo() {
+        return false;
+    }
+    /** 执行是否应在事务内部进行 */
+    @Override
+    public boolean canExecuteInTransaction() {
+        return true;
+    }
 
     /**
-     * 默认校验和为 0  需重写 返回自己自定义计算的校验和
-     * @return
+     * 默认校验和为 0  需重写 返回自己自定义计算的校验和 此处 demo 返回固定值11
      */
     @Override
     public Integer getChecksum() {
