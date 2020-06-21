@@ -13,18 +13,22 @@
 
     <dependencies>
         <!-- 实现对数据库连接池的自动化配置 -->
-        <!-- 同时，spring-boot-starter-jdbc 支持 Flyway 的自动化配置 -->
+        <!-- spring-boot-starter-jdbc 支持 Flyway 的自动化配置 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
 
-        <!-- Spring Boot 提供了对 Flyway 的自动配置 -->
+        <!-- Spring Boot 提供了对 Flyway 的自动配置,
+				如果引入 spring-boot-starter-parent 则此处不需配置 Flyway 版本号 -->
+        <!-- Mysql 使用的 5.6 版本,所以 flyway 选择 5.2.4,高版本 Flyway 需升级 mysql 版本 -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
+            <version>5.2.4</version>
         </dependency>
 
+        <!-- 使用 mysql 数据库 -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>

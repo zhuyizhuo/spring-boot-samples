@@ -19,11 +19,6 @@ public class V1_1__UpdateUserName extends BaseJavaMigration {
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public Integer getChecksum() {
-        return 11;
-    }
-
-    @Override
     public void migrate(Context context) throws Exception {
         // 创建 JdbcTemplate ，方便 JDBC 操作
         JdbcTemplate template = new JdbcTemplate(context.getConfiguration().getDataSource());
@@ -43,5 +38,14 @@ public class V1_1__UpdateUserName extends BaseJavaMigration {
                 } while (rs.next());
             }
         });
+    }
+
+    /**
+     * 默认校验和为 0  需重写 返回自己自定义计算的校验和
+     * @return
+     */
+    @Override
+    public Integer getChecksum() {
+        return 11;
     }
 }
