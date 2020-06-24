@@ -1,0 +1,18 @@
+dn: dc=yizhuo,dc=github,dc=com
+objectClass: top
+objectClass: domain
+
+dn: ou=people,dc=yizhuo,dc=github,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: people
+
+dn: uid=ben,ou=people,dc=yizhuo,dc=github,dc=com
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+cn: 一卓
+sn: 朱
+uid: newId
+userPassword: {SHA}nFCebWjxfaLbHHG1Qk5UU4trbvQ=
