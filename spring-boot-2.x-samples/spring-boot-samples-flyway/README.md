@@ -1,4 +1,4 @@
-
+```sql
 CREATE TABLE `flyway_schema_history` (
   `installed_rank` int(11) NOT NULL, -- 安装顺序，从 1 开始递增。
   `version` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL, -- 版本号
@@ -12,4 +12,5 @@ CREATE TABLE `flyway_schema_history` (
   `success` tinyint(1) NOT NULL, -- 执行结果是否成功。1-成功。0-失败
   PRIMARY KEY (`installed_rank`),
   KEY `flyway_schema_history_s_idx` (`success`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
