@@ -1,0 +1,18 @@
+spring:
+  # datasource 数据源配置内容，对应 DataSourceProperties 配置属性类
+  datasource:
+    url: jdbc:mysql://localhost:3306/github_demo?useUnicode=true&characterEncoding=utf-8&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 数据库账号
+    username: root
+    # 数据库密码
+    password: ${MYSQL_PWD:123456}
+  # Liquibase 配置内容，对应 LiquibaseProperties 配置项
+  liquibase:
+    # 开启 Liquibase 功能。默认为 true 。
+    enabled: true
+    # Liquibase 配置文件地址
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}

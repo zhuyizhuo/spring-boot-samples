@@ -1,7 +1,7 @@
 package com.github.zhuyizhuo.ldap.sample;
 
-import com.github.zhuyizhuo.ldap.entity.Person;
-import com.github.zhuyizhuo.ldap.repository.PersonRepository;
+import com.github.zhuyizhuo.ldap.sample.entity.Person;
+import com.github.zhuyizhuo.ldap.sample.repository.PersonRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
