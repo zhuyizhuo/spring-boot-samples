@@ -39,7 +39,7 @@ databaseChangeLog:
             columns: # 对应 ColumnConfig 数组
               - column:
                   name: username # 字段名
-                  value: yudaoyuanma # 值
+                  value: zhuo # 值
               - column:
                   name: password
                   value: password
@@ -48,9 +48,15 @@ databaseChangeLog:
                   value: now()
   - changeSet: # 对应一个 ChangeSet 对象
       id: 2 # ChangeSet 编号
-      author: YIZHUO # 作者
+      author: yizhuo # 作者
       comments: 初始化 users2 表 # 备注
       changes: # 对应 Change 数组。Change 是一个接口，每种操作对应一种 Change 实现类
         - sqlFile: # 使用 SQL 文件，对应 SQLFileChange 对象
             encoding: utf8
             path: classpath:db/changelog/sqlfile/CHAGE_SET_2_INIT_DB.sql
+  - changeSet: # 对应一个 ChangeSet 对象
+      id: 3 # ChangeSet 编号
+      author: yizhuo # 作者
+      comments: 修复 `users` 的用户名 # 备注
+      changes: # 对应 Change 数组。Change 是一个接口，每种操作对应一种 Change 实现类
+        - customChange: {class: com.github.zhuyizhuo.liquibase.sample.FixUsername}

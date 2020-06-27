@@ -1,4 +1,4 @@
-package com.github.zhuyizhuo.liquibase.sample;
+package com.github.zhuyizhuo.liquibase;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
