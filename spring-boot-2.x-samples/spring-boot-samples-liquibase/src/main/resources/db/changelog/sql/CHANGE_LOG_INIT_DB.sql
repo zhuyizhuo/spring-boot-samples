@@ -1,5 +1,5 @@
 -- 创建用户表
-CREATE TABLE `users2` (
+CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '用户编号',
   `username` varchar(64) DEFAULT NULL COMMENT '账号',
   `password` varchar(32) DEFAULT NULL COMMENT '密码',
@@ -9,4 +9,4 @@ CREATE TABLE `users2` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 插入一条数据
-INSERT INTO `users2`(username, password, create_time) VALUES('zhuo', 'password', now());
+INSERT INTO `users`(username, password, create_time) VALUES('zhuo', 'password', now());
