@@ -12,7 +12,7 @@ spring:
     # 开启 Liquibase 功能。默认为 true 。
     enabled: true
     # Liquibase 配置文件地址
-    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    change-log: classpath:/db/changelog/db_changelog.yaml
     url: ${spring.datasource.url}
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
