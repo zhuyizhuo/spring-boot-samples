@@ -43,7 +43,7 @@
 ## 推荐内容
 
 - [我的博客](http://zhuyizhuo.online/)：分享平时学习和实践过的技术内容
-- [代码生成器](https://github.com/zhuyizhuo/code-generator)：轻量级可扩展的代码生成器
+- [代码生成器](http://zhuyizhuo.online/code-generator-doc/)：轻量级可扩展的代码生成器
 - [GitHub](https://github.com/zhuyizhuo/spring-boot-samples)：Star支持一下呗
 - [Gitee](https://gitee.com/zhuyizhuo/spring-boot-samples)：Star支持一下呗
 
