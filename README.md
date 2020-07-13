@@ -27,6 +27,8 @@
 - [Spring Boot 2.x教程：数据库版本管理工具 Flyway](http://zhuyizhuo.online/2020/06/21/spring-boot-flyway-database-version-control/)
 - [Spring Boot 2.x教程：数据库版本管理工具 Liquibase](http://zhuyizhuo.online/2020/07/04/spring-boot-liquibase-database-version-controller/)
 
+### Web开发
+- [前后端通信有字段需要加解密你会如何处理？](http://zhuyizhuo.online/2020/07/12/spring-boot-jackson/)
 
 ## 各 Module 介绍
 
@@ -44,8 +46,8 @@
 
 - [我的博客](http://zhuyizhuo.online/)：分享平时学习和实践过的技术内容
 - [代码生成器](http://zhuyizhuo.online/code-generator-doc/)：轻量级可扩展的代码生成器
-- [GitHub](https://github.com/zhuyizhuo/spring-boot-samples)：Star支持一下呗
-- [Gitee](https://gitee.com/zhuyizhuo/spring-boot-samples)：Star支持一下呗
+- [GitHub](https://github.com/zhuyizhuo/spring-boot-samples)：Star 支持一下呗
+- [Gitee](https://gitee.com/zhuyizhuo/spring-boot-samples)：Star 支持一下呗
 
 ## License
 
