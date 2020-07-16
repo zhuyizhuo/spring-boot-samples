@@ -30,6 +30,9 @@
 ### Web开发
 - [前后端通信有字段需要加解密你会如何处理？](http://zhuyizhuo.online/2020/07/12/spring-boot-jackson/)
 
+### 工具使用
+- [静态文档生成工具 JApiDocs](http://zhuyizhuo.online/2020/07/16/japidocs/)
+
 ## 各 Module 介绍
 
 | Module 名称                                                  | Module 介绍                                                  |
