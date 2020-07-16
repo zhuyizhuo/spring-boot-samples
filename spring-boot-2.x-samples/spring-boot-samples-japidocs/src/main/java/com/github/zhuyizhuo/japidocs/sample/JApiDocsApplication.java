@@ -4,6 +4,7 @@ import io.github.yedaxia.apidocs.Docs;
 import io.github.yedaxia.apidocs.DocsConfig;
 
 /**
+ * 运行 main 方法即可生成文档
  * @author zhuo
  */
 public class JApiDocsApplication {
