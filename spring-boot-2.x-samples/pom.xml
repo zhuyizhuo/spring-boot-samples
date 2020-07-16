@@ -17,6 +17,7 @@
         <module>spring-boot-samples-liquibase</module>
         <module>spring-boot-samples-log4j2</module>
         <module>spring-boot-samples-jackson</module>
+        <module>spring-boot-samples-japidocs</module>
     </modules>
 
     <properties>
