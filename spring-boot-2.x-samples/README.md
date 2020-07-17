@@ -1,7 +1,7 @@
 # Spring Boot 基础教程（2.x 版本）
 
 ## 项目简介
-本项目是一个用来深度学习并实战 `spring boot` 的项目，目前已完成 **`7`** 个集成 sample，正在集成的有 **`3`** 个。
+本项目是一个用来深度学习并实战 `spring boot` 的项目，目前已完成 **`8`** 个集成 sample，正在集成的有 **`3`** 个。
 
 > 如果大家需要集成其他 sample，也可在 [issue](https://github.com/zhuyizhuo/spring-boot-samples/issues/new) 里提需求。我会添加在 [TODO](./TODO.md) 列表里，并在短时间内集成进本项目。
 
@@ -37,13 +37,14 @@
 
 | Module 名称                                                  | Module 介绍                                                  |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| [spring-boot-samples-flyway](./spring-boot-2.x-samples/spring-boot-samples-flyway) | spring-boot 集成数据库版本管理工具 Flyway |
-| [spring-boot-samples-resources](./spring-boot-2.x-samples/spring-boot-samples-resources) | spring-boot 访问内部或者外部磁盘静态资源 |
-| [spring-boot-samples-log4j2](./spring-boot-2.x-samples/spring-boot-samples-log4j2)     | spring-boot 集成 log4j2 实现全局日志统一 ID 打印 |
-| [spring-boot-samples-swagger](./spring-boot-2.x-samples/spring-boot-samples-swagger) | spring-boot 集成 swagger 生成在线文档 |
-| [spring-boot-samples-jackson](./spring-boot-2.x-samples/spring-boot-samples-jackson) | spring-boot 使用自定义 jackson、filter、自定义 requestWrapper 实现自动序列化反序列化出参入参 |
-| [spring-boot-samples-liquibase](./spring-boot-2.x-samples/spring-boot-samples-liquibase) | spring-boot 集成数据库版本管理工具 Liquibase |
-| [spring-boot-samples-ldap](./spring-boot-2.x-samples/spring-boot-samples-ldap) | spring-boot 集成轻型目录访问协议 ldap |
+| [spring-boot-samples-flyway](./spring-boot-samples-flyway) | spring-boot 集成数据库版本管理工具 Flyway |
+| [spring-boot-samples-resources](./spring-boot-samples-resources) | spring-boot 访问内部或者外部磁盘静态资源 |
+| [spring-boot-samples-log4j2](./spring-boot-samples-log4j2)     | spring-boot 集成 log4j2 实现全局日志统一 ID 打印 |
+| [spring-boot-samples-swagger](./spring-boot-samples-swagger) | spring-boot 集成 swagger 生成在线文档 |
+| [spring-boot-samples-jackson](./spring-boot-samples-jackson) | spring-boot 使用自定义 jackson、filter、自定义 requestWrapper 实现自动序列化反序列化出参入参 |
+| [spring-boot-samples-liquibase](./spring-boot-samples-liquibase) | spring-boot 集成数据库版本管理工具 Liquibase |
+| [spring-boot-samples-ldap](./spring-boot-samples-ldap) | spring-boot 集成轻型目录访问协议 ldap |
+| [spring-boot-samples-japidocs](./spring-boot-samples-japidocs) | 静态文档生成工具 JApiDocs 使用 Demo |
 
 ## 推荐内容
 
