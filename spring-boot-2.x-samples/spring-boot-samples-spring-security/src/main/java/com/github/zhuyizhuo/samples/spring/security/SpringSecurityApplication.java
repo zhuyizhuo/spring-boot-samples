@@ -3,6 +3,9 @@ package com.github.zhuyizhuo.samples.spring.security;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * @author zhuo
+ */
 @SpringBootApplication
 public class SpringSecurityApplication {
 
