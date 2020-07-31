@@ -6,4 +6,4 @@ spring:
 
 #  不需要拦截的请求地址 逗号隔开
 auth:
-  ignore: /login,/test/log,/security
+  ignore: /login,/user/info

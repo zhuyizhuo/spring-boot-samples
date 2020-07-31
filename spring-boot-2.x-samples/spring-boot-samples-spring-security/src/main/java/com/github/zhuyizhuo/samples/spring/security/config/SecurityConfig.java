@@ -55,7 +55,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Envi
     protected void configure(HttpSecurity http) throws Exception {
 //        http.addFilterBefore(null, UsernamePasswordAuthenticationFilter.class)
                 //开启登录配置
-                http.authorizeRequests()
+            http.authorizeRequests()
                 //表示访问 /hello 这个接口，需要具备 admin 这个角色
                 .antMatchers("/hello").hasRole("admin")
                 //访问此地址就不需要进行身份认证了，防止重定向死循环
@@ -64,14 +64,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Envi
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
+                 // 处理来自该链接的登陆请求
                 .loginProcessingUrl("/doLogin")
                 //定义登录页面，未登录时，访问一个需要登录之后才能访问的接口，会自动跳转到该页面
                 .loginPage("/login.html")
                 //登录处理接口
                 //定义登录时，用户名的 key，默认为 username
-                .usernameParameter("uname")
+//                .usernameParameter("uname")
                 //定义登录时，用户密码的 key，默认为 password
-                .passwordParameter("passwd")
+//                .passwordParameter("passwd")
                 //登录成功的处理器  不配置此处理器 登陆成功后访问原来访问路径 配置后 登陆成功后执行处理器内容
                 .successHandler(new AuthenticationSuccessHandler() {
                     @Override
