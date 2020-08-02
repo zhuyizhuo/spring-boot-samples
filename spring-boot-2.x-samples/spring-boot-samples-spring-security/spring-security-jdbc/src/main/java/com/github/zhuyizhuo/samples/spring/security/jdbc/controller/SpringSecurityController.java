@@ -1,4 +1,4 @@
-package com.github.zhuyizhuo.samples.spring.security.controller;
+package com.github.zhuyizhuo.samples.spring.security.jdbc.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

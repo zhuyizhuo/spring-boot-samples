@@ -1,4 +1,4 @@
-package com.github.zhuyizhuo.samples.spring.security.config;
+package com.github.zhuyizhuo.samples.spring.security.jdbc.config;
 
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
@@ -10,10 +10,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -32,7 +36,16 @@ import java.io.PrintWriter;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter implements EnvironmentAware {
     private Environment environment;
-//    VerifyCodeFilter
+
+    /** 在内存中配置用户信息 */
+    @Override
+    @Bean
+    public UserDetailsService userDetailsService(){
+        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+        manager.createUser(User.withUsername("zhangsan").password("123").authorities("p1").build());
+        return manager;
+    }
+
     /** 在内存中配置用户信息 */
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -64,8 +77,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Envi
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
-                 // 处理来自该链接的登陆请求
+                 // 处理来自该链接的登陆请求 对应表单提交的 action
                 .loginProcessingUrl("/doLogin")
+                // 自定义登陆成功的页面地址
+                .successForwardUrl("/login-success")
                 //定义登录页面，未登录时，访问一个需要登录之后才能访问的接口，会自动跳转到该页面
                 .loginPage("/login.html")
                 //登录处理接口
@@ -74,6 +89,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Envi
                 //定义登录时，用户密码的 key，默认为 password
 //                .passwordParameter("passwd")
                 //登录成功的处理器  不配置此处理器 登陆成功后访问原来访问路径 配置后 登陆成功后执行处理器内容
+                //    即 配置了handler 了  则  successForwardUrl 失效
                 .successHandler(new AuthenticationSuccessHandler() {
                     @Override
                     public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
@@ -97,6 +113,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Envi
                 .and()
                 .logout()
                 .logoutUrl("/logout")
+//                    配置了handler 了  则  logoutUrl 失效
                 .logoutSuccessHandler(new LogoutSuccessHandler() {
                     @Override
                     public void onLogoutSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
@@ -110,7 +127,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Envi
                 .and()
                 .httpBasic()
                 .and()
-                .csrf().disable();
+                .csrf().disable()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
 
     }
 
