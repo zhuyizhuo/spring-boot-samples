@@ -1,0 +1,14 @@
+spring:
+  security:
+    user:
+      name: zhuo
+      password: 123
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://yizhuo.com:3306/security?useUnicode=true&characterEncoding=utf-8&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: Zhuo3.2
+
+#  不需要拦截的请求地址 逗号隔开
+auth:
+  ignore: /login,/user/info

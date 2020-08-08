@@ -1,4 +1,4 @@
-package com.github.zhuyizhuo.swagger.sample;
+package com.github.zhuyizhuo.samples;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -7,9 +7,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author zhuo
  */
 @SpringBootApplication
-public class SwaggerApplications {
+public class SpringSecurityInMemoryApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SwaggerApplications.class, args);
+        SpringApplication.run(SpringSecurityInMemoryApplication.class, args);
     }
 }
