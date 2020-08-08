@@ -7,9 +7,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author zhuo
  */
 @SpringBootApplication
-public class SpringSecurityApplication {
+public class SpringSecurityJdbcApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SpringSecurityApplication.class, args);
+        SpringApplication.run(SpringSecurityJdbcApplication.class, args);
     }
 }

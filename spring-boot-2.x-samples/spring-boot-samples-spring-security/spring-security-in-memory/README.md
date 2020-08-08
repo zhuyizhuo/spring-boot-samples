@@ -48,11 +48,13 @@
 
 ### 验证权限访问
 
-启动项目，访问 `localhost:8080` 
+启动项目，访问  http://localhost:8080/
 
 - 使用 `zhangsan`，密码 `321` 登陆
   - 访问 http://localhost:8080/user/info ，403 无权限
   - 访问 http://localhost:8080/user/hello ，可正常访问
+
+- 访问 http://localhost:8080/logout  退出登录
 
 - 使用 `jack` ，密码 `1234` 登陆
 

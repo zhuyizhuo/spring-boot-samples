@@ -34,7 +34,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 //        auth.inMemoryAuthentication()
 //                .withUser("james")
-//                .roles("p2")
+//                .roles("p1","p2")
 //                // 123 的密文
 //                .password("321");
 //    }

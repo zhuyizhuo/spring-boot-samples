@@ -1,5 +1,7 @@
 package com.github.zhuyizhuo.samples.spring.security.jdbc.config;
 
+import com.github.zhuyizhuo.samples.spring.security.jdbc.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,11 +15,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -38,23 +37,12 @@ import java.io.PrintWriter;
 public class SecurityConfig extends WebSecurityConfigurerAdapter implements EnvironmentAware {
     private Environment environment;
 
-    /** 在内存中配置用户信息 */
-    @Override
-    @Bean
-    public UserDetailsService userDetailsService(){
-        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-        manager.createUser(User.withUsername("zhangsan").password("123").authorities("p1").build());
-        return manager;
-    }
+    @Autowired
+    UserService userService;
 
-    /** 在内存中配置用户信息 */
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("james")
-                .roles("admin")
-                // 123 的密文
-                .password("$2a$10$dCUxPoQcTlYNfdQRPIM3/uPK47b3HM69RyvbeiQS7LNPB6REFI9DS");
+        auth.userDetailsService(userService);
     }
 
     @Override
