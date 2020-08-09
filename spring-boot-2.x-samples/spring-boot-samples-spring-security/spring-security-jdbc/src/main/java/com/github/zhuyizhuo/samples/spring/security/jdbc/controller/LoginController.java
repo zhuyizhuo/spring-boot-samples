@@ -7,16 +7,12 @@ import org.springframework.web.bind.annotation.RestController;
  * @author zhuo
  */
 @RestController
-@RequestMapping("/security")
-public class SpringSecurityController {
+@RequestMapping("/login")
+public class LoginController {
 
-    @RequestMapping("/login")
+    @RequestMapping("/login-success")
     public String login(){
         return "Login Success !";
     }
 
-    @RequestMapping("/doLogin")
-    public String doLogin(){
-        return " doLogin  !";
-    }
 }
