@@ -1,4 +1,4 @@
-## flyway 数据库版本控制
+## Spring Boot 集成 Liquibase 数据库版本控制
 
 ### 第一步：修改数据库的 url 、username、password 为自己的数据库配置。
 
@@ -6,4 +6,4 @@
 
 ## 博客教程：
 
-- http://zhuyizhuo.online/2020/06/21/spring-boot-flyway-database-version-control/
+- http://zhuyizhuo.online/2020/07/04/spring-boot-liquibase-database-version-control/
