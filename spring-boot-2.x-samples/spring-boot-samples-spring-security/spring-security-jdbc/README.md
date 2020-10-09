@@ -1,4 +1,4 @@
-## 第一步 执行 database_init.sql 文件, 并且将数据库配置改为自己的数据库配置
+## 第一步 执行 spring-security-jdbc/sql/ 目录下的 database_init.sql 文件, 并且将 application.yaml 中的数据库配置改为自己的数据库配置
 
 ## 第二步 启动项目
 
