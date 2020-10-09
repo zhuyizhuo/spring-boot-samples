@@ -17,7 +17,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * <h1>GeoService 测试用例</h1>
+ * <h1>GeoService 单元测试</h1>
+ * 需要本地启动 redis 无密码 端口 6379
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {RedisGeoApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -52,7 +53,7 @@ public class GeoServiceTest {
 
     /**
      * <h2>测试 getCityPos 方法</h2>
-     * 如果传递的 city 在 Redis 中没有记录, 会返回什么呢 ? 例如, 这里传递的 xxx
+     * 如果传递的 city 在 Redis 中没有记录, 会返回什么呢 ? 例如, 这里传递的 nothing
      * */
     @Test
     public void testGetCityPos() {
@@ -69,8 +70,10 @@ public class GeoServiceTest {
     @Test
     public void testGetTwoCityDistance() {
 
-        System.out.println(geoService.getTwoCityDistance("anqing", "suzhou", null).getValue());
-        System.out.println(geoService.getTwoCityDistance("anqing", "suzhou", Metrics.KILOMETERS).getValue());
+        System.out.println(geoService.getTwoCityDistance("tianjin", "suzhou", null).getValue());
+        System.out.println(geoService.getTwoCityDistance("tianjin", "suzhou", Metrics.KILOMETERS).getValue());
+//        如果 城市不存在 则会发生异常
+//        System.out.println(geoService.getTwoCityDistance("anqing", "suzhou", null).getValue());
     }
 
     /**
