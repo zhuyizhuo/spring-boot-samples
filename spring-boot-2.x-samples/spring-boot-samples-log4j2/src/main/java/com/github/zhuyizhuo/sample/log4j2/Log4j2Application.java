@@ -12,4 +12,5 @@ public class Log4j2Application {
         log.info("Log4j2Application 项目启动..");
         SpringApplication.run(Log4j2Application.class, args);
     }
+
 }
