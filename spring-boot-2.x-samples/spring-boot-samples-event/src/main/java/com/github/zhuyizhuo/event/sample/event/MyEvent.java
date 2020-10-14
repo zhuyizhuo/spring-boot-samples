@@ -1,7 +1,10 @@
-package com.github.zhuyizhuo.event.sample;
+package com.github.zhuyizhuo.event.sample.event;
 
 import org.springframework.context.ApplicationEvent;
 
+/**
+ * 自定义事件
+ */
 public class MyEvent extends ApplicationEvent {
 
     private String name;
