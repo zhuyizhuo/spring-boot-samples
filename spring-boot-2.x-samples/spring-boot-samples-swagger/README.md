@@ -16,3 +16,6 @@
 
 ### 博客教程
 - http://zhuyizhuo.online/2020/06/17/spring-boot-swagger/
+
+### 在线调配置
+- http://editor.swagger.io/

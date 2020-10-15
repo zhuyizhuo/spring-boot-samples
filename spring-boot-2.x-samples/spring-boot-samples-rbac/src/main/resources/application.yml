@@ -1,0 +1,9 @@
+auth:
+  pattern:
+    anonymous:
+      - /menu/anonymous
+      - /sys/login
+      - /error
+      - login
+    login:
+      - /menu/login

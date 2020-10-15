@@ -21,6 +21,7 @@
         <module>spring-boot-samples-spring-security</module>
         <module>spring-boot-samples-event</module>
         <module>spring-boot-samples-redis-geohash</module>
+        <module>spring-boot-samples-rbac</module>
     </modules>
 
     <properties>
