@@ -1,3 +1,1 @@
-- 使用 Redis Geo Hash 功能查找附近的人
-- spring security 用户权限
 - redis Template 使用教程
