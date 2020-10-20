@@ -22,6 +22,7 @@
         <module>spring-boot-samples-event</module>
         <module>spring-boot-samples-redis-geohash</module>
         <module>spring-boot-samples-rbac</module>
+        <module>spring-boot-samples-state-machine</module>
     </modules>
 
     <properties>
