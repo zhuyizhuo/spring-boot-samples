@@ -1,7 +1,7 @@
 package com.github.zhuyizhuo.samples.statemachine.sevice;
 
 import com.github.zhuyizhuo.samples.statemachine.constants.StateMachineConstant;
-import com.github.zhuyizhuo.samples.statemachine.enums.OrderStatus;
+import com.github.zhuyizhuo.samples.statemachine.enums.OrderStatusEnum;
 import com.github.zhuyizhuo.samples.statemachine.enums.OrderStatusChangeEvent;
 import com.github.zhuyizhuo.samples.statemachine.vo.Order;
 import lombok.extern.slf4j.Slf4j;
@@ -23,48 +23,48 @@ import java.util.EnumSet;
 @Configuration
 //@EnableStateMachine(name = "orderStateMachine")
 @EnableStateMachineFactory(name = "orderStateMachineFactory")
-public class OrderStateMachineConfigurer extends EnumStateMachineConfigurerAdapter<OrderStatus, OrderStatusChangeEvent> {
+public class OrderStateMachineConfigurer extends EnumStateMachineConfigurerAdapter<OrderStatusEnum, OrderStatusChangeEvent> {
 
     @Autowired
     private OrderStateMachinePersist orderStateMachinePersist;
 
     @Override
-    public void configure(StateMachineStateConfigurer<OrderStatus, OrderStatusChangeEvent> states)
+    public void configure(StateMachineStateConfigurer<OrderStatusEnum, OrderStatusChangeEvent> states)
             throws Exception {
         states.withStates()
                 // 初始状态：新建订单
-                .initial(OrderStatus.CREATED)
-                .states(EnumSet.allOf(OrderStatus.class));
+                .initial(OrderStatusEnum.CREATED)
+                .states(EnumSet.allOf(OrderStatusEnum.class));
     }
 
     @Override
-    public void configure(StateMachineTransitionConfigurer<OrderStatus, OrderStatusChangeEvent> transitions)
+    public void configure(StateMachineTransitionConfigurer<OrderStatusEnum, OrderStatusChangeEvent> transitions)
             throws Exception {
         transitions
                 .withExternal()
-                .source(OrderStatus.CREATED).target(OrderStatus.PROCESSING)
+                .source(OrderStatusEnum.CREATED).target(OrderStatusEnum.PROCESSING)
                 .event(OrderStatusChangeEvent.PAYMENT_SUCCESSFUL).action(paySuccess())
                 .and()
                 .withExternal()
-                .source(OrderStatus.PROCESSING).target(OrderStatus.SUCCESS)
+                .source(OrderStatusEnum.PROCESSING).target(OrderStatusEnum.SUCCESS)
                 .event(OrderStatusChangeEvent.THIRD_PARTIES_RETURN_SUCCESS).action(thirdPartiesReturnSuccess())
                 .and()
                 .withExternal()
-                .source(OrderStatus.PROCESSING).target(OrderStatus.FAILURE)
+                .source(OrderStatusEnum.PROCESSING).target(OrderStatusEnum.FAILURE)
                 .event(OrderStatusChangeEvent.THIRD_PARTIES_RETURN_FAILED).action(thirdPartiesReturnFail())
                 .and()
                 .withExternal()
-                .source(OrderStatus.CREATED).target(OrderStatus.CANCEL)
+                .source(OrderStatusEnum.CREATED).target(OrderStatusEnum.CANCEL)
                 .event(OrderStatusChangeEvent.CANCEL).action(cancleOrder())
                 .and()
                 .withExternal()
-                .source(OrderStatus.PROCESSING).target(OrderStatus.CANCEL)
+                .source(OrderStatusEnum.PROCESSING).target(OrderStatusEnum.CANCEL)
                 .event(OrderStatusChangeEvent.CANCEL).action(cancleOrder())
         ;
     }
 
     @Override
-    public void configure(StateMachineConfigurationConfigurer<OrderStatus, OrderStatusChangeEvent> config)
+    public void configure(StateMachineConfigurationConfigurer<OrderStatusEnum, OrderStatusChangeEvent> config)
             throws Exception {
         config.withConfiguration()
                 .machineId(StateMachineConstant.ORDER_STATE_MACHINE_ID)
@@ -72,23 +72,23 @@ public class OrderStateMachineConfigurer extends EnumStateMachineConfigurerAdapt
     }
 
     @Bean
-    public StateMachinePersister<OrderStatus, OrderStatusChangeEvent, Order> stateMachinePersist() {
+    public StateMachinePersister<OrderStatusEnum, OrderStatusChangeEvent, Order> stateMachinePersist() {
         return new DefaultStateMachinePersister<>(orderStateMachinePersist);
     }
 
-    public Action<OrderStatus, OrderStatusChangeEvent> thirdPartiesReturnSuccess() {
+    public Action<OrderStatusEnum, OrderStatusChangeEvent> thirdPartiesReturnSuccess() {
         return context -> log.info("三方返回成功,订单变为成功" );
     }
 
-    private Action<OrderStatus, OrderStatusChangeEvent> thirdPartiesReturnFail() {
+    private Action<OrderStatusEnum, OrderStatusChangeEvent> thirdPartiesReturnFail() {
         return stateContext -> log.info("三方返回失败,订单变为失败");
     }
 
-    public Action<OrderStatus, OrderStatusChangeEvent> paySuccess() {
+    public Action<OrderStatusEnum, OrderStatusChangeEvent> paySuccess() {
         return context -> log.info("支付成功,订单变为处理中" );
     }
 
-    private Action<OrderStatus, OrderStatusChangeEvent> cancleOrder() {
+    private Action<OrderStatusEnum, OrderStatusChangeEvent> cancleOrder() {
         return stateContext -> log.info("取消订单,source:{},target:{}",stateContext.getSource().getId(),stateContext.getTarget().getId());
     }
 

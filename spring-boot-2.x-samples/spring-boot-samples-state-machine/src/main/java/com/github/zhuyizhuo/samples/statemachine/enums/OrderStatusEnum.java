@@ -1,6 +1,6 @@
 package com.github.zhuyizhuo.samples.statemachine.enums;
 
-public enum OrderStatus {
+public enum OrderStatusEnum {
     /**
      * 新建
      */

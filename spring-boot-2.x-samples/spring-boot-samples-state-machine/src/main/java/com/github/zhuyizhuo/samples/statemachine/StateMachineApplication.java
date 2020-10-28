@@ -1,7 +1,7 @@
 package com.github.zhuyizhuo.samples.statemachine;
 
 import com.github.zhuyizhuo.samples.statemachine.constants.StateMachineConstant;
-import com.github.zhuyizhuo.samples.statemachine.enums.OrderStatus;
+import com.github.zhuyizhuo.samples.statemachine.enums.OrderStatusEnum;
 import com.github.zhuyizhuo.samples.statemachine.enums.OrderStatusChangeEvent;
 import com.github.zhuyizhuo.samples.statemachine.vo.Order;
 import lombok.extern.slf4j.Slf4j;
@@ -24,9 +24,9 @@ public class StateMachineApplication implements CommandLineRunner {
 //    @Autowired
 //    private StateMachine<OrderStatus, OrderStatusChangeEvent> stateMachine;
     @Autowired
-    private StateMachineFactory<OrderStatus, OrderStatusChangeEvent> stateMachineFactory;
+    private StateMachineFactory<OrderStatusEnum, OrderStatusChangeEvent> stateMachineFactory;
     @Autowired
-    private StateMachinePersister<OrderStatus, OrderStatusChangeEvent, Order> persister;
+    private StateMachinePersister<OrderStatusEnum, OrderStatusChangeEvent, Order> persister;
 
     public static void main(String[] args) {
         SpringApplication.run(StateMachineApplication.class, args);
@@ -34,10 +34,10 @@ public class StateMachineApplication implements CommandLineRunner {
 
     @Override
     public void run(String... strings) throws Exception {
-        StateMachine<OrderStatus, OrderStatusChangeEvent> stateMachine = stateMachineFactory.getStateMachine(StateMachineConstant.ORDER_STATE_MACHINE_ID);
+        StateMachine<OrderStatusEnum, OrderStatusChangeEvent> stateMachine = stateMachineFactory.getStateMachine(StateMachineConstant.ORDER_STATE_MACHINE_ID);
         Order order = new Order();
         order.setId("123");
-        order.setStatus(OrderStatus.PROCESSING.name());
+        order.setStatus(OrderStatusEnum.PROCESSING.name());
         persister.restore(stateMachine, order);
 //        stateMachine.start();
         log.info("--- PAYMENT_SUCCESSFUL ---");
