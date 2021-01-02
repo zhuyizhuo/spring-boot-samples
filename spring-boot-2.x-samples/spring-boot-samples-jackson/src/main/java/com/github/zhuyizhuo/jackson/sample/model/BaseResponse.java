@@ -24,6 +24,10 @@ public class BaseResponse<T> {
         this.data = data;
     }
 
+    public static <T> BaseResponse<T> success(){
+        return success(null);
+    }
+
     public static <T> BaseResponse<T> success(T data){
         BaseResponse response = new BaseResponse(BaseConstant.SUCCESS_CODE,"成功");
         response.setData(data);
