@@ -39,7 +39,7 @@
 |---| ------------------------------------------------------------ | ------------------------------------------------------------ |
 |1  | [spring-boot-samples-event](./spring-boot-2.x-samples/spring-boot-samples-event) | spring-boot 自定义事件 Demo |
 |2  | [spring-boot-samples-flyway](./spring-boot-2.x-samples/spring-boot-samples-flyway) | spring-boot 集成数据库版本管理工具 Flyway |
-|3  | [spring-boot-samples-jackson](./spring-boot-2.x-samples/spring-boot-samples-jackson) | spring-boot 使用自定义 jackson、filter、自定义 requestWrapper 实现自动序列化反序列化出参入参 |
+|3  | [spring-boot-samples-jackson](./spring-boot-2.x-samples/spring-boot-samples-jackson) | spring-boot jackson 使用 Demo |
 |4  | [spring-boot-samples-japidocs](./spring-boot-2.x-samples/spring-boot-samples-japidocs) | 静态文档生成工具 JApiDocs 使用 Demo |
 |5  | [spring-boot-samples-ldap](./spring-boot-2.x-samples/spring-boot-samples-ldap) | spring-boot 集成轻型目录访问协议 ldap |
 |6  | [spring-boot-samples-liquibase](./spring-boot-2.x-samples/spring-boot-samples-liquibase) | spring-boot 集成数据库版本管理工具 Liquibase |
@@ -49,6 +49,7 @@
 |10 | [spring-boot-samples-resources](./spring-boot-2.x-samples/spring-boot-samples-resources) | spring-boot 访问内部或者外部磁盘静态资源 |
 |11 | [spring-boot-samples-spring-security](./spring-boot-2.x-samples/spring-boot-samples-spring-security) | spring-boot 集成 spring-security |
 |12 | [spring-boot-samples-swagger](./spring-boot-2.x-samples/spring-boot-samples-swagger) | spring-boot 集成 swagger 生成在线文档 |
+|13 | [spring-boot-samples-async](./spring-boot-2.x-samples/spring-boot-samples-async) | spring-boot 使用 @async Demo |
 
 ## 推荐内容
 
