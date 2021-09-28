@@ -24,6 +24,7 @@
         <module>spring-boot-samples-rbac</module>
         <module>spring-boot-samples-state-machine</module>
         <module>spring-boot-samples-async</module>
+        <module>spring-boot-samples-annotation</module>
     </modules>
 
     <properties>

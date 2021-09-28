@@ -1,0 +1,14 @@
+
+test:
+  enable: true
+
+demo:
+  list:
+    - "666"
+    - "777"
+  array1: aaa,bbb,ccc
+  array2: 111,222,333
+  array3: 11.1,22.2,33.3
+
+server:
+  port: 9001
