@@ -1,0 +1,4 @@
+rocketmq:
+  name-server: yizhuo.com:9007
+  producer:
+    group: my-group
