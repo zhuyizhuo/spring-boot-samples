@@ -53,13 +53,9 @@
 
 ## 推荐内容
 
-- [我的博客](http://zhuyizhuo.online/)：分享平时学习和实践过的技术内容
-- [代码生成器](http://zhuyizhuo.online/code-generator-doc/)：轻量级可扩展的代码生成器
-- [GitHub](https://github.com/zhuyizhuo/spring-boot-samples)：Star 支持一下呗
-- [Gitee](https://gitee.com/zhuyizhuo/spring-boot-samples)：Star 支持一下呗
+- [我的博客](https://zhuyizhuo.online/) ：分享平时学习和实践过的技术内容
+- [代码生成器](https://zhuyizhuo.github.io/code-generator-doc/) ：轻量级可扩展的代码生成器
+- [GitHub](https://github.com/zhuyizhuo/spring-boot-samples) ：Star 支持一下呗
 
 ## License
-
-本项目采用 [SATA License](https://github.com/zTrix/sata-license)
-
-> 你不知道这代表什么？简单来说，就是如果你使用了该项目，你需要马不停蹄地点一个 `Star`，接下来你便可以随意使用它。
+- [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
