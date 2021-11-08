@@ -1,0 +1,4 @@
+rocketmq:
+  name-server: localhost:9007
+  producer:
+    group: my-group

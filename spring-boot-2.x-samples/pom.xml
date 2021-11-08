@@ -26,6 +26,7 @@
         <module>spring-boot-samples-async</module>
         <module>spring-boot-samples-annotation</module>
         <module>spring-boot-samples-kafka</module>
+        <module>spring-boot-samples-rocketmq</module>
     </modules>
 
     <properties>
