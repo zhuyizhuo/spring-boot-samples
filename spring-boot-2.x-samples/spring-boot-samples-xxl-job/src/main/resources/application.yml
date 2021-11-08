@@ -1,0 +1,12 @@
+xxl:
+  job:
+    accessToken: ''
+    admin:
+      addresses: http://localhost:8088/xxl-job-admin/
+    executor:
+      address: ''
+      appname: demo
+      ip: ''
+      logpath: ./xxl-logs
+      logretentiondays: 30
+      port: 9999
