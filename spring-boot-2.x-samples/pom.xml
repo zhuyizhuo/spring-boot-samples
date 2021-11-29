@@ -29,6 +29,7 @@
         <module>spring-boot-samples-rocketmq</module>
         <module>actuator</module>
         <module>spring-boot-samples-xxl-job</module>
+        <module>activiti</module>
     </modules>
 
     <properties>
