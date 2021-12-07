@@ -66,3 +66,40 @@ DynamicBpmnService：帮助我们在不重新部署的情况下更改流程中�
 
 ## 修改 jbpm 流程图
 因为 idea 对应插件 2014年已经停止更新， 所以需要下载 eclipse 及 activiti 插件。
+
+# 访问地址
+启动流程
+http://localhost:8081/start?processesKey=askforleave
+```json
+{
+  "name": null,
+  "processDefinitionId": "askforleave:1:10004",
+  "startUserId": null,
+  "processDefinitionName": "请假流程",
+  "id": "22501",
+  "deploymentId": null
+}
+```
+根据实例ID查询流程
+http://localhost:8081/queryByTaskId?processInstanceId=22501
+```json
+{
+  "processInstanceId": "22501",
+  "deploymentId": "10001",
+  "processDefinitionName": "请假流程"
+}
+```
+查看 zhangsan 的任务列表
+http://localhost:8081/task?processDefinitionKey=askforleave&userName=zhangsan
+查看 lisi 的任务列表
+http://localhost:8081/task?processDefinitionKey=askforleave&userName=lisi
+查看 wangwu 的任务列表
+http://localhost:8081/task?processDefinitionKey=askforleave&userName=wangwu
+提交申请
+http://localhost:8081/completeTask?taskId=5009&day=2
+或
+http://localhost:8081/completeTask?taskId=5009
+查看流程图(乱码)
+http://localhost:8081/viewProcessImg?processInstanceId=7507
+查看流程图  高亮
+http://localhost:8081/viewProcessImgHighLighted?processInstanceId=7507

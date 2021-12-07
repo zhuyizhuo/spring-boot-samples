@@ -18,8 +18,22 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.68</version>
+        </dependency>
+        <dependency>
             <groupId>org.activiti</groupId>
             <artifactId>activiti-spring-boot-starter-basic</artifactId>
+            <version>6.0.0</version>
+        </dependency>
+
+        <!-- org.activiti.engine.ActivitiException:
+         Found Activiti 5 process definition,
+         but no compatibility handler on the classpath -->
+        <dependency>
+            <groupId>org.activiti</groupId>
+            <artifactId>activiti5-engine</artifactId>
             <version>6.0.0</version>
         </dependency>
         <dependency>

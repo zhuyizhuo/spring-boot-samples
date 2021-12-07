@@ -1,5 +1,6 @@
 package com.github.zhuyizhuo.activiti.samples.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.FlowNode;
 import org.activiti.bpmn.model.SequenceFlow;
@@ -19,6 +20,7 @@ import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -52,6 +54,8 @@ public class UserController {
     @Autowired
     ProcessEngine processEngine;
 
+    @Autowired
+    ObjectMapper objectMapper;
     /**
      * 启动请假流程--传入请假流程的key
      */
@@ -69,6 +73,21 @@ public class UserController {
     }
 
     /**
+     * 根据流程实例ID 查询流程
+     */
+    @GetMapping("queryByTaskId")
+    public ResponseEntity queryTask(@RequestParam String processInstanceId){
+        ProcessInstance pi = runtimeService.createProcessInstanceQuery()
+                .processInstanceId(processInstanceId)
+                .singleResult();
+        Map m = new HashMap();
+        m.put("processInstanceId", processInstanceId);
+        m.put("processDefinitionName", pi.getProcessDefinitionName());
+        m.put("deploymentId", pi.getDeploymentId());
+        return ResponseEntity.ok(m);
+    }
+
+    /**
      * 根据流程key和用户名获取待办流程
      *
      * @param processDefinitionKey 流程key(holiday)
@@ -80,7 +99,7 @@ public class UserController {
         List<Task> taskList = taskService.createTaskQuery()
                 .processDefinitionKey(processDefinitionKey)
                 //只查询该任务负责人的任务
-                .taskAssignee(userName)
+//                .taskAssignee(userName)
                 .list();
         taskList.forEach(task -> {
             HashMap<String, Object> map = new HashMap<>(16);
@@ -113,8 +132,15 @@ public class UserController {
      * @throws
      */
     @GetMapping("completeTask")
-    public ResponseEntity completeTaskById(@RequestParam String taskId) {
-        taskService.complete(taskId);
+    public ResponseEntity completeTaskById(@RequestParam String taskId, @RequestParam(required = false) String day) {
+        Map<String, Object> map = new HashMap<>();
+        if (StringUtils.hasText(day)){
+            map.put("day", day);
+        } else {
+            //不传默认为1天
+            map.put("day", 1);
+        }
+        taskService.complete(taskId, map);
         return ResponseEntity.ok(String.format("任务id为：%s 已经完成", taskId));
     }
 
@@ -203,6 +229,16 @@ public class UserController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 完结任务
+     * @param processId
+     */
+    @RequestMapping("deleteTaskByProcessId")
+    public ResponseEntity deleteTaskByProcessId(@RequestParam String processId){
+        runtimeService.deleteProcessInstance(processId, "结束");
+        return ResponseEntity.ok("成功");
     }
 
     public byte[] getProcessImage(String processInstanceId) throws Exception {
