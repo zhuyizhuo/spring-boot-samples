@@ -6,4 +6,4 @@
 
 ## 博客教程：
 
-- http://zhuyizhuo.online/2020/07/04/spring-boot-liquibase-database-version-control/
+- https://blog.zhuyizhuo.online/2020/07/04/spring-boot/spring-boot-liquibase-database-version-control/
