@@ -24,9 +24,13 @@
 </dependency>
 ```
 
+3. 增加 JVM 启动参数(2.10版本以后，Log4j2默认关闭了Jansi)
+-Dlog4j.skipJansi=false
+
 ### 项目演示
 1. 启动 Log4j2Application
 2. 访问 http://localhost:8080/log/demo,观察日志输出
+
 
 ### 参考链接
 #### 官网 PatternLayout
