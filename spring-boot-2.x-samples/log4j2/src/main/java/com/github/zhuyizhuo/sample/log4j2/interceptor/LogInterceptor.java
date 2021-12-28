@@ -9,13 +9,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
 /**
- * class: Log4j2Interceptor <br>
- * description: 日志拦截器 <br>
+ * 日志拦截器 <br>
  *
- * @author yizhuo <br>
+ * @author zhuo <br>
  */
 @Component
-public class Log4j2Interceptor implements HandlerInterceptor {
+public class LogInterceptor implements HandlerInterceptor {
     private final static String KEY_SESSION_ID = "traceId";
 
     @Override
