@@ -30,6 +30,7 @@
         <module>actuator</module>
         <module>activiti</module>
         <module>log4j2</module>
+        <module>logback</module>
     </modules>
 
     <properties>
