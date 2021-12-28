@@ -10,8 +10,8 @@
         <!-- %logger{36} 表示 Logger 名字最长36个字符 -->
         <property name="LOG_PATTERN" value="%date{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId}] %-5level %logger{36} - %msg%n" />
         <!-- 定义日志存储的路径 -->
-        <property name="FILE_PATH" value="/Users/zhuo/home/logs/spring-boot-samples-log4j2" />
-        <property name="FILE_NAME" value="spring-boot-samples-log4j2" />
+        <property name="FILE_PATH" value="./log/" />
+        <property name="FILE_NAME" value="log4j2" />
     </Properties>
 
     <appenders>

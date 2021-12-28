@@ -15,7 +15,6 @@
         <module>spring-boot-samples-flyway</module>
         <module>spring-boot-samples-ldap</module>
         <module>spring-boot-samples-liquibase</module>
-        <module>spring-boot-samples-log4j2</module>
         <module>spring-boot-samples-jackson</module>
         <module>spring-boot-samples-japidocs</module>
         <module>spring-boot-samples-spring-security</module>
@@ -27,9 +26,10 @@
         <module>spring-boot-samples-annotation</module>
         <module>spring-boot-samples-kafka</module>
         <module>spring-boot-samples-rocketmq</module>
-        <module>actuator</module>
         <module>spring-boot-samples-xxl-job</module>
+        <module>actuator</module>
         <module>activiti</module>
+        <module>log4j2</module>
     </modules>
 
     <properties>
