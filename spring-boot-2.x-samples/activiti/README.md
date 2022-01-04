@@ -103,3 +103,13 @@ http://localhost:8081/completeTask?taskId=5009
 http://localhost:8081/viewProcessImg?processInstanceId=7507
 查看流程图  高亮
 http://localhost:8081/viewProcessImgHighLighted?processInstanceId=7507
+
+
+## 什么是会签
+ 在流程业务管理中，任务是通常都是由一个人去处理的，而多个人同时处理一个任务，这种任务我们称之为会签任务。
+
+### 会签的种类
+- 按数量通过：达到一定数量的通过表决后，会签通过。
+- 按比例通过：达到一定比例的通过表决后，会签通过。
+- 一票否决：只要有一个表决时否定的，会签通过。
+- 一票通过：只要有一个表决通过的，会签通过。
