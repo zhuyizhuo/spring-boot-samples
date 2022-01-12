@@ -14,6 +14,7 @@ import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
+import org.activiti.engine.task.TaskQuery;
 import org.activiti.image.ProcessDiagramGenerator;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.http.ResponseEntity;
@@ -96,13 +97,15 @@ public class UserController {
      * @param userName             用户名(zhangsan)
      */
     @GetMapping("task")
-    public ResponseEntity getTaskByUserName(@RequestParam String processDefinitionKey, @RequestParam String userName) {
+    public ResponseEntity getTaskList(@RequestParam String processDefinitionKey, @RequestParam(required = false) String userName) {
         ArrayList<Object> resultList = new ArrayList<>();
-        List<Task> taskList = taskService.createTaskQuery()
-                .processDefinitionKey(processDefinitionKey)
-                //只查询该任务负责人的任务
-                .taskAssignee(userName)
-                .list();
+        TaskQuery taskQuery = taskService.createTaskQuery()
+                .processDefinitionKey(processDefinitionKey);
+        if (StringUtils.hasText(userName)){
+            //只查询该任务负责人的任务
+            taskQuery.taskAssignee(userName);
+        }
+        List<Task> taskList = taskQuery.list();
         taskList.forEach(task -> {
             HashMap<String, Object> map = new HashMap<>(16);
             System.out.println(task);
@@ -119,6 +122,25 @@ public class UserController {
 
             //任务对应得流程实例id
             map.put("processInstanceId", task.getProcessInstanceId());
+            //任务对应得流程定义id
+            map.put("processDefinitionId", task.getProcessDefinitionId());
+            resultList.add(map);
+        });
+        return ResponseEntity.ok(resultList);
+    }
+
+    /**
+     * 查询历史记录
+     */
+    @GetMapping("task/history")
+    public ResponseEntity getTaskHistoryList(@RequestParam String processDefinitionKey) {
+        List<HistoricProcessInstance> taskList = historyService.createHistoricProcessInstanceQuery().processDefinitionKey(processDefinitionKey).list();
+        ArrayList<Object> resultList = new ArrayList<>();
+        taskList.forEach(task -> {
+            HashMap<String, Object> map = new HashMap<>(16);
+            System.out.println(task);
+            //任务ID
+            map.put("id", task.getId());
             //任务对应得流程定义id
             map.put("processDefinitionId", task.getProcessDefinitionId());
             resultList.add(map);
@@ -245,7 +267,8 @@ public class UserController {
 
     public byte[] getProcessImage(String processInstanceId) throws Exception {
         //  获取历史流程实例
-        HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery().processInstanceId(processInstanceId).singleResult();
+        HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
+                .processInstanceId(processInstanceId).singleResult();
         if (historicProcessInstance == null) {
             throw new Exception();
         } else {
@@ -259,11 +282,9 @@ public class UserController {
                     .orderByHistoricActivityInstanceId().desc().list();
             // 已执行的节点ID集合
             List<String> executedActivityIdList = new ArrayList<>();
-            @SuppressWarnings("unused") int index = 1;
             System.out.println("获取已经执行的节点ID");
             for (HistoricActivityInstance activityInstance : historicActivityInstanceList) {
                 executedActivityIdList.add(activityInstance.getActivityId());
-                index++;
             }
             // 获取流程图图像字符流
             BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinition.getId());
@@ -272,7 +293,8 @@ public class UserController {
             List<String> executedFlowIdList = getHighLightedFlows(bpmnModel, historicActivityInstanceList);
 
             ProcessDiagramGenerator processDiagramGenerator = processEngine.getProcessEngineConfiguration().getProcessDiagramGenerator();
-            InputStream imageStream = processDiagramGenerator.generateDiagram(bpmnModel, "png", executedActivityIdList, executedFlowIdList, "黑体", "黑体", "黑体", null, 1.0);
+            InputStream imageStream = processDiagramGenerator.generateDiagram(bpmnModel, "png",
+                    executedActivityIdList, executedFlowIdList, "黑体", "黑体", "黑体", null, 1.0);
 
             byte[] buffer = new byte[imageStream.available()];
             imageStream.read(buffer);

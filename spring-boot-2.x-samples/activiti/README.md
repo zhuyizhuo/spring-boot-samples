@@ -63,11 +63,17 @@ http://localhost:8081/task?processDefinitionKey=askforleave&userName=cto
 8、person 选择请假天数，提交审批
 http://localhost:8081/completeTask?taskId=9&day=2
 
-9、再次查看流程图及三人的任务列表
+9、再次查看流程图及三人的任务列表,发现 taskId 发生变化
+http://localhost:8081/viewProcessImgHighLighted?processInstanceId=5
 ![img_1.png](img_1.png)
 
-10、leader 选择审批拒绝
+10、leader 选择审批通过
+http://localhost:8081/completeTask?taskId=14
 
+11、组合上述步骤，查看各种流程流转
+
+## 其他接口
+- 根据流程key查看任务列表 http://localhost:8081/task?processDefinitionKey=askforleave
 
 
 ## activiti 会在数据库生成28张表：
@@ -135,7 +141,6 @@ DynamicBpmnService：帮助我们在不重新部署的情况下更改流程中�
 
 ## 修改 jbpm 流程图
 因为 idea 对应插件 2014年已经停止更新， 所以需要下载 eclipse 及 activiti 插件。
-
 
 ## 什么是会签
  在流程业务管理中，任务是通常都是由一个人去处理的，而多个人同时处理一个任务，这种任务我们称之为会签任务。
