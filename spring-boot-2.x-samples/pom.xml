@@ -15,22 +15,22 @@
         <module>liquibase</module>
         <module>log4j2</module>
         <module>logback</module>
-        <module>spring-boot-samples-resources</module>
-        <module>spring-boot-samples-swagger</module>
-        <module>spring-boot-samples-flyway</module>
-        <module>spring-boot-samples-ldap</module>
-        <module>spring-boot-samples-jackson</module>
-        <module>spring-boot-samples-japidocs</module>
-        <module>spring-boot-samples-spring-security</module>
-        <module>spring-boot-samples-event</module>
-        <module>spring-boot-samples-redis-geohash</module>
-        <module>spring-boot-samples-rbac</module>
-        <module>spring-boot-samples-state-machine</module>
-        <module>spring-boot-samples-async</module>
-        <module>spring-boot-samples-annotation</module>
-        <module>spring-boot-samples-kafka</module>
-        <module>spring-boot-samples-rocketmq</module>
-        <module>spring-boot-samples-xxl-job</module>
+        <module>resources</module>
+        <module>swagger</module>
+        <module>flyway</module>
+        <module>ldap</module>
+        <module>jackson</module>
+        <module>japidocs</module>
+        <module>spring-security</module>
+        <module>event</module>
+        <module>redis-geohash</module>
+        <module>rbac</module>
+        <module>spring-state-machine</module>
+        <module>async</module>
+        <module>annotation</module>
+        <module>kafka</module>
+        <module>rocketmq</module>
+        <module>xxl-job</module>
     </modules>
 
     <properties>

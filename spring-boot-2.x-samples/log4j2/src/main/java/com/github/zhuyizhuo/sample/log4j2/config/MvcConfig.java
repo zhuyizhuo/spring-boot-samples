@@ -11,7 +11,7 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Autowired
     LogInterceptor interceptor;
-
+    
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         if (interceptor == null) {
