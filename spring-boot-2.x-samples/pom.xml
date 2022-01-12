@@ -39,6 +39,7 @@
         <maven.compile.source>1.8</maven.compile.source>
         <maven.compile.target>1.8</maven.compile.target>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <fastjson.version>1.2.79</fastjson.version>
     </properties>
 
     <dependencyManagement>
@@ -68,6 +69,12 @@
                 <groupId>io.springfox</groupId>
                 <artifactId>springfox-swagger-ui</artifactId>
                 <version>${swagger.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
