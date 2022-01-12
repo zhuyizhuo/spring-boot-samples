@@ -1,7 +1,76 @@
 # Spring 集成 activiti
 
-## 修改数据库配置，启动项目，会在数据库生成28张表
-## 表说明：
+## 部署项目 
+- 修改数据库配置，启动项目。
+
+# 访问地址
+1、查看 person 的任务列表
+http://localhost:8081/task?processDefinitionKey=askforleave&userName=person
+此时无任务
+
+2、启动流程
+http://localhost:8081/start?processesKey=askforleave
+此时展示任务信息如下:
+```json
+{
+  "name": null,
+  "processDefinitionId": "askforleave:1:4",
+  "startUserId": null,
+  "processDefinitionName": "请假流程",
+  "id": "5",
+  "deploymentId": null
+}
+```
+
+3、再次查看 person 的任务列表
+http://localhost:8081/task?processDefinitionKey=askforleave&userName=person
+```json
+[
+  {
+    "processInstanceId": "5",
+    "processDefinitionId": "askforleave:1:4",
+    "createTime": "2021-11-12T08:02:37.741+00:00",
+    "name": "person 发起请假流程",
+    "description": null,
+    "id": "9",
+    "assignee": "person"
+  }
+]
+```
+
+4、根据实例ID查询流程
+http://localhost:8081/queryByTaskId?processInstanceId=5
+```json
+{
+  "processInstanceId": "5",
+  "deploymentId": "1",
+  "processDefinitionName": "请假流程"
+}
+```
+
+5、查看流程图
+http://localhost:8081/viewProcessImgHighLighted?processInstanceId=5
+![img.png](img.png)
+
+6、查看 leader 的任务列表
+http://localhost:8081/task?processDefinitionKey=askforleave&userName=leader
+此时无任务
+
+7、查看 cto 的任务列表
+http://localhost:8081/task?processDefinitionKey=askforleave&userName=cto
+此时无任务
+
+8、person 选择请假天数，提交审批
+http://localhost:8081/completeTask?taskId=9&day=2
+
+9、再次查看流程图及三人的任务列表
+![img_1.png](img_1.png)
+
+10、leader 选择审批拒绝
+
+
+
+## activiti 会在数据库生成28张表：
 表名默认以“ACT_”开头,并且表名的第二部分用两个字母表明表的用例，而这个用例也基本上跟Service API匹配。
 
 - ACT_GE_* : “GE” 代表 “General”（通用），用在各种情况下；
@@ -67,43 +136,6 @@ DynamicBpmnService：帮助我们在不重新部署的情况下更改流程中�
 ## 修改 jbpm 流程图
 因为 idea 对应插件 2014年已经停止更新， 所以需要下载 eclipse 及 activiti 插件。
 
-# 访问地址
-启动流程
-http://localhost:8081/start?processesKey=askforleave
-```json
-{
-  "name": null,
-  "processDefinitionId": "askforleave:1:10004",
-  "startUserId": null,
-  "processDefinitionName": "请假流程",
-  "id": "22501",
-  "deploymentId": null
-}
-```
-根据实例ID查询流程
-http://localhost:8081/queryByTaskId?processInstanceId=22501
-```json
-{
-  "processInstanceId": "22501",
-  "deploymentId": "10001",
-  "processDefinitionName": "请假流程"
-}
-```
-查看 zhangsan 的任务列表
-http://localhost:8081/task?processDefinitionKey=askforleave&userName=zhangsan
-查看 lisi 的任务列表
-http://localhost:8081/task?processDefinitionKey=askforleave&userName=lisi
-查看 wangwu 的任务列表
-http://localhost:8081/task?processDefinitionKey=askforleave&userName=wangwu
-提交申请
-http://localhost:8081/completeTask?taskId=5009&day=2
-或
-http://localhost:8081/completeTask?taskId=5009
-查看流程图(乱码)
-http://localhost:8081/viewProcessImg?processInstanceId=7507
-查看流程图  高亮
-http://localhost:8081/viewProcessImgHighLighted?processInstanceId=7507
-
 
 ## 什么是会签
  在流程业务管理中，任务是通常都是由一个人去处理的，而多个人同时处理一个任务，这种任务我们称之为会签任务。
@@ -113,3 +145,7 @@ http://localhost:8081/viewProcessImgHighLighted?processInstanceId=7507
 - 按比例通过：达到一定比例的通过表决后，会签通过。
 - 一票否决：只要有一个表决时否定的，会签通过。
 - 一票通过：只要有一个表决通过的，会签通过。
+
+## 参考链接 
+业务流程管理或商业流程管理（英语：Business Process Management，简称BPM）
+- https://zh.wikipedia.org/wiki/%E4%B8%9A%E5%8A%A1%E6%B5%81%E7%A8%8B%E7%AE%A1%E7%90%86

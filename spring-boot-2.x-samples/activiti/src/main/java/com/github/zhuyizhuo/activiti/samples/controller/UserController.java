@@ -1,6 +1,5 @@
 package com.github.zhuyizhuo.activiti.samples.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.FlowNode;
 import org.activiti.bpmn.model.SequenceFlow;
@@ -17,7 +16,6 @@ import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
 import org.activiti.image.ProcessDiagramGenerator;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -42,20 +40,24 @@ import java.util.Map;
 @RestController
 @RequestMapping
 public class UserController {
-
-    @Autowired
+//  ProcessInstance/Execution 流程实例,每次申请按流程图走一遍,由RuntimeService管理.
     RuntimeService runtimeService;
-    @Autowired
+//  Task 任务,一次审批动作,由TaskService管理.
     TaskService taskService;
-    @Autowired
+//  ProcessDefinition 流程定义,流程图以xml格式保存在.bpmn文件,由RepositoryService管理.
     RepositoryService repositoryService;
-    @Autowired
+//  历史记录
     HistoryService historyService;
-    @Autowired
     ProcessEngine processEngine;
 
-    @Autowired
-    ObjectMapper objectMapper;
+    public UserController(RuntimeService runtimeService, TaskService taskService, RepositoryService repositoryService, HistoryService historyService, ProcessEngine processEngine) {
+        this.runtimeService = runtimeService;
+        this.taskService = taskService;
+        this.repositoryService = repositoryService;
+        this.historyService = historyService;
+        this.processEngine = processEngine;
+    }
+
     /**
      * 启动请假流程--传入请假流程的key
      */
@@ -99,7 +101,7 @@ public class UserController {
         List<Task> taskList = taskService.createTaskQuery()
                 .processDefinitionKey(processDefinitionKey)
                 //只查询该任务负责人的任务
-//                .taskAssignee(userName)
+                .taskAssignee(userName)
                 .list();
         taskList.forEach(task -> {
             HashMap<String, Object> map = new HashMap<>(16);
