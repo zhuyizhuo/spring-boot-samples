@@ -10,7 +10,12 @@ import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.history.HistoricProcessInstance;
+import org.activiti.engine.history.HistoricTaskInstance;
+import org.activiti.engine.impl.RepositoryServiceImpl;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
+import org.activiti.engine.impl.pvm.PvmTransition;
+import org.activiti.engine.impl.pvm.process.ActivityImpl;
+import org.activiti.engine.impl.pvm.process.TransitionImpl;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
@@ -37,6 +42,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping
@@ -70,7 +76,7 @@ public class UserController {
         resultMap.put("name", processInstance.getName());
         resultMap.put("deploymentId", processInstance.getDeploymentId());
         resultMap.put("processDefinitionId", processInstance.getProcessDefinitionId());
-        resultMap.put("startUserId", processInstance.getStartUserId());
+//        resultMap.put("startUserId", processInstance.get());
         resultMap.put("processDefinitionName", processInstance.getProcessDefinitionName());
         return ResponseEntity.ok(resultMap);
     }
@@ -152,8 +158,6 @@ public class UserController {
      * 根据任务id完成任务
      *
      * @param taskId 任务id
-     * @return
-     * @throws
      */
     @GetMapping("completeTask")
     public ResponseEntity completeTaskById(@RequestParam String taskId, @RequestParam(required = false) String day) {
@@ -166,6 +170,49 @@ public class UserController {
         }
         taskService.complete(taskId, map);
         return ResponseEntity.ok(String.format("任务id为：%s 已经完成", taskId));
+    }
+
+    /**
+     * 根据任务id驳回任务
+     *
+     * @param taskId 任务id
+     */
+    @GetMapping("rejectTask")
+    public ResponseEntity rejectTask(@RequestParam String taskId) {
+
+        HistoricTaskInstance historicTaskInstance1 = queryLastNodeByTaskId(taskId);
+        String backTaskDefinitionKey = historicTaskInstance1.getTaskDefinitionKey();
+        //找到任务
+        Task tasks = taskService.createTaskQuery().
+                taskId(taskId).singleResult();
+        String taskDefinitionKey = "";
+        //当前流程未找到 则查找历史记录
+        if (Objects.isNull(tasks)) {
+            HistoricTaskInstance historicTaskInstance = historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
+            taskDefinitionKey = historicTaskInstance.getTaskDefinitionKey();
+        } else {
+            taskDefinitionKey = tasks.getTaskDefinitionKey();
+        }
+
+        // 找到流程实例
+        String processInstanceId = tasks.getProcessInstanceId();
+//        ProcessInstance processInstance = runtimeService
+//                .createProcessInstanceQuery().processInstanceId(processInstanceId)
+//                .singleResult();
+//        System.out.println("processInstance id: " + processInstance.getId());
+
+        System.out.println("processInstanceId: " + processInstanceId);
+
+        //根据流程实例ID和任务key值查询所有同级任务集合
+        List<Task> list = taskService.createTaskQuery().processInstanceId(processInstanceId).taskDefinitionKey(taskDefinitionKey).list();
+        // 所有并行任务节点，同时驳回
+        for (int i = 0; i < list.size(); i++) {
+            Task task = list.get(i);
+            commitProcess(task, backTaskDefinitionKey, null);
+        }
+        //删除任务实例
+        deleteHistoryTask(taskId, historicTaskInstance1.getId(), processInstanceId);
+        return ResponseEntity.ok(String.format("任务id为：%s 审批拒绝", taskId));
     }
 
     /**
@@ -265,7 +312,60 @@ public class UserController {
         return ResponseEntity.ok("成功");
     }
 
-    public byte[] getProcessImage(String processInstanceId) throws Exception {
+    /**
+     * @param task     当前任务
+     * @param variables  流程变量
+     * @param activityId 流程转向执行任务节点ID<br> 此参数为空，默认为提交操作
+     */
+    private void commitProcess(Task task, String activityId, Map<String, Object> variables) {
+        if (variables == null) {
+            variables = new HashMap<String, Object>();
+        }
+        // 跳转节点为空，默认提交操作
+        if (org.apache.commons.lang3.StringUtils.isBlank(activityId)) {
+            taskService.complete(task.getId(), variables);
+        } else {// 流程转向操作
+            turnTransition(task, activityId, variables);
+        }
+    }
+
+    /**
+     * 流程转向操作
+     *
+     * @param task     当前任务
+     * @param activityId 目标节点任务ID
+     * @param variables  流程变量
+     */
+    private void turnTransition(Task task, String activityId,
+                                Map<String, Object> variables) {
+        try {
+            String taskId = task.getId();
+            // 当前节点
+            ActivityImpl currActivity = findActivitiImpl(task, null);
+            // 清空当前流向
+            List<PvmTransition> oriPvmTransitionList = clearTransition(currActivity);
+
+            // 创建新流向
+            TransitionImpl newTransition = currActivity.createOutgoingTransition();
+            // 目标节点
+            ActivityImpl pointActivity = findActivitiImpl(task, activityId);
+            // 设置新流向的目标节点
+            newTransition.setDestination(pointActivity);
+
+            // 执行转向任务
+            taskService.complete(taskId, variables);
+            // 删除目标节点新流入
+            pointActivity.getIncomingTransitions().remove(newTransition);
+
+            // 还原以前流向
+            restoreTransition(currActivity, oriPvmTransitionList);
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException("跳转至目标节点失败");
+        }
+    }
+
+    private byte[] getProcessImage(String processInstanceId) throws Exception {
         //  获取历史流程实例
         HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
                 .processInstanceId(processInstanceId).singleResult();
@@ -320,7 +420,8 @@ public class UserController {
         List<HistoricActivityInstance> finishedActivityInstances = new ArrayList<>();
 
         for (HistoricActivityInstance historicActivityInstance : historicActivityInstances) {
-            FlowNode flowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(historicActivityInstance.getActivityId(), true);
+            FlowNode flowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(historicActivityInstance.getActivityId());
+//            FlowNode flowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(historicActivityInstance.getActivityId(), true);
             historicActivityNodes.add(flowNode);
             if (historicActivityInstance.getEndTime() != null) {
                 finishedActivityInstances.add(historicActivityInstance);
@@ -332,16 +433,20 @@ public class UserController {
         // 遍历已完成的活动实例，从每个实例的outgoingFlows中找到已执行的
         for (HistoricActivityInstance currentActivityInstance : finishedActivityInstances) {
             // 获得当前活动对应的节点信息及outgoingFlows信息
-            currentFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(currentActivityInstance.getActivityId(), true);
+            currentFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(currentActivityInstance.getActivityId());
+//            currentFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(currentActivityInstance.getActivityId(), true);
             List<SequenceFlow> sequenceFlows = currentFlowNode.getOutgoingFlows();
 
             /**
-             * 遍历outgoingFlows并找到已已流转的 满足如下条件认为已已流转： 1.当前节点是并行网关或兼容网关，则通过outgoingFlows能够在历史活动中找到的全部节点均为已流转 2.当前节点是以上两种类型之外的，通过outgoingFlows查找到的时间最早的流转节点视为有效流转
+             * 遍历outgoingFlows并找到已流转的 满足如下条件认为已流转：
+             * 1.当前节点是并行网关或兼容网关， 则通过outgoingFlows能够在历史活动中找到的全部节点均为已流转
+             * 2.当前节点是以上两种类型之外的，通过outgoingFlows查找到的时间最早的流转节点视为有效流转
              */
             if ("parallelGateway".equals(currentActivityInstance.getActivityType()) || "inclusiveGateway".equals(currentActivityInstance.getActivityType())) {
                 // 遍历历史活动节点，找到匹配流程目标节点的
                 for (SequenceFlow sequenceFlow : sequenceFlows) {
-                    targetFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(sequenceFlow.getTargetRef(), true);
+                    targetFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(sequenceFlow.getTargetRef());
+//                    targetFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(sequenceFlow.getTargetRef(), true);
                     if (historicActivityNodes.contains(targetFlowNode)) {
                         highLightedFlowIds.add(targetFlowNode.getId());
                     }
@@ -374,6 +479,170 @@ public class UserController {
             }
         }
         return highLightedFlowIds;
+    }
+
+    /**
+     * 清空指定活动节点流向
+     *
+     * @param activityImpl 活动节点
+     * @return 节点流向集合
+     */
+    private List<PvmTransition> clearTransition(ActivityImpl activityImpl) {
+        // 存储当前节点所有流向临时变量
+        List<PvmTransition> oriPvmTransitionList = new ArrayList<PvmTransition>();
+        // 获取当前节点所有流向，存储到临时变量，然后清空
+        List<PvmTransition> pvmTransitionList = activityImpl
+                .getOutgoingTransitions();
+        for (PvmTransition pvmTransition : pvmTransitionList) {
+            oriPvmTransitionList.add(pvmTransition);
+        }
+        pvmTransitionList.clear();
+
+        return oriPvmTransitionList;
+    }
+
+
+    /**
+     * 还原指定活动节点流向
+     *
+     * @param activityImpl         活动节点
+     * @param oriPvmTransitionList 原有节点流向集合
+     */
+    private void restoreTransition(ActivityImpl activityImpl,
+                                   List<PvmTransition> oriPvmTransitionList) {
+        // 清空现有流向
+        List<PvmTransition> pvmTransitionList = activityImpl
+                .getOutgoingTransitions();
+        pvmTransitionList.clear();
+        // 还原以前流向
+        for (PvmTransition pvmTransition : oriPvmTransitionList) {
+            pvmTransitionList.add(pvmTransition);
+        }
+    }
+    /**
+     * 根据任务ID和节点ID获取活动节点 <br>
+     *
+     * @param task     任务
+     * @param activityId 活动节点ID <br> 如果为null或""，则默认查询当前活动节点 <br> 如果为"end"，则查询结束节点 <br>
+     */
+    private ActivityImpl findActivitiImpl(Task task, String activityId)
+            throws Exception {
+        // 取得流程定义
+        ProcessDefinitionEntity processDefinition = findProcessDefinitionEntityByTaskId(task);
+        // 获取当前活动节点ID
+        if (org.apache.commons.lang3.StringUtils.isBlank(activityId)) {
+            activityId = task.getTaskDefinitionKey();
+        }
+
+        // 根据节点ID，获取对应的活动节点
+        return processDefinition.findActivity(activityId);
+    }
+
+    /**
+     * 根据任务ID获取流程定义
+     *
+     * @param task 任务
+     */
+    private ProcessDefinitionEntity findProcessDefinitionEntityByTaskId(
+            Task task) throws Exception {
+        // 取得流程定义
+        ProcessDefinitionEntity processDefinition = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService)
+                .getDeployedProcessDefinition(task.getProcessDefinitionId());
+
+        if (processDefinition == null) {
+            throw new Exception("流程定义未找到!");
+        }
+
+        return processDefinition;
+    }
+
+
+    /**
+     * 根据流程实例id获取上一个节点的信息
+     *
+     * @param proInsId
+     */
+    private HistoricTaskInstance queryLastNodeByProcessInstanceId(String proInsId) {
+        //上一个节点
+        List<HistoricTaskInstance> list = historyService
+                .createHistoricTaskInstanceQuery()
+                .processInstanceId(proInsId)
+                .orderByHistoricTaskInstanceEndTime()
+                .desc()
+                .list();
+        for (int i = 0; i < list.size(); i++) {
+            HistoricTaskInstance historicTaskInstance = list.get(i);
+            if (historicTaskInstance.getEndTime() != null) {
+                return historicTaskInstance;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 根据任务id获取上一个节点的信息
+     *
+     * @param taskId
+     */
+    private HistoricTaskInstance queryLastNodeByTaskId(String taskId) {
+        //上一个节点
+        List<HistoricTaskInstance> list = historyService
+                .createHistoricTaskInstanceQuery()
+                .taskId(taskId).orderByHistoricTaskInstanceEndTime()
+                .desc()
+                .list();
+        if(!list.isEmpty()){
+            return queryLastNodeByProcessInstanceId(list.get(0).getProcessInstanceId());
+        }
+        return null;
+    }
+
+    private void deleteHistoryTask(String currentTaskId, String targetTaskId, String procInstId) {
+        try {
+            // 查询
+            List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery()
+                    .processInstanceId(procInstId)
+                    .orderByTaskId()
+                    .asc()
+                    .list();
+            for (HistoricTaskInstance historicTaskInstance : list) {
+                if (targetTaskId.equals(historicTaskInstance.getId())) {
+                    historyService.deleteHistoricTaskInstance(historicTaskInstance.getId());
+                }
+                if (currentTaskId.equals(historicTaskInstance.getId())) {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+//            logger.debug("+++++++删除历史任务报错+++++++ taskId: 【{}】 errorMsg:{} ", currentTaskId, e.getMessage());
+            throw new RuntimeException("流程终止报错 taskId: " + currentTaskId + e.getMessage());
+        }
+    }
+
+    private void deleteHistoryAct(String currentTaskId, String targetTaskId, String procInstId) {
+        try {
+            // 查询
+            List<HistoricActivityInstance> list = historyService.createHistoricActivityInstanceQuery()
+                    .processInstanceId(procInstId)
+                    .orderByActivityId()
+                    .desc()
+                    .list();
+            boolean deleteFlag = false;
+            for (HistoricActivityInstance activityInstance : list) {
+                if (targetTaskId.equals(activityInstance.getId())) {
+                    deleteFlag = true;
+                }
+                if (deleteFlag) {
+                    historyService.deleteHistoricTaskInstance(activityInstance.getId());
+                }
+                if (currentTaskId.equals(activityInstance.getId())) {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+//            logger.debug("+++++++删除历史任务报错+++++++ taskId: 【{}】 errorMsg:{} ", currentTaskId, e.getMessage());
+            throw new RuntimeException("流程终止报错 taskId: " + currentTaskId + e.getMessage());
+        }
     }
 
 }

@@ -69,12 +69,16 @@ http://localhost:8081/viewProcessImgHighLighted?processInstanceId=5
 
 10、leader 选择审批通过
 http://localhost:8081/completeTask?taskId=14
+审批拒绝
+http://localhost:8081/rejectTask?taskId=
 
 11、组合上述步骤，查看各种流程流转
 
 ## 其他接口
-- 根据流程key查看任务列表 http://localhost:8081/task?processDefinitionKey=askforleave
-
+- 根据流程key查看任务列表 
+  - http://localhost:8081/task?processDefinitionKey=askforleave
+- 查看历史记录
+  - http://localhost:8081/task/history?processDefinitionKey=askforleave
 
 ## activiti 会在数据库生成28张表：
 表名默认以“ACT_”开头,并且表名的第二部分用两个字母表明表的用例，而这个用例也基本上跟Service API匹配。
