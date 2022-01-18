@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping
@@ -161,6 +162,12 @@ public class UserController {
      */
     @GetMapping("completeTask")
     public ResponseEntity completeTaskById(@RequestParam String taskId, @RequestParam(required = false) String day) {
+        //应先校验任务是否存在
+        Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+        if (task == null){
+            return ResponseEntity.ok("task 不存在");
+        }
+        //todo 将上一步的参数带到下一步
         Map<String, Object> map = new HashMap<>();
         if (StringUtils.hasText(day)){
             map.put("day", day);
@@ -168,6 +175,7 @@ public class UserController {
             //不传默认为1天
             map.put("day", 1);
         }
+
         taskService.complete(taskId, map);
         return ResponseEntity.ok(String.format("任务id为：%s 已经完成", taskId));
     }
@@ -180,8 +188,11 @@ public class UserController {
     @GetMapping("rejectTask")
     public ResponseEntity rejectTask(@RequestParam String taskId) {
 
-        HistoricTaskInstance historicTaskInstance1 = queryLastNodeByTaskId(taskId);
-        String backTaskDefinitionKey = historicTaskInstance1.getTaskDefinitionKey();
+        HistoricTaskInstance taskInstance = queryLastNodeByTaskId(taskId);
+        if (taskInstance == null){
+            return ResponseEntity.ok("task 不存在");
+        }
+        String backTaskDefinitionKey = taskInstance.getTaskDefinitionKey();
         //找到任务
         Task tasks = taskService.createTaskQuery().
                 taskId(taskId).singleResult();
@@ -196,10 +207,6 @@ public class UserController {
 
         // 找到流程实例
         String processInstanceId = tasks.getProcessInstanceId();
-//        ProcessInstance processInstance = runtimeService
-//                .createProcessInstanceQuery().processInstanceId(processInstanceId)
-//                .singleResult();
-//        System.out.println("processInstance id: " + processInstance.getId());
 
         System.out.println("processInstanceId: " + processInstanceId);
 
@@ -210,8 +217,8 @@ public class UserController {
             Task task = list.get(i);
             commitProcess(task, backTaskDefinitionKey, null);
         }
-        //删除任务实例
-        deleteHistoryTask(taskId, historicTaskInstance1.getId(), processInstanceId);
+        //删除任务实例  流程图绘制以此为准
+        deleteHistoryTask(taskId, taskInstance.getId(), processInstanceId);
         return ResponseEntity.ok(String.format("任务id为：%s 审批拒绝", taskId));
     }
 
@@ -380,11 +387,22 @@ public class UserController {
             List<HistoricActivityInstance> historicActivityInstanceList = historyService
                     .createHistoricActivityInstanceQuery().processInstanceId(processInstanceId)
                     .orderByHistoricActivityInstanceId().desc().list();
+
+            //历史任务 流程回退时删除任务实例 以任务实例为准
+            List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery().processInstanceId(processInstanceId).list();
+            List<String> collect = list.stream().map(HistoricTaskInstance::getTaskDefinitionKey).collect(Collectors.toList());
+            //处理流程图节点
+            collect.add("startevent1");
+            collect.add("endevent1");
+            collect.add("exclusivegateway1");
+
             // 已执行的节点ID集合
             List<String> executedActivityIdList = new ArrayList<>();
             System.out.println("获取已经执行的节点ID");
             for (HistoricActivityInstance activityInstance : historicActivityInstanceList) {
-                executedActivityIdList.add(activityInstance.getActivityId());
+                if (collect.contains(activityInstance.getActivityId())){
+                    executedActivityIdList.add(activityInstance.getActivityId());
+                }
             }
             // 获取流程图图像字符流
             BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinition.getId());
@@ -606,10 +624,8 @@ public class UserController {
                     .asc()
                     .list();
             for (HistoricTaskInstance historicTaskInstance : list) {
-                if (targetTaskId.equals(historicTaskInstance.getId())) {
-                    historyService.deleteHistoricTaskInstance(historicTaskInstance.getId());
-                }
                 if (currentTaskId.equals(historicTaskInstance.getId())) {
+                    historyService.deleteHistoricTaskInstance(historicTaskInstance.getId());
                     break;
                 }
             }
