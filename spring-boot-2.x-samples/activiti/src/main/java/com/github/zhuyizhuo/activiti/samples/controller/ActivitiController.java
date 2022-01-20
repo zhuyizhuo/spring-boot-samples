@@ -48,7 +48,7 @@ public class ActivitiController {
      */
     @GetMapping("task")
     public ResponseEntity getTaskList(@RequestParam String processDefinitionKey, @RequestParam(required = false) String userName) {
-        return ResponseEntity.ok(activitiService.getTaskList(processDefinitionKey, userName));
+        return ResponseEntity.ok(activitiService.queryTaskList(processDefinitionKey, userName));
     }
 
     /**

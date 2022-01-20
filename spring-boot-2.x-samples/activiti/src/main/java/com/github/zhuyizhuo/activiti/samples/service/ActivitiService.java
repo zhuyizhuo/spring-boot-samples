@@ -62,6 +62,23 @@ public class ActivitiService {
         resultMap.put("id", processInstance.getId());
         resultMap.put("name", processInstance.getName());
         resultMap.put("deploymentId", processInstance.getDeploymentId());
+        resultMap.put("processInstanceId", processInstance.getProcessInstanceId());
+        resultMap.put("processDefinitionId", processInstance.getProcessDefinitionId());
+        resultMap.put("processDefinitionName", processInstance.getProcessDefinitionName());
+        return resultMap;
+    }
+
+    public HashMap<String, Object> startProcessByKey(String processesKey, String userName) {
+        // todo  真实业务需保证 key 存在
+        Map<String, Object> variables=new HashMap<>();
+        variables.put("userName", userName);
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(processesKey, variables);
+
+        HashMap<String, Object> resultMap = new HashMap<>(8);
+        resultMap.put("id", processInstance.getId());
+        resultMap.put("name", processInstance.getName());
+        resultMap.put("deploymentId", processInstance.getDeploymentId());
+        resultMap.put("processInstanceId", processInstance.getProcessInstanceId());
         resultMap.put("processDefinitionId", processInstance.getProcessDefinitionId());
         resultMap.put("processDefinitionName", processInstance.getProcessDefinitionName());
         return resultMap;
@@ -78,8 +95,12 @@ public class ActivitiService {
         return m;
     }
 
-    public ArrayList<Object> getTaskList(String processDefinitionKey, String userName) {
-        ArrayList<Object> resultList = new ArrayList<>();
+    public ArrayList<HashMap<String, Object>> queryTaskList(String processDefinitionKey){
+        return queryTaskList(processDefinitionKey, "");
+    }
+
+    public ArrayList<HashMap<String, Object>> queryTaskList(String processDefinitionKey, String userName) {
+        ArrayList<HashMap<String, Object>> resultList = new ArrayList<>();
         TaskQuery taskQuery = taskService.createTaskQuery()
                 .processDefinitionKey(processDefinitionKey);
         if (StringUtils.hasText(userName)){
@@ -87,6 +108,34 @@ public class ActivitiService {
             taskQuery.taskAssignee(userName);
         }
         List<Task> taskList = taskQuery.list();
+        taskList.forEach(task -> {
+            HashMap<String, Object> map = new HashMap<>(16);
+            System.out.println(task);
+            //任务ID
+            map.put("id", task.getId());
+            //任务名称
+            map.put("name", task.getName());
+            //任务委派人
+            map.put("assignee", task.getAssignee());
+            //任务创建时间
+            map.put("createTime", task.getCreateTime());
+            //任务描述
+            map.put("description", task.getDescription());
+
+            //任务对应得流程实例id
+            map.put("processInstanceId", task.getProcessInstanceId());
+            //任务对应得流程定义id
+            map.put("processDefinitionId", task.getProcessDefinitionId());
+            resultList.add(map);
+        });
+        return resultList;
+    }
+
+    public ArrayList<HashMap<String, Object>> queryRunTaskByProcessInstanceId(String processInstanceId) {
+        ArrayList<HashMap<String, Object>> resultList = new ArrayList<>();
+
+        List<Task> taskList = taskService.createTaskQuery()
+                .processInstanceId(processInstanceId).list();
         taskList.forEach(task -> {
             HashMap<String, Object> map = new HashMap<>(16);
             System.out.println(task);
@@ -126,11 +175,6 @@ public class ActivitiService {
     }
 
     public String completeTaskById(String taskId, String day) {
-        //应先校验任务是否存在
-        Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
-        if (task == null){
-            return "task 不存在";
-        }
         //todo 将上一步的参数带到下一步
         Map<String, Object> map = new HashMap<>();
         if (StringUtils.hasText(day)){
@@ -139,7 +183,16 @@ public class ActivitiService {
             //不传默认为1天
             map.put("day", 1);
         }
+        return completeTaskById(taskId, map);
+    }
 
+    public String completeTaskById(String taskId, Map<String, Object> map) {
+        //应先校验任务是否存在
+        Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+        if (task == null){
+            return "task 不存在";
+        }
+        System.out.println("map:" + map);
         taskService.complete(taskId, map);
         return String.format("任务id为：%s 已经完成", taskId);
     }
@@ -154,19 +207,18 @@ public class ActivitiService {
         Task tasks = taskService.createTaskQuery().
                 taskId(taskId).singleResult();
         String taskDefinitionKey = "";
+        //实例 ID
+        String processInstanceId = "";
         //当前流程未找到 则查找历史记录
         if (Objects.isNull(tasks)) {
             HistoricTaskInstance historicTaskInstance = historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
             taskDefinitionKey = historicTaskInstance.getTaskDefinitionKey();
+            processInstanceId = historicTaskInstance.getProcessInstanceId();
         } else {
             taskDefinitionKey = tasks.getTaskDefinitionKey();
+            processInstanceId = tasks.getProcessInstanceId();
         }
-
-        // 找到流程实例
-        String processInstanceId = tasks.getProcessInstanceId();
-
         System.out.println("processInstanceId: " + processInstanceId);
-
         //根据流程实例ID和任务key值查询所有同级任务集合
         List<Task> list = taskService.createTaskQuery().processInstanceId(processInstanceId).taskDefinitionKey(taskDefinitionKey).list();
         // 所有并行任务节点，同时驳回

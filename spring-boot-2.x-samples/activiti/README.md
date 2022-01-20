@@ -3,6 +3,9 @@
 ## 部署项目 
 - 修改数据库配置，启动项目。
 
+## 测试流程
+参考单元测试流程
+
 ## 访问地址
 
 - 查看 person 的任务列表
@@ -120,6 +123,25 @@ http://localhost:8081/viewProcessImgHighLighted?processInstanceId=5
 - act_ru_task	运行时任务
 - act_ru_timer_job	运行时定时任务
 - act_ru_variable	运行时变量表
+
+### 清空数据 SQL
+```sql
+set foreign_key_checks = 0;
+truncate table act_re_procdef;
+truncate table act_hi_detail;
+truncate table act_hi_identitylink;
+truncate table act_hi_varinst;
+truncate table act_ru_execution;
+truncate table act_ru_task;
+truncate table act_ru_variable;
+truncate table act_ru_identitylink;
+truncate table act_hi_actinst;
+truncate table act_hi_procinst;
+truncate table act_hi_taskinst;
+truncate table act_ge_bytearray;
+set foreign_key_checks = 1;
+commit ;
+```
 
 ## Activiti提供的服务-7大接口:
 
