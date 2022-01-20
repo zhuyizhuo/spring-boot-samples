@@ -31,7 +31,7 @@
 - [前后端通信有字段需要加解密你会如何处理？](http://zhuyizhuo.online/2020/07/12/spring-boot/spring-boot-jackson/)
 
 ### 工具使用
-- [用静态文档生成工具 JApiDocs 生成接口文档](http://zhuyizhuo.online/2020/07/16/tool/spring-boot/japidocs/)
+- [用静态文档生成工具 JApiDocs 生成接口文档](http://zhuyizhuo.online/2020/07/16/tool/japidocs/)
 
 ## 各 Module 介绍
 1. [activiti](./spring-boot-2.x-samples/activiti/README.md)  spring-boot  集成 activiti
