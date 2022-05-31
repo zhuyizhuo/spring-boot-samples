@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/test">
+  <process id="affair_order" name="审批申请" isExecutable="true">
+    <extensionElements>
+      <activiti:executionListener event="start" class="com.github.zhuyizhuo.activiti.samples.listener.StartListener"></activiti:executionListener>
+    </extensionElements>
+    <startEvent id="startevent1" name="Start"></startEvent>
+    <userTask id="affair_apply" name="审批申请" activiti:assignee="${userName}"></userTask>
+    <sequenceFlow id="flow1" sourceRef="startevent1" targetRef="affair_apply"></sequenceFlow>
+    <userTask id="affair_cs" name="初审" activiti:assignee="${userName}"></userTask>
+    <sequenceFlow id="flow2" sourceRef="affair_apply" targetRef="affair_cs"></sequenceFlow>
+    <userTask id="affair_bmsh" name="多部门审核" activiti:assignee="${operator.deptId},${operator.positionId},${operator.staffId}">
+      <extensionElements>
+        <activiti:taskListener event="complete" class="com.github.zhuyizhuo.activiti.samples.listener.SignListener"></activiti:taskListener>
+      </extensionElements>
+      <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="${operator}" activiti:elementVariable="operator">
+        <completionCondition>${nrOfCompletedInstances == nrOfInstances }</completionCondition>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <sequenceFlow id="flow3" sourceRef="affair_cs" targetRef="affair_bmsh"></sequenceFlow>
+    <endEvent id="endevent1" name="End"></endEvent>
+    <userTask id="affair_dwqr" name="多单位确认" activiti:assignee="${dept.deptId}">
+      <extensionElements>
+        <activiti:taskListener event="all" class="com.github.zhuyizhuo.activiti.samples.listener.SignListener"></activiti:taskListener>
+      </extensionElements>
+      <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="${deptList}" activiti:elementVariable="dept">
+        <completionCondition>${nrOfCompletedInstances == nrOfInstances}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <sequenceFlow id="flow7" sourceRef="affair_dwqr" targetRef="endevent1"></sequenceFlow>
+    <sequenceFlow id="flow8" sourceRef="affair_bmsh" targetRef="affair_dwqr"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_affair_order">
+    <bpmndi:BPMNPlane bpmnElement="affair_order" id="BPMNPlane_affair_order">
+      <bpmndi:BPMNShape bpmnElement="startevent1" id="BPMNShape_startevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="75.0" y="23.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="affair_apply" id="BPMNShape_affair_apply">
+        <omgdc:Bounds height="55.0" width="105.0" x="40.0" y="83.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="affair_cs" id="BPMNShape_affair_cs">
+        <omgdc:Bounds height="55.0" width="105.0" x="40.0" y="173.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="affair_bmsh" id="BPMNShape_affair_bmsh">
+        <omgdc:Bounds height="55.0" width="105.0" x="40.0" y="271.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent1" id="BPMNShape_endevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="77.0" y="480.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="affair_dwqr" id="BPMNShape_affair_dwqr">
+        <omgdc:Bounds height="56.0" width="141.0" x="24.0" y="371.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
+        <omgdi:waypoint x="92.0" y="58.0"></omgdi:waypoint>
+        <omgdi:waypoint x="92.0" y="83.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow2" id="BPMNEdge_flow2">
+        <omgdi:waypoint x="92.0" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="92.0" y="173.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow3" id="BPMNEdge_flow3">
+        <omgdi:waypoint x="92.0" y="228.0"></omgdi:waypoint>
+        <omgdi:waypoint x="92.0" y="271.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow7" id="BPMNEdge_flow7">
+        <omgdi:waypoint x="94.0" y="427.0"></omgdi:waypoint>
+        <omgdi:waypoint x="94.0" y="480.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow8" id="BPMNEdge_flow8">
+        <omgdi:waypoint x="92.0" y="326.0"></omgdi:waypoint>
+        <omgdi:waypoint x="94.0" y="371.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

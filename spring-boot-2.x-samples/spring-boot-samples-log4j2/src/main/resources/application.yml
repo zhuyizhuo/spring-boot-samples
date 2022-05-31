@@ -1,5 +1,0 @@
-# 自定义 log4j2 文件名及日志级别
-#logging:
-#  config: xxxx.xml
-#  level:
-#    com.github.zhuyizhuo: info

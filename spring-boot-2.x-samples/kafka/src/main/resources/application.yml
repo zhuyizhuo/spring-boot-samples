@@ -1,0 +1,25 @@
+spring:
+  kafka:
+    bootstrap-servers: yizhuo.com:9092 # kafka连接接地址
+    producer:
+      retries: 0 #若设置大于0的值，客户端会将发送失败的记录重新发送
+      #当将多个记录被发送到同一个分区时， Producer 将尝试将记录组合到更少的请求中。这有助于提升客户端和服务器端的性能。这个配置控制一个批次的默认大小（以字节为单位）。16384是缺省的配置
+      batch-size: 16384
+      buffer-memory: 33554432 #Producer 用来缓冲等待被发送到服务器的记录的总字节数，33554432是缺省配置
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      # 关闭自动提交 ack
+      enable-auto-commit: false
+      auto-commit-interval: 100
+      auto-offset-reset: earliest
+      max-poll-records: 500
+      key-serializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-serializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      # 配置监听手动提交 ack ,消费一条数据完后，立即提交
+#      manual: 表示手动提交，但是测试下来发现是批量提交
+#      manual_immediate: 表示手动提交，当调用 Acknowledgment#acknowledge之后立马提交。
+      ack-mode: manual_immediate
+  application:
+    name: kafka-springboot
