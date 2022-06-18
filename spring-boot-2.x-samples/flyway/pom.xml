@@ -25,7 +25,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>5.2.4</version>
+            <version>8.5.13</version>
         </dependency>
 
         <!-- 使用 mysql 数据库 -->
