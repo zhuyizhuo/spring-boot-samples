@@ -1,4 +1,4 @@
-# Spring 集成 activiti
+# Spring 集成 activiti 5.22.0
 
 ## 部署项目 
 - 修改数据库配置，启动项目。
@@ -60,7 +60,7 @@ http://localhost:8081/start?processesKey=askforleave
 - person 选择请假天数，提交审批
 http://localhost:8081/completeTask?taskId=9&day=2
 
-- leader 选择审批通过
+- leader 查看任务列表, 选择审批通过
 http://localhost:8081/completeTask?taskId=14
 或审批拒绝
 http://localhost:8081/rejectTask?taskId=
