@@ -1,3 +1,4 @@
+- SpringBoot 集成 mybatis plus
 - redis Template 使用教程
 - async demo
 - spring retry  

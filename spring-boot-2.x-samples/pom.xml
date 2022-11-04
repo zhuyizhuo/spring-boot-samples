@@ -32,6 +32,7 @@
         <module>rocketmq</module>
         <module>xxl-job</module>
         <module>quartz</module>
+        <module>mybatis-plus</module>
     </modules>
 
     <properties>
