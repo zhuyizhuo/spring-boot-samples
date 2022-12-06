@@ -33,6 +33,7 @@
         <module>xxl-job</module>
         <module>quartz</module>
         <module>mybatis-plus</module>
+        <module>rabbitmq</module>
     </modules>
 
     <properties>
