@@ -1,6 +1,8 @@
 package test;
 
-public class KafkaConstant {
-    public static final String TOPIC = "tencent-topic1";
+public interface KafkaConstant {
+    String TOPIC = "tencent-topic1";
+    String HOST = "127.0.0.1:9092";
 //    public static final String TOPIC = "kafka-springboot-001";
+
 }

@@ -18,7 +18,7 @@ public class Sender {
         Random rnd = new Random();
 
         Properties props = new Properties();
-        props.put("bootstrap.servers", "yizhuo.com:9092");
+        props.put("bootstrap.servers", KafkaConstant.HOST);
         props.put("acks", "all");
         props.put("retries", 0);
         props.put("batch.size", 16384);

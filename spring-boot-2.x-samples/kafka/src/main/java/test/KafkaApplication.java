@@ -32,6 +32,7 @@ public class KafkaApplication {
     @PostConstruct
     public void sendMessage() throws InterruptedException {
         for (int i = 0; i < 300; i++) {
+            System.out.println("测试发送消息" + i);
             kafkaSender.send("测试发送消息");
             Thread.sleep(1500);
         }

@@ -1,6 +1,6 @@
 spring:
   kafka:
-    bootstrap-servers: yizhuo.com:9092 # kafka连接接地址
+    bootstrap-servers: 127.0.0.1:9092 # kafka连接接地址
     producer:
       retries: 0 #若设置大于0的值，客户端会将发送失败的记录重新发送
       #当将多个记录被发送到同一个分区时， Producer 将尝试将记录组合到更少的请求中。这有助于提升客户端和服务器端的性能。这个配置控制一个批次的默认大小（以字节为单位）。16384是缺省的配置

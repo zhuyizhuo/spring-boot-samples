@@ -3,14 +3,14 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://zhuyizhuo.online:9002/springboot
+    url: jdbc:mysql://127.0.0.1:3306/springboot?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&nullCatalogMeansCurrent=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: zhuoM3.2
+    password: 123456
 
   # activiti 配置
   activiti:
-    #每次应用启动不检查Activiti数据表是否存在及版本号是否匹配，提升应用启动速度
+    # 配置为 false 则每次应用启动不检查 Activiti 数据表是否存在及版本号是否匹配，提升应用启动速度
     database-schema-update: true
     # 在项目单独作为一个引擎，本身不部署流程的时候，如果resources目录没有“processes”目录，启动项目报错–找不到processes目录。
     # 需要在配置文件中添加以下内容：
