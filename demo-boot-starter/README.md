@@ -1,6 +1,7 @@
 # 自定义 spring boot starter
 1、发包
 2、新建 springboot 项目并引入本 starter, 添加如下依赖
+3、yml 提示配置文件 `spring-configuration-metadata.json`
 ```xml
 <dependency>
     <groupId>com.zhuo</groupId>

@@ -1,0 +1,44 @@
+{
+  "groups": [
+    {
+      "name": "zhuo.demo",
+      "type": "com.github.zhuo.DemoProperties",
+      "sourceType": "com.github.zhuo.DemoProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "zhuo.demo.name",
+      "type": "java.lang.String",
+      "sourceType": "com.github.zhuo.DemoProperties"
+    },
+    {
+      "name": "zhuo.demo.enabled",
+      "type": "java.lang.Boolean"
+    }
+  ],
+  "hints": [
+    {
+      "name": "zhuo.demo.enabled",
+      "values": [
+        {
+          "value": "true",
+          "description": "启用配置"
+        },
+        {
+          "value": "false",
+          "description": "禁用配置"
+        }
+      ]
+    },
+    {
+      "name": "zhuo.demo.name",
+      "values": [
+        {
+          "value": "project name",
+          "description": "项目名称"
+        }
+      ]
+    }
+  ]
+}
