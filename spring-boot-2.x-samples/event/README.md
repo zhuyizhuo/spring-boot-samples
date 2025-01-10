@@ -3,7 +3,7 @@
 2. 事件监听默认为同步执行，如需异步可通过注解改为异步执行
 
 ## 验证
-第一步 : 启动 EventApplication ,观察控制台输出如下:
+第一步 : 注释掉 MyEventListener 方法 onApplicationEvent 上的注解 @Async，启动 EventApplication ,观察控制台输出如下:
 ```console
 .. INFO 42447 --- [           main] c.g.z.event.sample.EventApplication      : Started EventApplication in 16.85 seconds (JVM running for 17.363)
 .. INFO 42447 --- [           main] c.g.z.e.sample.listener.MyEventListener  : 监听到事件 start:MyEvent{name='1235'}
