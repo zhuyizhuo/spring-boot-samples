@@ -34,6 +34,8 @@
         <module>quartz</module>
         <module>mybatis-plus</module>
         <module>rabbitmq</module>
+<!--        <module>ehcache</module>-->
+        <module>multiple-data-sources</module>
     </modules>
 
     <properties>

@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    local:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://localhost:9002/zhuo-vue
+      username: root
+      password: zhuoM3.2
+    origin:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://yizhuo.online:3306/zhuo-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+      username: management
+      password: Management3.2
