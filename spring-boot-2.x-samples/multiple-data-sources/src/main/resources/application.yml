@@ -2,11 +2,20 @@ spring:
   datasource:
     local:
       driver-class-name: com.mysql.cj.jdbc.Driver
+      # 注意，整合多数据源时如果使用springboot默认的数据库连接池Hikari，指定连接数据使用的是jdbc-url而不是url属性
       jdbc-url: jdbc:mysql://localhost:9002/zhuo-vue
       username: root
       password: zhuoM3.2
     origin:
       driver-class-name: com.mysql.cj.jdbc.Driver
+      # 注意，整合多数据源时如果使用springboot默认的数据库连接池Hikari，指定连接数据使用的是jdbc-url而不是url属性
       jdbc-url: jdbc:mysql://yizhuo.online:3306/zhuo-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
       username: management
       password: Management3.2
+
+
+mybatis-plus:
+  # 搜索指定包别名
+  typeAliasesPackage: com.github.zhuo.**.domain, com.github.zhuo.**.model
+  # 配置mapper的扫描，找到所有的mapper.xml映射文件
+  mapperLocations: classpath*:mapper/**/*Mapper.xml
