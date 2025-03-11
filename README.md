@@ -23,15 +23,15 @@
 
 ### 博客教程
 
-- [Spring Boot 2.x教程：静态资源访问](http://zhuyizhuo.online/2020/06/11/spring-boot/spring-boot-resources-visit/)
-- [Spring Boot 2.x教程：文档生成工具 swagger](http://zhuyizhuo.online/2020/06/17/spring-boot/spring-boot-swagger/)
-- [Spring Boot 2.x教程：数据库版本管理工具 Flyway](http://zhuyizhuo.online/2020/06/21/spring-boot/spring-boot-flyway-database-version-control/)
-- [Spring Boot 2.x教程：数据库版本管理工具 Liquibase](http://zhuyizhuo.online/2020/07/04/spring-boot/spring-boot-liquibase-database-version-control)
+- [Spring Boot 2.x教程：静态资源访问](https://blog.zhuyizhuo.online/2020/06/11/spring-boot/spring-boot-resources-visit/)
+- [Spring Boot 2.x教程：文档生成工具 swagger](https://blog.zhuyizhuo.online/2020/06/17/spring-boot/spring-boot-swagger/)
+- [Spring Boot 2.x教程：数据库版本管理工具 Flyway](https://blog.zhuyizhuo.online/2020/06/21/spring-boot/spring-boot-flyway-database-version-control/)
+- [Spring Boot 2.x教程：数据库版本管理工具 Liquibase](https://blog.zhuyizhuo.online/2020/07/04/spring-boot/spring-boot-liquibase-database-version-control)
 
-- [前后端通信有字段需要加解密你会如何处理？](http://zhuyizhuo.online/2020/07/12/spring-boot/spring-boot-jackson/)
+- [前后端通信有字段需要加解密你会如何处理？](https://blog.zhuyizhuo.online/2020/07/12/spring-boot/spring-boot-jackson/)
 
 ### 工具使用
-- [用静态文档生成工具 JApiDocs 生成接口文档](http://zhuyizhuo.online/2020/07/16/tool/japidocs/)
+- [用静态文档生成工具 JApiDocs 生成接口文档](https://blog.zhuyizhuo.online/2020/07/16/tool/japidocs/)
 
 ## 各 Module 介绍
 1. [activiti](./spring-boot-2.x-samples/activiti/README.md)  spring-boot  集成 activiti
