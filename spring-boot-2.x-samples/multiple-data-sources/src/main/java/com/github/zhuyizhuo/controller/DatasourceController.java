@@ -16,8 +16,7 @@ public class DatasourceController {
     }
 
     @RequestMapping("query")
-    public String query(){
-        datasourceService.query();
-        return "{\"code\":\"00\",\"msg\":\"SUCCESS\"}";
+    public Object query(){
+        return datasourceService.query();
     }
 }

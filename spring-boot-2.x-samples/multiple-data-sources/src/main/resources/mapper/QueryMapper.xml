@@ -6,7 +6,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
 
     <select id="query" resultType="map">
-        select id,notes from biz_reminder
+        select id,name from sys_user
     </select>
     
 </mapper>
