@@ -36,6 +36,7 @@
         <module>rabbitmq</module>
 <!--        <module>ehcache</module>-->
         <module>multiple-data-sources</module>
+        <module>elasticsearch</module>
     </modules>
 
     <properties>
