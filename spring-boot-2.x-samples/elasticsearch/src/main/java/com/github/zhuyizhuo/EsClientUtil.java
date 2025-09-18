@@ -136,7 +136,7 @@ public class EsClientUtil {
      * 构造脚本排序 (示例：sourceList 包含 2 的排最前, 再是包含 1 的, 最后是其他)
      */
     public static ScriptSortBuilder buildSourceListPrioritySort() {
-        String scriptCode =
+//        String scriptCode =
 //                "def list = doc['sourceList'];" +
 //                        "double priority = 3.0;" +
 //                        "for (item in list) {" +
@@ -145,13 +145,37 @@ public class EsClientUtil {
 //                        "  else if (item == 3.0) { priority = Math.min(priority, 2.0); }" +
 //                        "}" +
 //                        "return priority;";
-                "def list = doc['sourceList'];" +
-                        "if (list.contains(1.0)) { return 0; } " +
-                        "else if (list.contains(2.0)) { return 1; } " +
-                        "else if (list.contains(3.0)) { return 2; } " +
-                        "else if (list.contains(4.0)) { return 3; } " +
-                        "else { return 9; }";
-        Script script = new Script(scriptCode);
+//                "def list = doc['sourceList'];" +
+//                        "if (list.contains(1.0)) { return 0; } " +
+//                        "else if (list.contains(2.0)) { return 1; } " +
+//                        "else if (list.contains(3.0)) { return 2; } " +
+//                        "else if (list.contains(4.0)) { return 3; } " +
+//                        "else { return 9; }";
+//                "def list = doc['sourceList'];" +
+//                        "if (list.contains(1)) { return 1; } " +
+//                        "else if (list.contains(2)) { return 2; } " +
+//                        "else if (list.contains(3)) { return 3; } " +
+//                        "else if (list.contains(4)) { return 4; } " +
+//                        "return 9;";
+//                "def list = doc['sourceList'].value;" +
+//                        "if (list != null && !list.empty) {" +
+//                        "    if (list.contains('1')) { return 1; } " +
+//                        "    else if (list.contains('2')) { return 2; } " +
+//                        "    else if (list.contains('3')) { return 3; } " +
+//                        "    else if (list.contains('4')) { return 4; } " +
+//                        "}" +
+//                        "return 999;";
+//        Script script = new Script(scriptCode);
+        Script script = new Script(
+                "def list = params._source.sourceList;" +
+                        "if (list != null && !list.empty) {" +
+                        "    if (list.contains(1)) { return 1; }" +
+                        "    else if (list.contains(2)) { return 2; }" +
+                        "    else if (list.contains(3)) { return 3; }" +
+                        "    else if (list.contains(4)) { return 4; }" +
+                        "}" +
+                        "return 999;"
+        );
         return new ScriptSortBuilder(script, ScriptSortBuilder.ScriptSortType.NUMBER)
                 .order(SortOrder.ASC);
     }
