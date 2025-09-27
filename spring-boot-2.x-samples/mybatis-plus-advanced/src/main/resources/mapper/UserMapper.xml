@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.zhuyizhuo.sample.mybatis.plus.advanced.mapper.UserMapper">
+
+    <!-- 自定义查询：根据年龄范围查询用户列表 -->
+    <select id="selectUsersByAgeRange" resultType="com.github.zhuyizhuo.sample.mybatis.plus.advanced.entity.User">
+        SELECT
+            id, name, age, email, create_time, update_time, deleted
+        FROM
+            user
+        WHERE
+            deleted = 0
+            AND age BETWEEN #{minAge} AND #{maxAge}
+        ORDER BY
+            id ASC
+    </select>
+
+    <!-- 自定义分页查询：根据姓名模糊查询用户 -->
+    <select id="selectUsersByNameLike" resultType="com.github.zhuyizhuo.sample.mybatis.plus.advanced.entity.User">
+        SELECT
+            id, name, age, email, create_time, update_time, deleted
+        FROM
+            user
+        WHERE
+            deleted = 0
+            AND name LIKE CONCAT('%', #{name}, '%')
+        ORDER BY
+            id ASC
+    </select>
+
+</mapper>
