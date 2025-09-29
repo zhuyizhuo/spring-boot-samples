@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth2 授权回调</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            color: #666;
+        }
+        .code {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            word-break: break-all;
+            font-family: monospace;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>授权成功</h1>
+        <p>正在处理授权信息，请稍候...</p>
+        <p class="code"><span id="code-display">获取授权码中...</span></p>
+        
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            // 从服务器获取授权码和状态参数
+            const code = [[${code}]];
+            const state = [[${state}]];
+            
+            // 显示授权码（仅用于调试）
+            document.getElementById('code-display').textContent = "授权码已获取";
+            
+            // 如果是在iframe中打开，尝试与父窗口通信
+            if (window.parent && window.parent !== window) {
+                try {
+                    window.parent.postMessage({ type: 'oauth2_code', code: code, state: state }, '*');
+                    setTimeout(function() { window.close(); }, 1000);
+                } catch (e) {
+                    console.error('无法与父窗口通信:', e);
+                    window.location.href = '/oauth2/oauth2-test.html?code=' + encodeURIComponent(code) + '&state=' + encodeURIComponent(state);
+                }
+            } else {
+                // 否则重定向回测试页面
+                window.location.href = '/oauth2/oauth2-test.html?code=' + encodeURIComponent(code) + '&state=' + encodeURIComponent(state);
+            }
+            /*]]>*/
+        </script>
+    </div>
+</body>
+</html>

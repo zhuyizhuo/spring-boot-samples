@@ -1,0 +1,195 @@
+{
+  "info": {
+    "_postman_id": "minio-api-collection",
+    "name": "MinIO API Collection",
+    "description": "Spring Boot MinIO 集成示例项目的API接口集合",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "文件上传",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8081/api/minio/upload",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api", "minio", "upload"],
+          "query": [
+            {
+              "key": "bucketName",
+              "value": "test",
+              "disabled": true
+            }
+          ]
+        },
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": ""
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "文件下载",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8081/api/minio/download?fileName=test.jpg",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api", "minio", "download"],
+          "query": [
+            {
+              "key": "fileName",
+              "value": "test.jpg"
+            },
+            {
+              "key": "bucketName",
+              "value": "test",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "文件删除",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8081/api/minio/delete?fileName=test.jpg",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api", "minio", "delete"],
+          "query": [
+            {
+              "key": "fileName",
+              "value": "test.jpg"
+            },
+            {
+              "key": "bucketName",
+              "value": "test",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "生成预签名URL",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8081/api/minio/presigned-url?fileName=test.jpg&expireTime=3600",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api", "minio", "presigned-url"],
+          "query": [
+            {
+              "key": "fileName",
+              "value": "test.jpg"
+            },
+            {
+              "key": "expireTime",
+              "value": "3600"
+            },
+            {
+              "key": "bucketName",
+              "value": "test",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "获取文件列表",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8081/api/minio/list?bucketName=test&prefix=upload/&recursive=true",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api", "minio", "list"],
+          "query": [
+            {
+              "key": "bucketName",
+              "value": "test"
+            },
+            {
+              "key": "prefix",
+              "value": "upload/"
+            },
+            {
+              "key": "recursive",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "创建桶",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8081/api/minio/bucket",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api", "minio", "bucket"],
+          "query": [
+            {
+              "key": "bucketName",
+              "value": "test-new-bucket"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "检查桶是否存在",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8081/api/minio/bucket/exists?bucketName=test",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8081",
+          "path": ["api", "minio", "bucket", "exists"],
+          "query": [
+            {
+              "key": "bucketName",
+              "value": "test"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

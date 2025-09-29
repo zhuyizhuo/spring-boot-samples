@@ -1,0 +1,27 @@
+# MinIO配置
+# 主配置文件 - 敏感信息已移至application-local.yml
+# 本地配置文件不会被提交到版本控制系统
+minio:
+  endpoint: ${minio.endpoint}
+  accessKey: ${minio.accessKey}
+  secretKey: ${minio.secretKey}
+  bucketName: ${minio.bucketName}
+  dirPrefix: upload/ # 上传文件的目录前缀
+  domain: ${minio.domain}
+  mock:
+    enabled: false # 是否启用模拟模式，默认不启用，连接失败时会自动切换
+
+# 激活本地配置文件
+spring:
+  profiles:
+    active: local
+
+# Spring Boot 配置
+server:
+  port: 8081
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB # 单个文件最大大小
+      max-request-size: 10MB # 请求最大大小

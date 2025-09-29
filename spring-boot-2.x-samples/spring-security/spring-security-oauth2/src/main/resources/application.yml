@@ -1,0 +1,15 @@
+server:
+  port: 8085
+  servlet:
+    context-path: /oauth2
+
+spring:
+  application:
+    name: spring-security-oauth2
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.github.zhuyizhuo.samples: DEBUG
+    org.springframework.security: DEBUG

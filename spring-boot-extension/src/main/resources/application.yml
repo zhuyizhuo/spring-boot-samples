@@ -1,0 +1,63 @@
+# Spring Boot扩展点示例配置文件
+# 这个配置文件展示了如何配置优化后的扩展点功能
+
+# 应用基本配置
+spring:
+  application:
+    name: spring-boot-extension-example
+
+# 扩展点示例配置
+extension:
+  example:
+    application-name: "Spring Boot高级扩展示例"
+    application-version: "1.1.0"
+    feature-enabled: true
+    custom-properties:
+      config.source: "application.yml"
+      config.environment: "development"
+      extension.priority: "high"
+      log.level: "INFO"
+
+# 日志配置
+logging:
+  level:
+    com.zhuo.test: INFO
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# 服务器配置
+server:
+  port: 8080
+  servlet:
+    context-path: /extension
+
+# 示例运行器配置
+runner:
+  test:
+    enabled: true
+    init-delay: 0
+    log-details: true
+
+# 工厂Bean配置
+factory:
+  bean:
+    enabled: true
+    auto-initialize: true
+    default-configs:
+      - app.mode: "development"
+      - app.log.level: "INFO"
+      - app.debug: "true"
+
+# 导入Bean定义注册器配置
+registrar:
+  import:
+    enabled: true
+    register-utilities: true
+    register-services: true
+
+# 配置管理器配置
+config-manager:
+  enabled: true
+  auto-refresh: true
+  cache-enabled: true

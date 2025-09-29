@@ -1,0 +1,19 @@
+# 阿里云OSS配置
+aliyun:
+  oss:
+    endpoint: your-oss-endpoint # 例如：oss-cn-hangzhou.aliyuncs.com
+    accessKeyId: your-access-key-id
+    accessKeySecret: your-access-key-secret
+    bucketName: your-bucket-name
+    dirPrefix: upload/ # 上传文件的目录前缀
+    domain: https://your-bucket-name.oss-cn-hangzhou.aliyuncs.com/ # 访问域名
+
+# Spring Boot 配置
+server:
+  port: 8080
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB # 单个文件最大大小
+      max-request-size: 10MB # 请求最大大小

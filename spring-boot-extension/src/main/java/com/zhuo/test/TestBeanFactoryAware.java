@@ -14,6 +14,6 @@ import org.springframework.stereotype.Component;
 public class TestBeanFactoryAware implements BeanFactoryAware {
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        System.out.println("[TestBeanFactoryAware] " + beanFactory.getBean(TestBeanFactoryAware.class).getClass().getSimpleName());
+        System.out.println("[TestBeanFactoryAware] BeanFactory received: " + beanFactory.getClass().getSimpleName());
     }
 }

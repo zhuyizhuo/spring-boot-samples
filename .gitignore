@@ -30,3 +30,9 @@ hs_err_pid*
 /**/.DS_Store
 .DS_Store
 .vscode/settings.json
+
+# 忽略包含敏感信息的本地配置文件
+**/src/main/resources/application-local.yml
+**/src/main/resources/application-*.yml
+**/src/main/resources/application-*.properties
+.vscode
