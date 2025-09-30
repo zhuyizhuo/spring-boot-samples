@@ -21,7 +21,6 @@
         <dependency>
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
-            <version>8.6.0</version>
         </dependency>
         
         <!-- 用于处理文件上传的MultipartFile -->

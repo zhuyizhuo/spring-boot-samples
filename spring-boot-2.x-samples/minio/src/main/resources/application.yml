@@ -11,17 +11,14 @@ minio:
   mock:
     enabled: false # 是否启用模拟模式，默认不启用，连接失败时会自动切换
 
-# 激活本地配置文件
+# 激活本地配置文件和Spring Boot配置
 spring:
   profiles:
     active: local
-
-# Spring Boot 配置
-server:
-  port: 8081
-
-spring:
   servlet:
     multipart:
       max-file-size: 10MB # 单个文件最大大小
       max-request-size: 10MB # 请求最大大小
+
+server:
+  port: 8081
