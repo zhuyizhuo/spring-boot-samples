@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot 3.x API 测试页面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            min-height: 50px;
+            white-space: pre-wrap;
+        }
+        .param-input {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .param-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .post-data {
+            width: 100%;
+            height: 120px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spring Boot 3.x API 测试页面</h1>
+    
+    <div class="container">
+        <h2>基础API测试</h2>
+        <button onclick="testApi('/hello-world/api/hello')">测试基础hello接口</button>
+        <button onclick="testApi('/hello-world/api/greeting?name=John')">测试带单个参数接口</button>
+        <div class="result" id="basic-result">点击按钮查看结果...</div>
+    </div>
+    
+    <div class="container">
+        <h2>多参数API测试</h2>
+        <div class="param-group">
+            <label for="multi-name">姓名:</label>
+            <input type="text" id="multi-name" class="param-input" placeholder="请输入姓名">
+        </div>
+        <div class="param-group">
+            <label for="multi-age">年龄:</label>
+            <input type="number" id="multi-age" class="param-input" placeholder="请输入年龄">
+        </div>
+        <div class="param-group">
+            <label for="multi-city">城市:</label>
+            <input type="text" id="multi-city" class="param-input" placeholder="请输入城市">
+        </div>
+        <button onclick="testMultiParams()">测试多参数接口</button>
+        <div class="result" id="multi-result">点击按钮查看结果...</div>
+    </div>
+    
+    <div class="container">
+        <h2>GET请求对象参数测试</h2>
+        <div class="param-group">
+            <label for="get-username">用户名:</label>
+            <input type="text" id="get-username" class="param-input" placeholder="请输入用户名">
+        </div>
+        <div class="param-group">
+            <label for="get-email">邮箱:</label>
+            <input type="email" id="get-email" class="param-input" placeholder="请输入邮箱">
+        </div>
+        <div class="param-group">
+            <label for="get-age">年龄:</label>
+            <input type="number" id="get-age" class="param-input" placeholder="请输入年龄">
+        </div>
+        <div class="param-group">
+            <label for="get-address">地址:</label>
+            <input type="text" id="get-address" class="param-input" placeholder="请输入地址">
+        </div>
+        <button onclick="testUserInfoGet()">测试GET对象参数接口</button>
+        <div class="result" id="user-get-result">点击按钮查看结果...</div>
+    </div>
+    
+    <div class="container">
+        <h2>POST请求对象参数测试</h2>
+        <div class="param-group">
+            <label for="post-data">JSON数据:</label>
+            <textarea id="post-data" class="post-data">{
+  "username": "张三",
+  "email": "zhangsan@example.com",
+  "age": 25,
+  "address": "北京市"
+}</textarea>
+        </div>
+        <button onclick="testUserInfoPost()">测试POST对象参数接口</button>
+        <div class="result" id="user-post-result">点击按钮查看结果...</div>
+    </div>
+    
+    <script>
+        // 测试基础API
+        function testApi(url) {
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应错误: ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('basic-result').textContent = data;
+                })
+                .catch(error => {
+                    document.getElementById('basic-result').textContent = '请求失败: ' + error.message;
+                });
+        }
+        
+        // 测试多参数接口
+        function testMultiParams() {
+            const name = document.getElementById('multi-name').value;
+            const age = document.getElementById('multi-age').value;
+            const city = document.getElementById('multi-city').value;
+            
+            let url = '/hello-world/api/multi-params?';
+            if (name) url += 'name=' + encodeURIComponent(name) + '&';
+            if (age) url += 'age=' + encodeURIComponent(age) + '&';
+            if (city) url += 'city=' + encodeURIComponent(city);
+            
+            // 移除末尾的&符号
+            if (url.endsWith('&')) {
+                url = url.slice(0, -1);
+            }
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应错误: ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('multi-result').textContent = data;
+                })
+                .catch(error => {
+                    document.getElementById('multi-result').textContent = '请求失败: ' + error.message;
+                });
+        }
+        
+        // 测试GET请求对象参数接口
+        function testUserInfoGet() {
+            const username = document.getElementById('get-username').value;
+            const email = document.getElementById('get-email').value;
+            const age = document.getElementById('get-age').value;
+            const address = document.getElementById('get-address').value;
+            
+            let url = '/hello-world/api/user-info-get?';
+            if (username) url += 'username=' + encodeURIComponent(username) + '&';
+            if (email) url += 'email=' + encodeURIComponent(email) + '&';
+            if (age) url += 'age=' + encodeURIComponent(age) + '&';
+            if (address) url += 'address=' + encodeURIComponent(address);
+            
+            // 移除末尾的&符号
+            if (url.endsWith('&')) {
+                url = url.slice(0, -1);
+            }
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应错误: ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('user-get-result').textContent = data;
+                })
+                .catch(error => {
+                    document.getElementById('user-get-result').textContent = '请求失败: ' + error.message;
+                });
+        }
+        
+        // 测试POST请求对象参数接口
+        function testUserInfoPost() {
+            const postData = document.getElementById('post-data').value;
+            
+            try {
+                // 验证JSON格式
+                JSON.parse(postData);
+                
+                fetch('/hello-world/api/user-info-post', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: postData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应错误: ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('user-post-result').textContent = data;
+                })
+                .catch(error => {
+                    document.getElementById('user-post-result').textContent = '请求失败: ' + error.message;
+                });
+            } catch (e) {
+                document.getElementById('user-post-result').textContent = 'JSON格式错误: ' + e.message;
+            }
+        }
+    </script>
+</body>
+</html>
