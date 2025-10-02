@@ -1,0 +1,19 @@
+# Spring Boot 应用配置
+spring:
+  application:
+    name: redis-pubsub-demo
+  # 加载本地配置文件
+  config:
+    import: optional:classpath:application-local.yml
+
+# 服务器配置
+server:
+  port: 8083
+  servlet:
+    context-path: /redis-pubsub
+
+# 日志配置
+logging:
+  level:
+    com.github.zhuyizhuo.springboot.redispubsub: INFO
+    org.springframework.data.redis: INFO

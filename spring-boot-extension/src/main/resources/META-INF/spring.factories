@@ -1,2 +1,2 @@
-org.springframework.context.ApplicationContextInitializer=com.zhuo.test.TestApplicationContextInitializer
 org.springframework.boot.env.EnvironmentPostProcessor=com.zhuo.test.TestEnvironmentPostProcessor
+org.springframework.context.ApplicationContextInitializer=com.zhuo.test.TestApplicationContextInitializer
