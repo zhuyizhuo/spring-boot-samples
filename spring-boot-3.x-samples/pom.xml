@@ -11,8 +11,8 @@
     
     <modules>
         <module>hello-world</module>
-        <!-- <module>wechat-message-demo</module>
-        <module>dingtalk-message-demo</module> -->
+<!--         <module>wechat-message-demo</module>-->
+        <module>dingtalk-message-demo</module>
         <!-- 后续会添加更多示例模块 -->
     </modules>
 

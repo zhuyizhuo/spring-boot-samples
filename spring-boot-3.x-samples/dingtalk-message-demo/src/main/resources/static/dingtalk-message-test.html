@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>钉钉消息推送测试</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- 自定义配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1890ff',
+                        secondary: '#52c41a',
+                        warning: '#faad14',
+                        danger: '#f5222d',
+                        dark: '#1f1f1f',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    
+    <!-- 自定义样式 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            .form-input-focus {
+                @apply focus:ring-2 focus:ring-primary/30 focus:border-primary;
+            }
+            .btn-hover {
+                @apply hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200;
+            }
+            .tab-active {
+                @apply text-primary border-primary font-medium;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- 页面头部 -->
+        <header class="mb-8 text-center">
+            <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark mb-2">
+                <i class="fa fa-commenting-o mr-2"></i>钉钉消息推送测试平台
+            </h1>
+            <p class="text-gray-500">快速测试钉钉机器人和工作通知消息推送功能</p>
+        </header>
+
+        <!-- 主内容区域 -->
+        <main class="bg-white rounded-xl card-shadow p-6">
+            <!-- 标签切换 -->
+            <div class="flex border-b border-gray-200 mb-6">
+                <button id="text-tab" class="tab-active px-4 py-2 border-b-2 border-transparent text-sm" onclick="switchTab('text')">
+                    <i class="fa fa-font mr-1"></i>文本消息
+                </button>
+                <button id="markdown-tab" class="px-4 py-2 border-b-2 border-transparent text-sm text-gray-500" onclick="switchTab('markdown')">
+                    <i class="fa fa-markdown mr-1"></i>Markdown消息
+                </button>
+                <button id="notice-tab" class="px-4 py-2 border-b-2 border-transparent text-sm text-gray-500" onclick="switchTab('notice')">
+                    <i class="fa fa-bell-o mr-1"></i>工作通知
+                </button>
+            </div>
+
+            <!-- 文本消息表单 -->
+            <div id="text-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label for="text-content" class="block text-sm font-medium text-gray-700">
+                            <i class="fa fa-pencil-square-o mr-1"></i>消息内容
+                        </label>
+                        <textarea id="text-content" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm form-input-focus" placeholder="请输入要发送的文本内容..."></textarea>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="at-mobiles" class="block text-sm font-medium text-gray-700">
+                            <i class="fa fa-at mr-1"></i>@手机号（多个用逗号分隔）
+                        </label>
+                        <input type="text" id="at-mobiles" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm form-input-focus" placeholder="例如：13800138000,13900139000">
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="is-at-all" class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary">
+                    <label for="is-at-all" class="block text-sm text-gray-700">
+                        <i class="fa fa-users mr-1"></i>@所有人
+                    </label>
+                </div>
+                <div class="flex justify-end">
+                    <button onclick="sendTextMessage()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary btn-hover">
+                        <i class="fa fa-paper-plane mr-2"></i>发送文本消息
+                    </button>
+                </div>
+            </div>
+
+            <!-- Markdown消息表单 -->
+            <div id="markdown-form" class="space-y-4 hidden">
+                <div class="space-y-2">
+                    <label for="markdown-title" class="block text-sm font-medium text-gray-700">
+                        <i class="fa fa-title mr-1"></i>消息标题
+                    </label>
+                    <input type="text" id="markdown-title" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm form-input-focus" placeholder="请输入消息标题...">
+                </div>
+                <div class="space-y-2">
+                    <label for="markdown-content" class="block text-sm font-medium text-gray-700">
+                        <i class="fa fa-markdown mr-1"></i>Markdown内容
+                    </label>
+                    <textarea id="markdown-content" rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm form-input-focus" placeholder="请输入Markdown格式的消息内容...
+# 标题
+## 子标题
+- 列表项1
+- 列表项2
+**粗体文本** *斜体文本* [链接](url)"></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label for="markdown-at-mobiles" class="block text-sm font-medium text-gray-700">
+                            <i class="fa fa-at mr-1"></i>@手机号（多个用逗号分隔）
+                        </label>
+                        <input type="text" id="markdown-at-mobiles" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm form-input-focus" placeholder="例如：13800138000,13900139000">
+                    </div>
+                    <div class="flex items-center space-x-2 self-end">
+                        <input type="checkbox" id="markdown-is-at-all" class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary">
+                        <label for="markdown-is-at-all" class="block text-sm text-gray-700">
+                            <i class="fa fa-users mr-1"></i>@所有人
+                        </label>
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button onclick="sendMarkdownMessage()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-secondary btn-hover">
+                        <i class="fa fa-paper-plane mr-2"></i>发送Markdown消息
+                    </button>
+                </div>
+            </div>
+
+            <!-- 工作通知表单 -->
+            <div id="notice-form" class="space-y-4 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label for="user-id" class="block text-sm font-medium text-gray-700">
+                            <i class="fa fa-user mr-1"></i>用户ID
+                        </label>
+                        <input type="text" id="user-id" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm form-input-focus" placeholder="请输入接收通知的用户ID...">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="notice-title" class="block text-sm font-medium text-gray-700">
+                            <i class="fa fa-title mr-1"></i>通知标题
+                        </label>
+                        <input type="text" id="notice-title" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm form-input-focus" placeholder="请输入通知标题...">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label for="notice-content" class="block text-sm font-medium text-gray-700">
+                        <i class="fa fa-file-text-o mr-1"></i>通知内容
+                    </label>
+                    <textarea id="notice-content" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm form-input-focus" placeholder="请输入工作通知内容..."></textarea>
+                </div>
+                <div class="flex justify-end">
+                    <button onclick="sendWorkNoticeMessage()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-warning btn-hover">
+                        <i class="fa fa-paper-plane mr-2"></i>发送工作通知
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- 响应提示区域 -->
+        <div id="response-message" class="mt-6 px-4 py-3 rounded-md hidden">
+            <div class="flex items-start">
+                <div class="flex-shrink-0" id="response-icon"></div>
+                <div class="ml-3 flex-1">
+                    <p id="response-text" class="text-sm"></p>
+                </div>
+                <div class="ml-4 flex-shrink-0 flex">
+                    <button onclick="hideResponse()" class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        <span class="sr-only">关闭</span>
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Markdown预览 -->
+        <div class="mt-6 bg-white rounded-xl card-shadow p-6 hidden" id="markdown-preview-container">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">
+                    <i class="fa fa-eye mr-2"></i>Markdown预览
+                </h3>
+                <button onclick="toggleMarkdownPreview()" class="text-sm text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times mr-1"></i>关闭
+                </button>
+            </div>
+            <div id="markdown-preview" class="prose max-w-none"></div>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="mt-8 text-center text-sm text-gray-500">
+            <p>© 2025 钉钉消息推送测试平台 | <a href="/dingtalk/swagger-ui.html" class="text-primary hover:underline">API文档</a></p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // 标签切换功能
+        function switchTab(tabName) {
+            // 隐藏所有表单
+            document.getElementById('text-form').classList.add('hidden');
+            document.getElementById('markdown-form').classList.add('hidden');
+            document.getElementById('notice-form').classList.add('hidden');
+            
+            // 移除所有标签的激活状态
+            document.getElementById('text-tab').classList.remove('tab-active');
+            document.getElementById('markdown-tab').classList.remove('tab-active');
+            document.getElementById('notice-tab').classList.remove('tab-active');
+            document.getElementById('text-tab').classList.add('text-gray-500');
+            document.getElementById('markdown-tab').classList.add('text-gray-500');
+            document.getElementById('notice-tab').classList.add('text-gray-500');
+            
+            // 显示选中的表单和激活标签
+            document.getElementById(tabName + '-form').classList.remove('hidden');
+            document.getElementById(tabName + '-tab').classList.add('tab-active');
+            document.getElementById(tabName + '-tab').classList.remove('text-gray-500');
+        }
+
+        // 显示响应消息
+        function showResponse(type, message) {
+            const responseElement = document.getElementById('response-message');
+            const responseIcon = document.getElementById('response-icon');
+            const responseText = document.getElementById('response-text');
+            
+            // 移除之前的样式
+            responseElement.className = 'mt-6 px-4 py-3 rounded-md';
+            
+            // 设置样式和内容
+            if (type === 'success') {
+                responseElement.classList.add('bg-green-50', 'border', 'border-green-200');
+                responseIcon.innerHTML = '<i class="fa fa-check-circle text-green-500"></i>';
+                responseText.className = 'text-green-700';
+            } else if (type === 'error') {
+                responseElement.classList.add('bg-red-50', 'border', 'border-red-200');
+                responseIcon.innerHTML = '<i class="fa fa-exclamation-circle text-red-500"></i>';
+                responseText.className = 'text-red-700';
+            } else if (type === 'warning') {
+                responseElement.classList.add('bg-yellow-50', 'border', 'border-yellow-200');
+                responseIcon.innerHTML = '<i class="fa fa-warning text-yellow-500"></i>';
+                responseText.className = 'text-yellow-700';
+            } else if (type === 'info') {
+                responseElement.classList.add('bg-blue-50', 'border', 'border-blue-200');
+                responseIcon.innerHTML = '<i class="fa fa-info-circle text-blue-500"></i>';
+                responseText.className = 'text-blue-700';
+            }
+            
+            responseText.textContent = message;
+            responseElement.classList.remove('hidden');
+            
+            // 5秒后自动隐藏
+            setTimeout(hideResponse, 5000);
+        }
+
+        // 隐藏响应消息
+        function hideResponse() {
+            document.getElementById('response-message').classList.add('hidden');
+        }
+
+        // 发送文本消息
+        async function sendTextMessage() {
+            const content = document.getElementById('text-content').value;
+            const atMobiles = document.getElementById('at-mobiles').value;
+            const isAtAll = document.getElementById('is-at-all').checked;
+            
+            // 表单验证
+            if (!content.trim()) {
+                showResponse('error', '消息内容不能为空');
+                return;
+            }
+            
+            // 构建请求参数
+            const params = new URLSearchParams();
+            params.append('content', content);
+            params.append('isAtAll', isAtAll);
+            
+            // 处理@手机号
+            if (atMobiles.trim()) {
+                const mobilesArray = atMobiles.split(',').map(m => m.trim());
+                mobilesArray.forEach(mobile => {
+                    params.append('atMobiles', mobile);
+                });
+            }
+            
+            try {
+                showResponse('info', '正在发送文本消息...');
+                const response = await fetch('/dingtalk/api/dingtalk/message/text', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showResponse('success', '文本消息发送成功');
+                    document.getElementById('text-content').value = '';
+                    document.getElementById('at-mobiles').value = '';
+                    document.getElementById('is-at-all').checked = false;
+                } else {
+                    showResponse('error', data.message || '文本消息发送失败');
+                }
+            } catch (error) {
+                showResponse('error', '发送请求失败：' + error.message);
+            }
+        }
+
+        // 发送Markdown消息
+        async function sendMarkdownMessage() {
+            const title = document.getElementById('markdown-title').value;
+            const text = document.getElementById('markdown-content').value;
+            const atMobiles = document.getElementById('markdown-at-mobiles').value;
+            const isAtAll = document.getElementById('markdown-is-at-all').checked;
+            
+            // 表单验证
+            if (!title.trim()) {
+                showResponse('error', '消息标题不能为空');
+                return;
+            }
+            if (!text.trim()) {
+                showResponse('error', 'Markdown内容不能为空');
+                return;
+            }
+            
+            // 构建请求参数
+            const params = new URLSearchParams();
+            params.append('title', title);
+            params.append('text', text);
+            params.append('isAtAll', isAtAll);
+            
+            // 处理@手机号
+            if (atMobiles.trim()) {
+                const mobilesArray = atMobiles.split(',').map(m => m.trim());
+                mobilesArray.forEach(mobile => {
+                    params.append('atMobiles', mobile);
+                });
+            }
+            
+            try {
+                showResponse('info', '正在发送Markdown消息...');
+                const response = await fetch('/dingtalk/api/dingtalk/message/markdown', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showResponse('success', 'Markdown消息发送成功');
+                    document.getElementById('markdown-title').value = '';
+                    document.getElementById('markdown-content').value = '';
+                    document.getElementById('markdown-at-mobiles').value = '';
+                    document.getElementById('markdown-is-at-all').checked = false;
+                } else {
+                    showResponse('error', data.message || 'Markdown消息发送失败');
+                }
+            } catch (error) {
+                showResponse('error', '发送请求失败：' + error.message);
+            }
+        }
+
+        // 发送工作通知消息
+        async function sendWorkNoticeMessage() {
+            const userId = document.getElementById('user-id').value;
+            const title = document.getElementById('notice-title').value;
+            const content = document.getElementById('notice-content').value;
+            
+            // 表单验证
+            if (!userId.trim()) {
+                showResponse('error', '用户ID不能为空');
+                return;
+            }
+            if (!title.trim()) {
+                showResponse('error', '通知标题不能为空');
+                return;
+            }
+            if (!content.trim()) {
+                showResponse('error', '通知内容不能为空');
+                return;
+            }
+            
+            // 构建请求参数
+            const params = new URLSearchParams();
+            params.append('userId', userId);
+            params.append('title', title);
+            params.append('content', content);
+            
+            try {
+                showResponse('info', '正在发送工作通知...');
+                const response = await fetch('/dingtalk/api/dingtalk/message/work-notice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    showResponse('success', '工作通知发送成功');
+                    document.getElementById('user-id').value = '';
+                    document.getElementById('notice-title').value = '';
+                    document.getElementById('notice-content').value = '';
+                } else {
+                    showResponse('error', data.message || '工作通知发送失败');
+                }
+            } catch (error) {
+                showResponse('error', '发送请求失败：' + error.message);
+            }
+        }
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为Markdown内容添加输入监听，实现简单的预览功能
+            const markdownContent = document.getElementById('markdown-content');
+            if (markdownContent) {
+                markdownContent.addEventListener('input', function() {
+                    if (markdownContent.value.trim().length > 0 && Math.random() > 0.7) {
+                        // 为了避免频繁更新，使用随机触发
+                        // 实际项目中可以使用节流函数
+                        // previewMarkdown(markdownContent.value);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
