@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot 示例应用</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        // 配置Tailwind自定义主题
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E40AF',
+                        secondary: '#60A5FA',
+                        accent: '#FBBF24',
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        dark: '#1F2937',
+                        light: '#F3F4F6'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            }
+            .btn-shadow {
+                box-shadow: 0 4px 6px -1px rgba(30, 64, 175, 0.4);
+            }
+            .text-gradient {
+                background-clip: text;
+                -webkit-background-clip: text;
+                color: transparent;
+                background-image: linear-gradient(to right, #1E40AF, #60A5FA);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-light to-blue-50 min-h-screen font-sans">
+    <header class="bg-white bg-opacity-80 backdrop-blur-sm shadow-sm fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-leaf text-2xl text-primary"></i>
+                <h1 class="text-xl font-bold text-primary">Spring Boot Demo</h1>
+            </div>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#home" class="text-dark hover:text-primary transition-colors font-medium">首页</a>
+                <a href="#service" class="text-dark hover:text-primary transition-colors font-medium">服务信息</a>
+                <a href="#about" class="text-dark hover:text-primary transition-colors font-medium">关于</a>
+            </nav>
+            <div class="md:hidden">
+                <button id="menuBtn" class="text-dark focus:outline-none">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <!-- 移动端菜单 -->
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t">
+            <div class="container mx-auto px-4 py-2 flex flex-col space-y-3">
+                <a href="#home" class="text-dark hover:text-primary transition-colors py-2 font-medium">首页</a>
+                <a href="#service" class="text-dark hover:text-primary transition-colors py-2 font-medium">服务信息</a>
+                <a href="#about" class="text-dark hover:text-primary transition-colors py-2 font-medium">关于</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 pt-24 pb-16">
+        <!-- 首页部分 -->
+        <section id="home" class="mb-20 text-center">
+            <div class="inline-block p-2 bg-blue-100 rounded-full mb-6">
+                <i class="fa fa-leaf text-4xl text-primary"></i>
+            </div>
+            <h2 class="text-[clamp(2rem,5vw,3.5rem)] font-bold mb-6 text-gradient">
+                Spring Boot 3.x 示例应用
+            </h2>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto mb-10">
+                这是一个基于Spring Boot 3.x的示例项目，展示了Spring Boot的核心功能和最佳实践。
+            </p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="#service" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg font-medium transition-all duration-300 btn-shadow transform hover:-translate-y-1">
+                    <i class="fa fa-server mr-2"></i>服务信息
+                </a>
+                <a href="/swagger-ui.html" target="_blank" class="bg-gray-800 hover:bg-gray-900 text-white px-8 py-3 rounded-lg font-medium transition-all duration-300 transform hover:-translate-y-1">
+                    <i class="fa fa-book mr-2"></i>API文档
+                </a>
+            </div>
+        </section>
+
+        <!-- 服务信息部分 -->
+        <section id="service" class="mb-20">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold mb-4 text-dark">服务信息</h3>
+                <p class="text-gray-600 max-w-2xl mx-auto">
+                    查看当前服务的基本信息和健康状态。
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <!-- 服务信息卡片 -->
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="text-xl font-bold text-dark">服务详情</h4>
+                        <button id="refreshServiceBtn" class="bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center">
+                            <i class="fa fa-refresh mr-2"></i>刷新
+                        </button>
+                    </div>
+                    
+                    <div id="serviceInfoResult" class="bg-gray-50 p-6 rounded-lg min-h-[200px] border border-gray-200">
+                        <div class="flex justify-center items-center h-full">
+                            <div class="text-center">
+                                <i class="fa fa-spinner fa-spin text-3xl text-primary mb-4"></i>
+                                <p class="text-gray-500">正在加载服务信息...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 健康检查卡片 -->
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="text-xl font-bold text-dark">健康状态</h4>
+                        <button id="checkHealthBtn" class="bg-secondary hover:bg-secondary/90 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center">
+                            <i class="fa fa-heartbeat mr-2"></i>检查
+                        </button>
+                    </div>
+                    
+                    <div id="healthCheckResult" class="bg-gray-50 p-6 rounded-lg min-h-[200px] border border-gray-200">
+                        <div class="flex justify-center items-center h-full">
+                            <div class="text-center">
+                                <i class="fa fa-spinner fa-spin text-3xl text-primary mb-4"></i>
+                                <p class="text-gray-500">正在检查健康状态...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 关于部分 -->
+        <section id="about" class="mb-12">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold mb-4 text-dark">关于项目</h3>
+                <p class="text-gray-600 max-w-2xl mx-auto">
+                    了解更多关于本示例项目的信息。
+                </p>
+            </div>
+            
+            <div class="bg-white rounded-xl p-8 shadow-lg max-w-4xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="text-xl font-bold mb-4 text-primary">技术栈</h4>
+                        <ul class="space-y-3">
+                            <li class="flex items-center"><i class="fa fa-check-circle text-success mr-3"></i>Spring Boot 3.2.0</li>
+                            <li class="flex items-center"><i class="fa fa-check-circle text-success mr-3"></i>SpringDoc OpenAPI (Swagger)</li>
+                            <li class="flex items-center"><i class="fa fa-check-circle text-success mr-3"></i>Java 17</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-xl font-bold mb-4 text-primary">核心功能</h4>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fa fa-file-text text-secondary mr-3 mt-1"></i>
+                                <span>API文档自动生成(Swagger)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-desktop text-secondary mr-3 mt-1"></i>
+                                <span>交互式Web测试页面</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-bullhorn text-secondary mr-3 mt-1"></i>
+                                <span>应用启动时自动打印访问地址</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 快速链接部分 -->
+        <section class="max-w-4xl mx-auto">
+            <div class="text-center mb-8">
+                <h3 class="text-2xl font-bold mb-4 text-dark">快速链接</h3>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="/swagger-ui.html" target="_blank" class="bg-white hover:bg-gray-50 p-6 rounded-xl text-center shadow-md transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="bg-blue-100 text-primary w-12 h-12 flex items-center justify-center rounded-full mx-auto mb-4">
+                        <i class="fa fa-book text-xl"></i>
+                    </div>
+                    <h4 class="font-medium text-dark">API文档</h4>
+                </a>
+                
+                <a href="/v3/api-docs" target="_blank" class="bg-white hover:bg-gray-50 p-6 rounded-xl text-center shadow-md transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="bg-green-100 text-green-600 w-12 h-12 flex items-center justify-center rounded-full mx-auto mb-4">
+                        <i class="fa fa-code text-xl"></i>
+                    </div>
+                    <h4 class="font-medium text-dark">API JSON</h4>
+                </a>
+                
+                <a href="/api/health" target="_blank" class="bg-white hover:bg-gray-50 p-6 rounded-xl text-center shadow-md transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="bg-purple-100 text-purple-600 w-12 h-12 flex items-center justify-center rounded-full mx-auto mb-4">
+                        <i class="fa fa-heartbeat text-xl"></i>
+                    </div>
+                    <h4 class="font-medium text-dark">健康检查</h4>
+                </a>
+                
+                <a href="#service" class="bg-white hover:bg-gray-50 p-6 rounded-xl text-center shadow-md transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="bg-amber-100 text-amber-600 w-12 h-12 flex items-center justify-center rounded-full mx-auto mb-4">
+                        <i class="fa fa-server text-xl"></i>
+                    </div>
+                    <h4 class="font-medium text-dark">服务信息</h4>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-dark text-white py-10">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <i class="fa fa-leaf text-2xl"></i>
+                        <h2 class="text-xl font-bold">Spring Boot Demo</h2>
+                    </div>
+                    <p class="text-gray-400 max-w-md">
+                        Spring Boot 3.x 示例项目，展示Spring Boot的核心功能和最佳实践。
+                    </p>
+                </div>
+                
+                <div class="flex flex-col md:flex-row md:space-x-10 space-y-6 md:space-y-0">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">资源</h3>
+                        <ul class="space-y-2">
+                            <li><a href="/swagger-ui.html" target="_blank" class="text-gray-400 hover:text-white transition-colors">API文档</a></li>
+                            <li><a href="#about" class="text-gray-400 hover:text-white transition-colors">技术栈</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">功能</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#service" class="text-gray-400 hover:text-white transition-colors">服务信息</a></li>
+                            <li><a href="/api/health" target="_blank" class="text-gray-400 hover:text-white transition-colors">健康检查</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
+                <p>&copy; 2023 Spring Boot Demo. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 移动端菜单切换
+        document.getElementById('menuBtn').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    // 关闭移动菜单（如果打开）
+                    document.getElementById('mobileMenu').classList.add('hidden');
+                    
+                    // 滚动到目标元素，考虑顶部固定导航栏的高度
+                    const headerHeight = document.querySelector('header').offsetHeight;
+                    const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+                    
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // 获取服务信息
+        function fetchServiceInfo() {
+            const serviceInfoResult = document.getElementById('serviceInfoResult');
+            
+            // 显示加载状态
+            serviceInfoResult.innerHTML = `
+                <div class="flex justify-center items-center h-full">
+                    <div class="text-center">
+                        <i class="fa fa-spinner fa-spin text-3xl text-primary mb-4"></i>
+                        <p class="text-gray-500">正在加载服务信息...</p>
+                    </div>
+                </div>
+            `;
+            
+            // 发送请求获取服务信息
+            fetch('/api/service')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 格式化JSON显示
+                    const formattedServiceInfo = JSON.stringify(data, null, 2);
+                    serviceInfoResult.innerHTML = `
+                        <pre class="whitespace-pre-wrap text-sm text-gray-800 font-mono">${formattedServiceInfo}</pre>
+                    `;
+                })
+                .catch(error => {
+                    console.error('获取服务信息失败:', error);
+                    serviceInfoResult.innerHTML = `
+                        <div class="text-center text-danger">
+                            <i class="fa fa-exclamation-circle text-3xl mb-4"></i>
+                            <p>获取服务信息失败</p>
+                            <p class="text-sm mt-2">${error.message}</p>
+                            <button onclick="fetchServiceInfo()" class="mt-4 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all">
+                                重试
+                            </button>
+                        </div>
+                    `;
+                });
+        }
+
+        // 检查健康状态
+        function checkHealth() {
+            const healthCheckResult = document.getElementById('healthCheckResult');
+            
+            // 显示加载状态
+            healthCheckResult.innerHTML = `
+                <div class="flex justify-center items-center h-full">
+                    <div class="text-center">
+                        <i class="fa fa-spinner fa-spin text-3xl text-primary mb-4"></i>
+                        <p class="text-gray-500">正在检查健康状态...</p>
+                    </div>
+                </div>
+            `;
+            
+            // 发送请求检查健康状态
+            fetch('/api/health')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 格式化JSON显示
+                    const formattedHealth = JSON.stringify(data, null, 2);
+                    healthCheckResult.innerHTML = `
+                        <div class="text-center mb-4">
+                            <span class="inline-block p-2 bg-success/20 text-success rounded-full">
+                                <i class="fa fa-check-circle text-2xl"></i>
+                            </span>
+                            <h5 class="text-lg font-medium mt-2 text-success">服务正常运行</h5>
+                        </div>
+                        <pre class="whitespace-pre-wrap text-sm text-gray-800 font-mono">${formattedHealth}</pre>
+                    `;
+                })
+                .catch(error => {
+                    console.error('检查健康状态失败:', error);
+                    healthCheckResult.innerHTML = `
+                        <div class="text-center text-danger">
+                            <i class="fa fa-exclamation-circle text-3xl mb-4"></i>
+                            <p>服务健康检查失败</p>
+                            <p class="text-sm mt-2">${error.message}</p>
+                            <button onclick="checkHealth()" class="mt-4 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all">
+                                重试
+                            </button>
+                        </div>
+                    `;
+                });
+        }
+
+        // 添加事件监听器
+        document.getElementById('refreshServiceBtn')?.addEventListener('click', fetchServiceInfo);
+        document.getElementById('checkHealthBtn')?.addEventListener('click', checkHealth);
+
+        // 页面加载完成后自动获取数据
+        document.addEventListener('DOMContentLoaded', function() {
+            // 延迟加载数据，确保页面渲染完成
+            setTimeout(() => {
+                fetchServiceInfo();
+                checkHealth();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
