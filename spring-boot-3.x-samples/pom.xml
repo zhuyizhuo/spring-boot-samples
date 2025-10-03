@@ -13,6 +13,7 @@
         <module>hello-world</module>
 <!--         <module>wechat-message-demo</module>-->
         <module>dingtalk-message-demo</module>
+        <module>rabbitmq-demo</module>
         <!-- 后续会添加更多示例模块 -->
     </modules>
 
@@ -20,7 +21,7 @@
         <java.version>17</java.version>
         <maven.compile.source>${java.version}</maven.compile.source>
         <maven.compile.target>${java.version}</maven.compile.target>
-        <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <springdoc.version>2.3.0</springdoc.version> <!-- Spring Boot 3.x使用的版本 -->
         <file.encoding>UTF-8</file.encoding>
     </properties>
@@ -50,21 +51,5 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
-                <configuration>
-                    <source>${maven.compile.source}</source>
-                    <target>${maven.compile.target}</target>
-                    <release>${java.version}</release>
-                    <encoding>${file.encoding}</encoding>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

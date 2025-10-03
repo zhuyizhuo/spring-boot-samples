@@ -1,0 +1,169 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /rabbitmq-demo
+
+spring:
+  application:
+    name: rabbitmq-demo
+  
+  # RabbitMQ 配置
+  rabbitmq:
+    host: 81.70.18.89
+    port: 5672
+    username: admin
+    password: zhuo3.2
+    virtual-host: /
+    
+    # 连接池配置
+    connection-timeout: 15000
+    
+    # 发送者配置
+    publisher-confirm-type: correlated  # 开启发送确认
+    publisher-returns: true             # 开启发送失败回调
+    
+    # 消费者配置
+    listener:
+      simple:
+        acknowledge-mode: auto          # 确认模式：auto(自动), manual(手动), none(不确认)
+        concurrency: 3                  # 初始消费者数量
+        max-concurrency: 10             # 最大消费者数量
+        prefetch: 5                     # 每个消费者预取的消息数量
+        retry:
+          enabled: true                 # 开启重试
+          initial-interval: 1000        # 重试间隔
+          max-attempts: 3               # 最大重试次数
+          max-interval: 10000           # 最大重试间隔
+          multiplier: 2                 # 重试间隔递增倍数
+        default-requeue-rejected: false # 拒绝消息时是否重新入队
+    
+    # 缓存配置
+    cache:
+      channel:
+        size: 25                        # 缓存的channel数量
+        checkout-timeout: 0             # channel获取超时时间
+
+# 日志配置
+logging:
+  level:
+    com.github.zhuyizhuo.rabbitmq.demo: DEBUG
+    org.springframework.amqp: INFO
+    org.springframework.rabbit: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/rabbitmq-demo.log
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,rabbitmq
+  endpoint:
+    health:
+      show-details: always
+  health:
+    rabbit:
+      enabled: true
+
+# Swagger/OpenAPI 配置
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+  info:
+    title: RabbitMQ Demo API
+    description: Spring Boot 3.x RabbitMQ 集成示例 API 文档
+    version: 1.0.0
+    contact:
+      name: zhuyizhuo
+      email: zhuyizhuo@example.com
+    license:
+      name: MIT License
+      url: https://opensource.org/licenses/MIT
+
+# 自定义配置
+app:
+  rabbitmq:
+    # 消息重试配置
+    retry:
+      max-attempts: 3
+      backoff-initial-interval: 1000
+      backoff-max-interval: 10000
+      backoff-multiplier: 2.0
+    
+    # 死信队列配置
+    dead-letter:
+      enabled: true
+      ttl: 60000
+    
+    # 消息持久化配置
+    durable: true
+    
+    # 队列配置
+    queues:
+      direct:
+        name: demo.direct.queue
+        routing-key: demo.direct.routing.key
+      topic:
+        user-queue: demo.topic.queue.user
+        order-queue: demo.topic.queue.order
+      fanout:
+        email-queue: demo.fanout.queue.email
+        sms-queue: demo.fanout.queue.sms
+        push-queue: demo.fanout.queue.push
+
+---
+# 开发环境配置
+spring:
+  config:
+    activate:
+      on-profile: dev
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+logging:
+  level:
+    com.github.zhuyizhuo.rabbitmq.demo: DEBUG
+
+---
+# 测试环境配置
+spring:
+  config:
+    activate:
+      on-profile: test
+  rabbitmq:
+    host: test-rabbitmq
+    port: 5672
+    username: test_user
+    password: test_password
+
+---
+# 生产环境配置
+spring:
+  config:
+    activate:
+      on-profile: prod
+  rabbitmq:
+    host: prod-rabbitmq
+    port: 5672
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    
+logging:
+  level:
+    com.github.zhuyizhuo.rabbitmq.demo: INFO
+    org.springframework.amqp: WARN
+  file:
+    name: /app/logs/rabbitmq-demo.log
+

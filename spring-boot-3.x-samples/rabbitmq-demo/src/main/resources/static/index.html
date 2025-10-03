@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RabbitMQ Demo 测试页面</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.24.0/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- 头部导航 -->
+        <nav class="navbar navbar-dark bg-primary mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <i class="bi bi-chat-dots-fill me-2"></i>
+                    RabbitMQ Demo 测试平台
+                </a>
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-light me-2" onclick="healthCheck()">
+                        <i class="bi bi-heart-pulse"></i> 健康检查
+                    </button>
+                    <button class="btn btn-outline-light" onclick="getMessageTypes()">
+                        <i class="bi bi-list-ul"></i> 消息类型
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="row">
+            <!-- 左侧菜单 -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-send"></i> 消息发送</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <a href="#direct-section" class="list-group-item list-group-item-action" onclick="showSection('direct-section')">
+                                <i class="bi bi-arrow-right-circle"></i> Direct 消息
+                            </a>
+                            <a href="#topic-section" class="list-group-item list-group-item-action" onclick="showSection('topic-section')">
+                                <i class="bi bi-diagram-3"></i> Topic 消息
+                            </a>
+                            <a href="#fanout-section" class="list-group-item list-group-item-action" onclick="showSection('fanout-section')">
+                                <i class="bi bi-broadcast"></i> Fanout 广播
+                            </a>
+                            <a href="#headers-section" class="list-group-item list-group-item-action" onclick="showSection('headers-section')">
+                                <i class="bi bi-tags"></i> Headers 消息
+                            </a>
+                            <a href="#delayed-section" class="list-group-item list-group-item-action" onclick="showSection('delayed-section')">
+                                <i class="bi bi-clock"></i> 延迟消息
+                            </a>
+                            <a href="#batch-section" class="list-group-item list-group-item-action" onclick="showSection('batch-section')">
+                                <i class="bi bi-layers"></i> 批量消息
+                            </a>
+                            <a href="#notification-section" class="list-group-item list-group-item-action" onclick="showSection('notification-section')">
+                                <i class="bi bi-bell"></i> 通知消息
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 连接状态 -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6><i class="bi bi-wifi"></i> 连接状态</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="connection-status" class="text-muted">
+                            <i class="bi bi-question-circle"></i> 未知
+                        </div>
+                        <button class="btn btn-sm btn-primary mt-2" onclick="checkConnection()">检查连接</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主内容区域 -->
+            <div class="col-md-9">
+                <!-- 响应区域 -->
+                <div id="response-area" class="alert alert-info" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>响应结果</strong>
+                        <button class="btn-close" onclick="hideResponse()"></button>
+                    </div>
+                    <div id="response-content" class="mt-2"></div>
+                </div>
+
+                <!-- Direct 消息 -->
+                <div id="direct-section" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="bi bi-arrow-right-circle text-primary"></i> Direct 消息</h4>
+                            <small class="text-muted">通过精确路由键发送消息到指定队列</small>
+                        </div>
+                        <div class="card-body">
+                            <form id="direct-form" onsubmit="sendDirectMessage(event)">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="direct-content" class="form-label">消息内容 *</label>
+                                            <textarea class="form-control" id="direct-content" rows="3" required placeholder="请输入消息内容..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="direct-type" class="form-label">消息类型</label>
+                                            <select class="form-select" id="direct-type">
+                                                <option value="NORMAL">普通消息</option>
+                                                <option value="NOTIFICATION">系统通知</option>
+                                                <option value="USER_MESSAGE">用户消息</option>
+                                                <option value="ORDER">订单消息</option>
+                                                <option value="PAYMENT">支付消息</option>
+                                                <option value="EMAIL">邮件消息</option>
+                                                <option value="SMS">短信消息</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="direct-sender" class="form-label">发送者</label>
+                                            <input type="text" class="form-control" id="direct-sender" placeholder="发送者标识">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send"></i> 发送 Direct 消息
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Topic 消息 -->
+                <div id="topic-section" class="section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="bi bi-diagram-3 text-success"></i> Topic 消息</h4>
+                            <small class="text-muted">支持通配符的路由消息，可以实现复杂的消息分发</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- 自定义 Topic -->
+                                <div class="col-md-6">
+                                    <h6>自定义 Topic 消息</h6>
+                                    <form id="topic-form" onsubmit="sendTopicMessage(event)">
+                                        <div class="mb-3">
+                                            <label for="topic-content" class="form-label">消息内容 *</label>
+                                            <textarea class="form-control" id="topic-content" rows="3" required placeholder="请输入消息内容..."></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="topic-routing-key" class="form-label">路由键 *</label>
+                                            <input type="text" class="form-control" id="topic-routing-key" required placeholder="例如: demo.topic.user.info">
+                                            <div class="form-text">支持通配符: * (单个单词), # (多个单词)</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="topic-type" class="form-label">消息类型</label>
+                                            <select class="form-select" id="topic-type">
+                                                <option value="NORMAL">普通消息</option>
+                                                <option value="USER_MESSAGE">用户消息</option>
+                                                <option value="ORDER">订单消息</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bi bi-send"></i> 发送 Topic 消息
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- 预定义 Topic -->
+                                <div class="col-md-6">
+                                    <h6>预定义 Topic 消息</h6>
+                                    <div class="mb-3">
+                                        <button class="btn btn-outline-success w-100 mb-2" onclick="sendUserMessage()">
+                                            <i class="bi bi-person"></i> 发送用户消息
+                                        </button>
+                                        <button class="btn btn-outline-success w-100" onclick="sendOrderMessage()">
+                                            <i class="bi bi-cart"></i> 发送订单消息
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="predefined-content" class="form-label">消息内容</label>
+                                        <textarea class="form-control" id="predefined-content" rows="2" placeholder="预定义消息的内容..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fanout 广播消息 -->
+                <div id="fanout-section" class="section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="bi bi-broadcast text-warning"></i> Fanout 广播消息</h4>
+                            <small class="text-muted">将消息广播到所有绑定的队列，实现一对多通信</small>
+                        </div>
+                        <div class="card-body">
+                            <form id="fanout-form" onsubmit="sendFanoutMessage(event)">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="mb-3">
+                                            <label for="fanout-content" class="form-label">广播消息内容 *</label>
+                                            <textarea class="form-control" id="fanout-content" rows="3" required placeholder="这条消息将被发送到所有订阅的队列..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="fanout-type" class="form-label">消息类型</label>
+                                            <select class="form-select" id="fanout-type">
+                                                <option value="NOTIFICATION">系统通知</option>
+                                                <option value="EMAIL">邮件消息</option>
+                                                <option value="SMS">短信消息</option>
+                                                <option value="NORMAL">普通消息</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="fanout-sender" class="form-label">发送者</label>
+                                            <input type="text" class="form-control" id="fanout-sender" placeholder="系统" value="SYSTEM">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="bi bi-broadcast"></i> 发送广播消息
+                                </button>
+                            </form>
+                            
+                            <!-- 快捷广播按钮 -->
+                            <div class="mt-3">
+                                <h6>快捷广播</h6>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-warning" onclick="sendQuickNotification()">
+                                        <i class="bi bi-bell"></i> 系统通知
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning" onclick="sendQuickEmail()">
+                                        <i class="bi bi-envelope"></i> 邮件通知
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning" onclick="sendQuickSms()">
+                                        <i class="bi bi-phone"></i> 短信通知
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Headers 消息 -->
+                <div id="headers-section" class="section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="bi bi-tags text-info"></i> Headers 消息</h4>
+                            <small class="text-muted">基于消息头属性进行路由匹配的消息</small>
+                        </div>
+                        <div class="card-body">
+                            <form id="headers-form" onsubmit="sendHeadersMessage(event)">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="headers-content" class="form-label">消息内容 *</label>
+                                            <textarea class="form-control" id="headers-content" rows="3" required placeholder="请输入消息内容..."></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="headers-message-type" class="form-label">消息类型</label>
+                                            <select class="form-select" id="headers-message-type">
+                                                <option value="NORMAL">普通消息</option>
+                                                <option value="NOTIFICATION">系统通知</option>
+                                                <option value="EMAIL">邮件消息</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="headers-type" class="form-label">Header Type *</label>
+                                            <select class="form-select" id="headers-type" required>
+                                                <option value="">请选择类型</option>
+                                                <option value="urgent">紧急</option>
+                                                <option value="normal">普通</option>
+                                                <option value="low">低优先级</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="headers-priority" class="form-label">Priority *</label>
+                                            <select class="form-select" id="headers-priority" required>
+                                                <option value="">请选择优先级</option>
+                                                <option value="high">高</option>
+                                                <option value="medium">中</option>
+                                                <option value="low">低</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-info">
+                                    <i class="bi bi-tags"></i> 发送 Headers 消息
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 延迟消息 -->
+                <div id="delayed-section" class="section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="bi bi-clock text-secondary"></i> 延迟消息</h4>
+                            <small class="text-muted">设置消息的TTL，实现延迟处理功能</small>
+                        </div>
+                        <div class="card-body">
+                            <form id="delayed-form" onsubmit="sendDelayedMessage(event)">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="mb-3">
+                                            <label for="delayed-content" class="form-label">消息内容 *</label>
+                                            <textarea class="form-control" id="delayed-content" rows="3" required placeholder="请输入延迟消息内容..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="delayed-seconds" class="form-label">延迟时间（秒）*</label>
+                                            <input type="number" class="form-control" id="delayed-seconds" required min="1" max="3600" value="30" placeholder="30">
+                                            <div class="form-text">范围: 1-3600 秒</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="delayed-type" class="form-label">消息类型</label>
+                                            <select class="form-select" id="delayed-type">
+                                                <option value="NORMAL">普通消息</option>
+                                                <option value="NOTIFICATION">定时通知</option>
+                                                <option value="ORDER">订单提醒</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-secondary">
+                                    <i class="bi bi-clock"></i> 发送延迟消息
+                                </button>
+                            </form>
+
+                            <!-- 快捷延迟选项 -->
+                            <div class="mt-3">
+                                <h6>快捷选项</h6>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDelayTime(10)">10秒</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDelayTime(30)">30秒</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDelayTime(60)">1分钟</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDelayTime(300)">5分钟</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 批量消息 -->
+                <div id="batch-section" class="section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="bi bi-layers text-dark"></i> 批量消息</h4>
+                            <small class="text-muted">一次发送多条消息，提高处理效率</small>
+                        </div>
+                        <div class="card-body">
+                            <div id="batch-messages-container">
+                                <div class="message-item border rounded p-3 mb-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <label class="form-label">消息内容</label>
+                                                <textarea class="form-control batch-content" rows="2" placeholder="消息 1 内容..."></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-2">
+                                                <label class="form-label">消息类型</label>
+                                                <select class="form-select batch-type">
+                                                    <option value="NORMAL">普通消息</option>
+                                                    <option value="NOTIFICATION">系统通知</option>
+                                                    <option value="ORDER">订单消息</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeBatchMessage(this)" disabled>
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-outline-primary" onclick="addBatchMessage()">
+                                    <i class="bi bi-plus"></i> 添加消息
+                                </button>
+                                <button type="button" class="btn btn-dark" onclick="sendBatchMessages()">
+                                    <i class="bi bi-layers"></i> 发送批量消息
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 通知消息 -->
+                <div id="notification-section" class="section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="bi bi-bell text-danger"></i> 通知消息</h4>
+                            <small class="text-muted">发送各类通知消息，支持邮件、短信等多种方式</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- 系统通知 -->
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-header bg-light">
+                                            <h6><i class="bi bi-bell"></i> 系统通知</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <form onsubmit="sendSystemNotification(event)">
+                                                <div class="mb-3">
+                                                    <label class="form-label">通知内容</label>
+                                                    <textarea class="form-control" id="notification-content" rows="3" placeholder="系统维护通知..."></textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">接收者</label>
+                                                    <input type="text" class="form-control" id="notification-receiver" placeholder="all_users">
+                                                </div>
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="bi bi-bell"></i> 发送通知
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 邮件消息 -->
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-header bg-light">
+                                            <h6><i class="bi bi-envelope"></i> 邮件消息</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <form onsubmit="sendEmailNotification(event)">
+                                                <div class="mb-3">
+                                                    <label class="form-label">邮件内容</label>
+                                                    <textarea class="form-control" id="email-content" rows="3" placeholder="邮件内容..."></textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">收件人邮箱</label>
+                                                    <input type="email" class="form-control" id="email-receiver" placeholder="user@example.com">
+                                                </div>
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="bi bi-envelope"></i> 发送邮件
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 短信消息 -->
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-header bg-light">
+                                            <h6><i class="bi bi-phone"></i> 短信消息</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <form onsubmit="sendSmsNotification(event)">
+                                                <div class="mb-3">
+                                                    <label class="form-label">短信内容</label>
+                                                    <textarea class="form-control" id="sms-content" rows="3" placeholder="短信内容..."></textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">手机号码</label>
+                                                    <input type="tel" class="form-control" id="sms-receiver" placeholder="13800138000">
+                                                </div>
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="bi bi-phone"></i> 发送短信
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 自定义 JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>

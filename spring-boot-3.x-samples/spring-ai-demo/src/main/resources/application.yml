@@ -1,0 +1,37 @@
+server:
+  port: 8083
+
+spring:
+  ai:
+    # OpenAI配置
+    openai:
+      api-key: "your-openai-api-key"
+      chat:
+        options:
+          model: gpt-3.5-turbo
+          temperature: 0.7
+    # Ollama配置（本地运行的模型）
+    ollama:
+      base-url: "http://localhost:11434"
+      chat:
+        options:
+          model: llama3
+          temperature: 0.7
+    # Pinecone配置
+    pinecone:
+      api-key: "your-pinecone-api-key"
+      environment: "gcp-starter"
+      index-name: "spring-ai-demo"
+
+# 应用信息
+info:
+  app:
+    name: spring-ai-demo
+    description: Spring Boot 3.x 集成 AI 示例应用
+    version: 1.0.0
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.github.zhuyizhuo.springai: DEBUG

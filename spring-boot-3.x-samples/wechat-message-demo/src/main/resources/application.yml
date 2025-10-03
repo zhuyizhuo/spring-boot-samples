@@ -1,0 +1,7 @@
+server:
+  port: 8080
+
+wechat:
+  mp:
+    app-id: your-app-id
+    secret: your-app-secret
