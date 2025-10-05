@@ -8,6 +8,7 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
@@ -160,7 +161,7 @@ public class MessageConsumerService {
     @RabbitListener(queues = RabbitConfig.HEADERS_QUEUE)
     @RabbitHandler
     public void handleHeadersMessage(@Payload MessageDto messageDto, 
-                                   @Header Map<String, Object> headers) {
+                                   @Headers Map<String, Object> headers) {
         try {
             logger.info("接收到Headers消息: {}", messageDto);
             logger.info("消息头信息: {}", headers);
