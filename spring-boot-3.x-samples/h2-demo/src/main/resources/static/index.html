@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot + H2 演示</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- Tailwind CSS 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#64748b',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        info: '#06b6d4',
+                        dark: '#1e293b',
+                        light: '#f1f5f9'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            }
+            .btn-hover {
+                @apply transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5;
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gray-50 min-h-screen flex flex-col">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-database text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-dark">Spring Boot + H2 演示</h1>
+            </div>
+            <div class="flex space-x-4">
+                <a href="http://localhost:8080/h2-console" target="_blank" class="flex items-center text-secondary hover:text-primary btn-hover">
+                    <i class="fa fa-terminal mr-2"></i>
+                    <span>H2控制台</span>
+                </a>
+                <a href="http://localhost:8080/swagger-ui.html" target="_blank" class="flex items-center text-secondary hover:text-primary btn-hover">
+                    <i class="fa fa-book mr-2"></i>
+                    <span>API文档</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <!-- 标题和描述 -->
+        <div class="text-center mb-10">
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark mb-3">用户管理系统</h2>
+            <p class="text-secondary max-w-2xl mx-auto">这是一个基于Spring Boot 3.x和H2数据库的演示应用，支持用户的增删改查操作。所有数据存储在内存中的H2数据库中。</p>
+        </div>
+
+        <!-- 功能卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+            <!-- 添加用户卡片 -->
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center mb-4">
+                    <div class="bg-primary/10 p-3 rounded-full mr-4">
+                        <i class="fa fa-user-plus text-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-dark">添加用户</h3>
+                </div>
+                
+                <form id="addUserForm" class="space-y-4">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                        <input type="text" id="username" name="username" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                               placeholder="请输入用户名">
+                    </div>
+                    
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                        <input type="password" id="password" name="password" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                               placeholder="请输入密码">
+                    </div>
+                    
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">邮箱</label>
+                        <input type="email" id="email" name="email" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                               placeholder="请输入邮箱">
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg btn-hover">
+                        <i class="fa fa-plus-circle mr-2"></i>添加用户
+                    </button>
+                </form>
+            </div>
+
+            <!-- 操作结果卡片 -->
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center mb-4">
+                    <div class="bg-info/10 p-3 rounded-full mr-4">
+                        <i class="fa fa-info-circle text-info text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-dark">操作结果</h3>
+                </div>
+                
+                <div id="resultMessage" class="min-h-[120px] p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center text-secondary">
+                    <p>操作结果将显示在这里...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 用户列表卡片 -->
+        <div class="bg-white rounded-lg p-6 card-shadow mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                <div class="flex items-center mb-4 sm:mb-0">
+                    <div class="bg-success/10 p-3 rounded-full mr-4">
+                        <i class="fa fa-users text-success text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-dark">用户列表</h3>
+                </div>
+                <button id="refreshUsersBtn" class="bg-white border border-primary text-primary hover:bg-primary/5 font-medium py-2 px-4 rounded-lg btn-hover">
+                    <i class="fa fa-refresh mr-2"></i>刷新列表
+                </button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户名</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">邮箱</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
+                            <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userList" class="bg-white divide-y divide-gray-200">
+                        <!-- 用户列表将通过JavaScript动态生成 -->
+                        <tr class="text-center">
+                            <td colspan="5" class="px-6 py-10 text-secondary">
+                                <i class="fa fa-spinner fa-spin mr-2"></i>加载用户列表中...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-6">
+        <div class="container mx-auto px-4 text-center text-secondary text-sm">
+            <p>&copy; 2023 Spring Boot + H2 演示应用 | <a href="https://github.com/zhuyizhuo" class="text-primary hover:underline">GitHub</a></p>
+        </div>
+    </footer>
+
+    <!-- 修改用户模态框 -->
+    <div id="editUserModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4 card-shadow transform transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-dark">修改用户</h3>
+                <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="editUserForm" class="space-y-4">
+                <input type="hidden" id="editUserId" name="id">
+                
+                <div>
+                    <label for="editUsername" class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                    <input type="text" id="editUsername" name="username" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                </div>
+                
+                <div>
+                    <label for="editPassword" class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                    <input type="password" id="editPassword" name="password"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                           placeholder="留空则不修改">
+                </div>
+                
+                <div>
+                    <label for="editEmail" class="block text-sm font-medium text-gray-700 mb-1">邮箱</label>
+                    <input type="email" id="editEmail" name="email" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                </div>
+                
+                <div class="flex space-x-4">
+                    <button type="button" id="cancelEditBtn" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg btn-hover">
+                        <i class="fa fa-times mr-2"></i>取消
+                    </button>
+                    <button type="submit" class="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg btn-hover">
+                        <i class="fa fa-save mr-2"></i>保存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript 代码 -->
+    <script>
+        // 等待DOM加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const addUserForm = document.getElementById('addUserForm');
+            const editUserForm = document.getElementById('editUserForm');
+            const userList = document.getElementById('userList');
+            const resultMessage = document.getElementById('resultMessage');
+            const refreshUsersBtn = document.getElementById('refreshUsersBtn');
+            const editUserModal = document.getElementById('editUserModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            
+            // 加载用户列表
+            loadUsers();
+            
+            // 添加用户表单提交事件
+            addUserForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const userData = Object.fromEntries(formData.entries());
+                
+                addUser(userData);
+            });
+            
+            // 修改用户表单提交事件
+            editUserForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const userData = Object.fromEntries(formData.entries());
+                const userId = userData.id;
+                delete userData.id;
+                
+                // 如果密码为空，则不修改密码
+                if (!userData.password) {
+                    delete userData.password;
+                }
+                
+                updateUser(userId, userData);
+            });
+            
+            // 刷新用户列表按钮点击事件
+            refreshUsersBtn.addEventListener('click', loadUsers);
+            
+            // 关闭模态框按钮点击事件
+            closeModalBtn.addEventListener('click', closeModal);
+            cancelEditBtn.addEventListener('click', closeModal);
+            
+            // 点击模态框外部关闭模态框
+            editUserModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
+            
+            // 加载用户列表函数
+            function loadUsers() {
+                userList.innerHTML = `
+                    <tr class="text-center">
+                        <td colspan="5" class="px-6 py-10 text-secondary">
+                            <i class="fa fa-spinner fa-spin mr-2"></i>加载用户列表中...
+                        </td>
+                    </tr>
+                `;
+                
+                fetch('/api/users')
+                    .then(response => response.json())
+                    .then(users => {
+                        if (users.length === 0) {
+                            userList.innerHTML = `
+                                <tr class="text-center">
+                                    <td colspan="5" class="px-6 py-10 text-secondary">
+                                        <i class="fa fa-info-circle mr-2"></i>暂无用户数据，请添加用户
+                                    </td>
+                                </tr>
+                            `;
+                            return;
+                        }
+                        
+                        userList.innerHTML = '';
+                        users.forEach(user => {
+                            const row = document.createElement('tr');
+                            row.className = 'hover:bg-gray-50 transition-colors';
+                            row.innerHTML = `
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${user.id}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.username}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${user.email}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDateTime(user.createdAt)}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button class="text-primary hover:text-primary/80 mr-3 edit-btn" data-id="${user.id}">
+                                        <i class="fa fa-edit"></i> 修改
+                                    </button>
+                                    <button class="text-danger hover:text-danger/80 delete-btn" data-id="${user.id}" data-name="${user.username}">
+                                        <i class="fa fa-trash"></i> 删除
+                                    </button>
+                                </td>
+                            `;
+                            userList.appendChild(row);
+                        });
+                        
+                        // 为修改按钮添加事件监听
+                        document.querySelectorAll('.edit-btn').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const userId = this.getAttribute('data-id');
+                                openEditModal(userId);
+                            });
+                        });
+                        
+                        // 为删除按钮添加事件监听
+                        document.querySelectorAll('.delete-btn').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const userId = this.getAttribute('data-id');
+                                const userName = this.getAttribute('data-name');
+                                if (confirm(`确定要删除用户 "${userName}" 吗？`)) {
+                                    deleteUser(userId);
+                                }
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        showResult(false, '加载用户列表失败: ' + error.message);
+                        userList.innerHTML = `
+                            <tr class="text-center">
+                                <td colspan="5" class="px-6 py-10 text-danger">
+                                    <i class="fa fa-exclamation-circle mr-2"></i>加载用户列表失败
+                                </td>
+                            </tr>
+                        `;
+                    });
+            }
+            
+            // 添加用户函数
+            function addUser(userData) {
+                fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showResult(true, data.message);
+                            addUserForm.reset();
+                            loadUsers();
+                        } else {
+                            showResult(false, data.message);
+                        }
+                    })
+                    .catch(error => {
+                        showResult(false, '添加用户失败: ' + error.message);
+                    });
+            }
+            
+            // 打开编辑模态框函数
+            function openEditModal(userId) {
+                fetch(`/api/users/${userId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('用户不存在');
+                        }
+                        return response.json();
+                    })
+                    .then(user => {
+                        document.getElementById('editUserId').value = user.id;
+                        document.getElementById('editUsername').value = user.username;
+                        document.getElementById('editEmail').value = user.email;
+                        document.getElementById('editPassword').value = '';
+                        
+                        editUserModal.classList.remove('hidden');
+                        document.getElementById('editUsername').focus();
+                    })
+                    .catch(error => {
+                        showResult(false, '获取用户信息失败: ' + error.message);
+                    });
+            }
+            
+            // 关闭模态框函数
+            function closeModal() {
+                editUserModal.classList.add('hidden');
+                editUserForm.reset();
+            }
+            
+            // 更新用户函数
+            function updateUser(userId, userData) {
+                fetch(`/api/users/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showResult(true, data.message);
+                            closeModal();
+                            loadUsers();
+                        } else {
+                            showResult(false, data.message);
+                        }
+                    })
+                    .catch(error => {
+                        showResult(false, '更新用户失败: ' + error.message);
+                    });
+            }
+            
+            // 删除用户函数
+            function deleteUser(userId) {
+                fetch(`/api/users/${userId}`, {
+                    method: 'DELETE'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showResult(true, data.message);
+                            loadUsers();
+                        } else {
+                            showResult(false, data.message);
+                        }
+                    })
+                    .catch(error => {
+                        showResult(false, '删除用户失败: ' + error.message);
+                    });
+            }
+            
+            // 显示操作结果函数
+            function showResult(success, message) {
+                const icon = success ? 'fa-check-circle text-success' : 'fa-exclamation-circle text-danger';
+                const bgColor = success ? 'bg-success/10 border-success/20' : 'bg-danger/10 border-danger/20';
+                
+                resultMessage.className = `p-4 rounded-lg border flex items-start space-x-3 ${bgColor} transition-all duration-300`;
+                resultMessage.innerHTML = `
+                    <i class="fa ${icon} text-xl mt-0.5"></i>
+                    <p class="text-sm">${message}</p>
+                `;
+                
+                // 添加淡入效果
+                resultMessage.style.opacity = '0';
+                setTimeout(() => {
+                    resultMessage.style.opacity = '1';
+                }, 10);
+            }
+            
+            // 格式化日期时间函数
+            function formatDateTime(dateTimeString) {
+                const date = new Date(dateTimeString);
+                return date.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            }
+        });
+    </script>
+</body>
+</html>
