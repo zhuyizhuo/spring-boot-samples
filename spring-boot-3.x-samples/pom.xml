@@ -14,6 +14,7 @@
 <!--         <module>wechat-message-demo</module>-->
         <module>dingtalk-message-demo</module>
         <module>rabbitmq-demo</module>
+        <module>nacos-demo</module>
         <!-- 后续会添加更多示例模块 -->
     </modules>
 
@@ -51,5 +52,22 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <encoding>${file.encoding}</encoding>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
 </project>

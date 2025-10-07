@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信消息推送测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- 配置Tailwind主题 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1677FF',
+                        secondary: '#52C41A',
+                        neutral: '#8C8C8C',
+                        success: '#52C41A',
+                        warning: '#FAAD14',
+                        error: '#FF4D4F',
+                        background: '#F5F5F5',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            .input-focus {
+                @apply focus:ring-2 focus:ring-primary/20 focus:border-primary;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background min-h-screen font-sans text-gray-800">
+    <!-- 页面头部 -->
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-wechat text-2xl text-primary"></i>
+                <h1 class="text-xl font-bold text-gray-800">微信消息推送测试平台</h1>
+            </div>
+            <div class="text-sm text-neutral">
+                <span id="current-time"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 提示卡片 -->
+        <div class="bg-blue-50 border-l-4 border-primary p-4 mb-6 rounded-md">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fa fa-info-circle text-primary text-lg"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">请确保已正确配置微信公众号的AppID和AppSecret，并且用户已关注该公众号。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 结果显示区域 -->
+        <div id="result-area" class="mb-6 p-4 rounded-md hidden transition-all duration-300 ease-in-out">
+            <div class="flex items-start">
+                <i id="result-icon" class="fa fa-check-circle text-success text-lg mt-0.5 mr-3"></i>
+                <div>
+                    <h3 id="result-title" class="font-medium text-gray-800">操作成功</h3>
+                    <p id="result-message" class="mt-1 text-sm text-gray-600">消息已成功发送</p>
+                    <div id="result-details" class="mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-gray-700 hidden"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能卡片容器 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 文本消息发送卡片 -->
+            <div class="bg-white rounded-lg card-shadow p-6 transition-all duration-300 hover:shadow-lg">
+                <div class="flex items-center mb-4">
+                    <i class="fa fa-comment text-primary text-lg mr-3"></i>
+                    <h2 class="text-lg font-bold text-gray-800">发送文本消息</h2>
+                </div>
+                
+                <form id="text-message-form" class="space-y-4">
+                    <div>
+                        <label for="text-openid" class="block text-sm font-medium text-gray-700 mb-1">用户OpenID</label>
+                        <input type="text" id="text-openid" name="openId" placeholder="请输入用户的OpenID" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus transition-colors">
+                    </div>
+                    
+                    <div>
+                        <label for="text-content" class="block text-sm font-medium text-gray-700 mb-1">消息内容</label>
+                        <textarea id="text-content" name="content" rows="3" placeholder="请输入消息内容" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus transition-colors"></textarea>
+                    </div>
+                    
+                    <div class="pt-2">
+                        <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-md transition-colors duration-300 flex items-center justify-center">
+                            <i class="fa fa-paper-plane mr-2"></i>
+                            <span>发送文本消息</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 模板消息发送卡片 -->
+            <div class="bg-white rounded-lg card-shadow p-6 transition-all duration-300 hover:shadow-lg">
+                <div class="flex items-center mb-4">
+                    <i class="fa fa-envelope text-secondary text-lg mr-3"></i>
+                    <h2 class="text-lg font-bold text-gray-800">发送模板消息</h2>
+                </div>
+                
+                <form id="template-message-form" class="space-y-4">
+                    <div>
+                        <label for="template-openid" class="block text-sm font-medium text-gray-700 mb-1">用户OpenID</label>
+                        <input type="text" id="template-openid" name="openId" placeholder="请输入用户的OpenID" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus transition-colors">
+                    </div>
+                    
+                    <div>
+                        <label for="template-id" class="block text-sm font-medium text-gray-700 mb-1">模板ID</label>
+                        <input type="text" id="template-id" name="templateId" placeholder="请输入模板ID" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus transition-colors">
+                    </div>
+                    
+                    <div>
+                        <label for="template-data" class="block text-sm font-medium text-gray-700 mb-1">模板数据(JSON)</label>
+                        <textarea id="template-data" name="data" rows="3" placeholder="{\"keyword1\":{\"value\":\"测试值\",\"color\":\"#173177\"}}" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus transition-colors"></textarea>
+                        <p class="mt-1 text-xs text-neutral">请输入JSON格式的模板数据</p>
+                    </div>
+                    
+                    <div>
+                        <label for="template-url" class="block text-sm font-medium text-gray-700 mb-1">跳转URL(可选)</label>
+                        <input type="url" id="template-url" name="url" placeholder="点击消息跳转的URL" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus transition-colors">
+                    </div>
+                    
+                    <div class="pt-2">
+                        <button type="submit" class="w-full bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-md transition-colors duration-300 flex items-center justify-center">
+                            <i class="fa fa-send mr-2"></i>
+                            <span>发送模板消息</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white mt-auto py-6 border-t border-gray-200">
+        <div class="container mx-auto px-4 text-center text-sm text-neutral">
+            <p>微信消息推送测试平台 © 2024</p>
+            <p class="mt-1">Spring Boot 3.x + 微信公众号SDK</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // 更新当前时间
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('current-time').textContent = timeString;
+        }
+        
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 1000);
+        
+        // 显示结果消息
+        function showResult(success, title, message, details = null) {
+            const resultArea = document.getElementById('result-area');
+            const resultIcon = document.getElementById('result-icon');
+            const resultTitle = document.getElementById('result-title');
+            const resultMessage = document.getElementById('result-message');
+            const resultDetails = document.getElementById('result-details');
+            
+            // 设置样式和内容
+            if (success) {
+                resultArea.className = 'mb-6 p-4 bg-green-50 border-l-4 border-success rounded-md transition-all duration-300';
+                resultIcon.className = 'fa fa-check-circle text-success text-lg mt-0.5 mr-3';
+            } else {
+                resultArea.className = 'mb-6 p-4 bg-red-50 border-l-4 border-error rounded-md transition-all duration-300';
+                resultIcon.className = 'fa fa-exclamation-circle text-error text-lg mt-0.5 mr-3';
+            }
+            
+            resultTitle.textContent = title;
+            resultMessage.textContent = message;
+            
+            if (details) {
+                resultDetails.textContent = JSON.stringify(details, null, 2);
+                resultDetails.classList.remove('hidden');
+            } else {
+                resultDetails.classList.add('hidden');
+            }
+            
+            // 显示结果区域
+            resultArea.classList.remove('hidden');
+            
+            // 滚动到结果区域
+            resultArea.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 发送文本消息
+        document.getElementById('text-message-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const openId = document.getElementById('text-openid').value;
+            const content = document.getElementById('text-content').value;
+            
+            if (!openId || !content) {
+                showResult(false, '参数错误', '请填写完整的用户OpenID和消息内容');
+                return;
+            }
+            
+            // 显示加载状态
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i><span>发送中...</span>';
+            
+            // 发送请求
+            fetch('/api/wechat/message/text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    openId: openId,
+                    content: content
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult(true, '发送成功', '文本消息已成功发送给用户');
+                    // 清空表单
+                    document.getElementById('text-content').value = '';
+                } else {
+                    showResult(false, '发送失败', '文本消息发送失败，请查看控制台日志');
+                }
+            })
+            .catch(error => {
+                showResult(false, '请求错误', '发送请求时发生错误：' + error.message);
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+            });
+        });
+        
+        // 发送模板消息
+        document.getElementById('template-message-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const openId = document.getElementById('template-openid').value;
+            const templateId = document.getElementById('template-id').value;
+            const data = document.getElementById('template-data').value;
+            const url = document.getElementById('template-url').value;
+            
+            if (!openId || !templateId || !data) {
+                showResult(false, '参数错误', '请填写完整的用户OpenID、模板ID和模板数据');
+                return;
+            }
+            
+            // 验证JSON格式
+            try {
+                JSON.parse(data);
+            } catch (e) {
+                showResult(false, '数据格式错误', '模板数据不是有效的JSON格式');
+                return;
+            }
+            
+            // 显示加载状态
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i><span>发送中...</span>';
+            
+            // 发送请求
+            const formData = new URLSearchParams({
+                openId: openId,
+                templateId: templateId,
+                data: data
+            });
+            
+            if (url) {
+                formData.append('url', url);
+            }
+            
+            fetch('/api/wechat/message/template', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult(true, '发送成功', '模板消息已成功发送给用户', data);
+                    // 清空表单
+                    document.getElementById('template-url').value = '';
+                } else {
+                    showResult(false, '发送失败', '模板消息发送失败，请查看控制台日志', data);
+                }
+            })
+            .catch(error => {
+                showResult(false, '请求错误', '发送请求时发生错误：' + error.message);
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -53,6 +53,11 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>3.2.5</version>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <!-- 使用父项目中定义的版本和配置 -->
+            </plugin>
         </plugins>
     </build>
 
