@@ -23,10 +23,10 @@ public class ESClientConfig {
                 )
         );*/
 
-        String urls = "test-3-40000-jiesi-jdos-seller-crm.jd.local,test-2-40000-jiesi-jdos-seller-crm.jd.local,test-1-40000-jiesi-jdos-seller-crm.jd.local";
+        String urls = "";
         String[] elasticsearchUris = urls.split(",");
-        String username = "jiesi-jdos-seller-crm";
-        String password = "9C081EC73B88AE21";
+        String username = "";
+        String password = "";
         Integer port = 40000;
 
         String scheme = "http";
