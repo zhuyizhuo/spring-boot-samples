@@ -90,7 +90,7 @@ dist
 # Temporary folders
 tmp/
 temp/
-data-jpa/
+
 # Local env files
 .env.local
 .env.development.local
