@@ -10,7 +10,7 @@ spring:
 
   # 引入本地配置
   config:
-    import: classpath:application-local.yml
+    import: classpath:application-mysql.yml
 
   # JPA/Hibernate配置
   jpa:
