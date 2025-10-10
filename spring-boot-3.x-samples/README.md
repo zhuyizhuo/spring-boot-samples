@@ -7,9 +7,20 @@
 
 ```
 spring-boot-3.x-samples/
+├── .gitignore             # Git忽略文件配置
+├── README.md              # 项目说明文档
+├── changelog.md           # 项目更新日志
+├── TODO.md                # 待办事项清单
+├── data-jpa/              # Spring Boot 3.x集成JPA和MySQL示例
+├── dingtalk-message-demo/ # 钉钉消息推送示例
+├── h2-demo/               # Spring Boot 3.x集成H2内存数据库示例
 ├── hello-world/           # Hello World基础示例
+├── nacos-demo/            # Nacos服务发现与配置管理示例
 ├── pom.xml                # 父POM文件，定义公共依赖和版本管理
-└── README.md              # 项目说明文档
+├── rabbitmq-demo/         # RabbitMQ消息队列集成示例
+├── redis-pubsub-demo/     # Redis发布订阅模式示例
+├── spring-ai-demo/        # Spring AI人工智能集成示例
+└── wechat-message-demo/   # 微信消息推送示例
 ```
 
 ## 技术栈
@@ -20,8 +31,15 @@ spring-boot-3.x-samples/
 ## 示例模块列表
 | 模块名称 | 说明 | 主要功能 |
 |---------|------|---------|
-| [hello-world](hello-world) | Spring Boot 3.x基础入门示例 | 简单REST API，展示Spring Boot基础功能 |
-| （持续更新中...） | | |
+| [hello-world](hello-world) | Spring Boot 3.x基础入门示例 | 基础REST API，展示参数传递和对象处理 |
+| [data-jpa](data-jpa) | Spring Boot 3.x集成JPA和MySQL示例 | 完整的用户管理CRUD功能，带前端界面 |
+| [h2-demo](h2-demo) | Spring Boot 3.x集成H2内存数据库示例 | 用户管理CRUD功能，无需额外数据库配置 |
+| [dingtalk-message-demo](dingtalk-message-demo) | 钉钉消息推送示例 | 实现钉钉机器人消息推送功能 |
+| [nacos-demo](nacos-demo) | Nacos服务发现与配置管理示例 | 微服务注册发现和配置管理 |
+| [rabbitmq-demo](rabbitmq-demo) | RabbitMQ消息队列集成示例 | 消息发布、订阅、路由等功能 |
+| [redis-pubsub-demo](redis-pubsub-demo) | Redis发布订阅模式示例 | 基于Redis的消息发布订阅实现 |
+| [spring-ai-demo](spring-ai-demo) | Spring AI人工智能集成示例 | 集成AI能力到Spring Boot应用 |
+| [wechat-message-demo](wechat-message-demo) | 微信消息推送示例 | 微信公众号消息推送功能 |
 
 ## 如何使用
 

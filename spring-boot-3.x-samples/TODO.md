@@ -1,3 +1,3 @@
-nacos 项目优化测试
-接入 ai
-wechat 项目测试
+[nacos-demo](nacos-demo) 项目测试
+[spring-ai-demo](spring-ai-demo) 项目测试
+[wechat-message-demo](wechat-message-demo) 项目测试
