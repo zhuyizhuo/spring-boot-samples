@@ -68,6 +68,7 @@
                         <source>${java.version}</source>
                         <target>${java.version}</target>
                         <encoding>${file.encoding}</encoding>
+                        <parameters>true</parameters>
                     </configuration>
                 </plugin>
             </plugins>
