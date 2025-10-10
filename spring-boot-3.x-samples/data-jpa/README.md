@@ -25,7 +25,7 @@
 CREATE DATABASE spring_boot_3_sample CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-然后修改 `src/main/resources/application.yml` 文件中的数据库连接信息：
+在`src/main/resources/`目录下创建`application-mysql.yml`文件，并添加以下内容：
 
 ```yaml
 spring:

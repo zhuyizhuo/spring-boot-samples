@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.zhuyizhuo.mybatisplus.mapper.UserMapper">
+
+    <!-- 通过角色ID查询用户 -->
+    <select id="selectByRoleId" resultType="com.github.zhuyizhuo.mybatisplus.model.User">
+        SELECT u.*
+        FROM "user" u
+        JOIN user_role ur ON u.id = ur.user_id
+        WHERE ur.role_id = #{roleId}
+    </select>
+
+    <!-- 查询用户及其角色信息 -->
+    <select id="selectUsersWithRoles" resultMap="UserWithRolesResultMap">
+        SELECT u.*, r.id AS role_id, r.name AS role_name, r.description AS role_description, r.create_time AS role_create_time
+        FROM "user" u
+        LEFT JOIN user_role ur ON u.id = ur.user_id
+        LEFT JOIN role r ON ur.role_id = r.id
+    </select>
+
+    <!-- 定义用户及其角色的结果映射 -->
+    <resultMap id="UserWithRolesResultMap" type="com.github.zhuyizhuo.mybatisplus.model.User">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="status" column="status"/>
+        
+        <!-- 集合映射，映射roles字段 -->
+        <collection property="roles" ofType="com.github.zhuyizhuo.mybatisplus.model.Role">
+            <id property="id" column="role_id"/>
+            <result property="name" column="role_name"/>
+            <result property="description" column="role_description"/>
+            <result property="createTime" column="role_create_time"/>
+        </collection>
+    </resultMap>
+
+</mapper>
