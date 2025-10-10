@@ -122,15 +122,15 @@ Spring Boot 3.x 是最新的稳定版本，基于 Java 17+，提供了更好的�
 
 | 模块名称 | 主要功能 | 链接 |
 |---------|---------|------|
-| [hello-world](spring-boot-3.x-samples/hello-world) | Spring Boot 3.x基础入门示例 | 基础REST API，展示参数传递和对象处理 |
-| [data-jpa](spring-boot-3.x-samples/data-jpa) | Spring Boot 3.x集成JPA和MySQL示例 | 完整的用户管理CRUD功能，带前端界面 |
-| [h2-demo](spring-boot-3.x-samples/h2-demo) | Spring Boot 3.x集成H2内存数据库示例 | 用户管理CRUD功能，无需额外数据库配置 |
-| [dingtalk-message-demo](spring-boot-3.x-samples/dingtalk-message-demo) | 钉钉消息推送示例 | 实现钉钉机器人消息推送功能 |
-| [nacos-demo](spring-boot-3.x-samples/nacos-demo) | Nacos服务发现与配置管理示例 | 微服务注册发现和配置管理 |
-| [rabbitmq-demo](spring-boot-3.x-samples/rabbitmq-demo) | RabbitMQ消息队列集成示例 | 消息发布、订阅、路由等功能 |
-| [redis-pubsub-demo](spring-boot-3.x-samples/redis-pubsub-demo) | Redis发布订阅模式示例 | 基于Redis的消息发布订阅实现 |
-| [spring-ai-demo](spring-boot-3.x-samples/spring-ai-demo) | Spring AI人工智能集成示例 | 集成AI能力到Spring Boot应用 |
-| [wechat-message-demo](spring-boot-3.x-samples/wechat-message-demo) | 微信消息推送示例 | 微信公众号消息推送功能 |
+| [hello-world](spring-boot-3.x-samples/hello-world) | Spring Boot 3.x基础入门示例，包含基础API、多参数测试、对象参数测试等功能，并提供Web测试页面和SpringDoc OpenAPI文档 | [查看详情](./spring-boot-3.x-samples/hello-world/README.md) |
+| [data-jpa](spring-boot-3.x-samples/data-jpa) | Spring Boot 3.x集成JPA和MySQL示例，实现完整的用户管理CRUD功能，提供响应式前端管理界面、Swagger 3文档和测试功能 | [查看详情](./spring-boot-3.x-samples/data-jpa/README.md) |
+| [h2-demo](spring-boot-3.x-samples/h2-demo) | Spring Boot 3.x集成H2内存数据库示例，实现用户管理CRUD操作，提供RESTful API、Swagger文档、H2控制台和前端测试页面 | [查看详情](./spring-boot-3.x-samples/h2-demo/README.md) |
+| [dingtalk-message-demo](spring-boot-3.x-samples/dingtalk-message-demo) | 钉钉消息推送示例，支持发送文本消息（带@功能）、Markdown格式消息和工作通知消息，提供REST API、Swagger文档和Web前端测试页面 | [查看详情](./spring-boot-3.x-samples/dingtalk-message-demo/README.md) |
+| [nacos-demo](spring-boot-3.x-samples/nacos-demo) | Nacos服务发现与配置管理示例，支持Nacos配置中心集成、配置动态刷新、服务注册与发现、交互式HTML测试页面和API文档自动生成 | [查看详情](./spring-boot-3.x-samples/nacos-demo/README.md) |
+| [rabbitmq-demo](spring-boot-3.x-samples/rabbitmq-demo) | RabbitMQ消息队列集成示例，支持多种交换机类型（Direct、Topic、Fanout、Headers）、消息确认机制、死信队列、延迟消息和批量消息处理 | [查看详情](./spring-boot-3.x-samples/rabbitmq-demo/README.md) |
+| [redis-pubsub-demo](spring-boot-3.x-samples/redis-pubsub-demo) | Redis发布订阅模式示例，支持多种主题的消息发布与订阅，提供REST API接口、Swagger文档和HTML测试页面 | [查看详情](./spring-boot-3.x-samples/redis-pubsub-demo/README.md) |
+| [spring-ai-demo](spring-boot-3.x-samples/spring-ai-demo) | Spring AI人工智能集成示例，支持OpenAI GPT模型和本地Ollama模型，提供文本生成API和向量数据库检索功能 | [查看详情](./spring-boot-3.x-samples/spring-ai-demo/README.md) |
+| [wechat-message-demo](spring-boot-3.x-samples/wechat-message-demo) | 微信消息推送示例，使用微信公众号SDK实现文本消息和模板消息的发送功能 | [查看详情](./spring-boot-3.x-samples/wechat-message-demo/README.md) |
 
 ### Spring Boot 2.x 示例 (适用于维护现有项目)
 Spring Boot 2.x 是成熟稳定的版本，适用于需要保持兼容性的现有项目。
