@@ -10,6 +10,8 @@
 - 代码生成器的使用
 - 自定义全局操作
 - 自动填充功能
+- 完整的RESTful API实现
+- 交互式API测试页面
 
 ## ✨ 功能特点
 
@@ -23,6 +25,8 @@
 - ✅ 完整的 RESTful API 示例
 - ✅ 完整的单元测试用例
 - ✅ 自动填充创建时间和更新时间
+- ✅ 交互式API测试页面
+- ✅ 应用启动时自动打印访问地址
 
 ## 🛠 技术栈
 
@@ -111,6 +115,14 @@ VALUES (5, 'Billie', 24, 'test5@baomidou.com', NOW(), NOW());
 2. 执行上面的 SQL 脚本创建表和插入测试数据
 3. 根据需要修改 `application.yml` 中的数据库连接信息
 4. 运行 `MybatisPlusAdvancedApplication` 类的 `main` 方法
+5. 应用启动后会自动打印访问地址信息到控制台
+
+### 访问应用
+
+应用启动后，可以通过以下地址访问：
+- 主页面: http://localhost:8082
+- API测试页面: http://localhost:8082/api-test.html
+- RESTful API接口: http://localhost:8082/api/users
 
 ### 测试方式
 
@@ -139,6 +151,9 @@ VALUES (5, 'Billie', 24, 'test5@baomidou.com', NOW(), NOW());
    # 运行JDBC测试类（不依赖Spring）
    # 注意：使用提供的批处理文件运行以避免类路径问题
    ```
+
+4. **API测试页面**：
+   应用启动后，访问 http://localhost:8082/api-test.html 使用交互式测试页面测试所有API接口
 
 ## 🔍 主要功能演示
 
@@ -226,6 +241,8 @@ src/test/java/com/github/zhuyizhuo/sample/mybatis/plus/advanced/test/
 5. 测试类中可能存在依赖注入提示信息，但不影响测试运行
 6. 如需直接运行JDBC测试类，请使用提供的批处理文件以避免类路径问题
 7. 默认配置使用远程MySQL服务器，如需使用本地数据库，请修改连接信息
+8. 应用启动后会在控制台输出访问地址信息，包括API测试页面的地址
+9. 请注意查看项目根目录下的代码安全检查相关说明，确保不提交敏感信息
 
 ## 🔍 已知问题
 
@@ -255,3 +272,4 @@ src/test/java/com/github/zhuyizhuo/sample/mybatis/plus/advanced/test/
 
 - [MyBatis-Plus 官方文档](https://baomidou.com/guide/)
 - [Spring Boot 官方文档](https://spring.io/projects/spring-boot)
+- [REST API 设计最佳实践](https://restfulapi.net/)
