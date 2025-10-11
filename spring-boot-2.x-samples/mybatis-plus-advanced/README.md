@@ -51,10 +51,10 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://81.70.18.89:3306/springboot?useSSL=false&serverTimezone=UTC
+    url: your db url
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: management
-    password: Management3.2
+    username: your username
+    password: your password
 
 # MyBatis-Plus 配置
 mybatis-plus:

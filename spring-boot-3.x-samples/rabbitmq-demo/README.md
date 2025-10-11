@@ -41,7 +41,8 @@ rabbitmq-demo/
 │       ├── MessageProducerService.java       # 消息生产者服务
 │       └── MessageConsumerService.java       # 消息消费者服务
 ├── src/main/resources/
-│   └── application.yml                       # 应用配置文件
+│   ├── application.yml                       # 主应用配置文件
+│   └── application-rabbitmq.yml              # RabbitMQ专用配置文件
 ├── pom.xml                                   # Maven 配置
 └── README.md                                 # 项目说明
 ```
@@ -124,8 +125,23 @@ java -jar target/rabbitmq-demo-1.0-SNAPSHOT.jar
 
 ## 🔧 配置说明
 
-### RabbitMQ 连接配置
+### 配置文件结构
 
+本项目采用配置分离的方式管理配置，将RabbitMQ相关配置单独放置在`application-rabbitmq.yml`文件中，主配置文件`application.yml`通过`spring.config.import`引入RabbitMQ配置。
+
+**主配置文件 (application.yml)**: 
+```yaml
+spring:
+  # 引入rabbitmq配置文件
+  config:
+    import: classpath:application-rabbitmq.yml
+```
+
+### RabbitMQ 配置文件 (application-rabbitmq.yml)
+
+完整的RabbitMQ配置包含以下内容：
+
+#### 基本连接配置
 ```yaml
 spring:
   rabbitmq:
@@ -134,28 +150,44 @@ spring:
     username: guest       # 用户名
     password: guest       # 密码
     virtual-host: /       # 虚拟主机
+    connection-timeout: 15000  # 连接超时时间
 ```
 
-### 消费者配置
-
+#### 消费者配置
 ```yaml
 spring:
   rabbitmq:
     listener:
       simple:
-        acknowledge-mode: auto    # 确认模式
-        concurrency: 3           # 并发消费者数量
-        max-concurrency: 10      # 最大并发数
-        prefetch: 5              # 预取消息数量
+        acknowledge-mode: auto          # 确认模式：auto(自动), manual(手动), none(不确认)
+        concurrency: 3                  # 初始消费者数量
+        max-concurrency: 10             # 最大消费者数量
+        prefetch: 5                     # 每个消费者预取的消息数量
+        retry:
+          enabled: true                 # 开启重试
+          initial-interval: 1000        # 重试间隔
+          max-attempts: 3               # 最大重试次数
+          max-interval: 10000           # 最大重试间隔
+          multiplier: 2                 # 重试间隔递增倍数
+        default-requeue-rejected: false # 拒绝消息时是否重新入队
 ```
 
-### 生产者配置
-
+#### 生产者配置
 ```yaml
 spring:
   rabbitmq:
     publisher-confirm-type: correlated  # 发送确认
     publisher-returns: true             # 发送失败回调
+```
+
+#### 缓存配置
+```yaml
+spring:
+  rabbitmq:
+    cache:
+      channel:
+        size: 25                        # 缓存的channel数量
+        checkout-timeout: 0             # channel获取超时时间
 ```
 
 ## 📝 使用示例
@@ -294,7 +326,12 @@ curl -X POST "http://localhost:8080/rabbitmq-demo/api/v1/messages/delayed?delayS
 所有队列和消息都配置为持久化存储。
 
 ### 4. 集群支持
-配置支持 RabbitMQ 集群部署。
+配置支持 RabbitMQ 集群部署，可在`application-rabbitmq.yml`中进行配置。
+
+### 5. 配置分离优势
+- 便于维护和管理特定组件的配置
+- 支持不同环境下复用相同的配置结构
+- 提高配置的可读性和模块化程度
 
 ## 📚 参考资料
 

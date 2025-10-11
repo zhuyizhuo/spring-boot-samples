@@ -7,41 +7,9 @@ spring:
   application:
     name: rabbitmq-demo
   
-  # RabbitMQ 配置
-  rabbitmq:
-    host: 81.70.18.89
-    port: 5672
-    username: admin
-    password: zhuo3.2
-    virtual-host: /
-    
-    # 连接池配置
-    connection-timeout: 15000
-    
-    # 发送者配置
-    publisher-confirm-type: correlated  # 开启发送确认
-    publisher-returns: true             # 开启发送失败回调
-    
-    # 消费者配置
-    listener:
-      simple:
-        acknowledge-mode: auto          # 确认模式：auto(自动), manual(手动), none(不确认)
-        concurrency: 3                  # 初始消费者数量
-        max-concurrency: 10             # 最大消费者数量
-        prefetch: 5                     # 每个消费者预取的消息数量
-        retry:
-          enabled: true                 # 开启重试
-          initial-interval: 1000        # 重试间隔
-          max-attempts: 3               # 最大重试次数
-          max-interval: 10000           # 最大重试间隔
-          multiplier: 2                 # 重试间隔递增倍数
-        default-requeue-rejected: false # 拒绝消息时是否重新入队
-    
-    # 缓存配置
-    cache:
-      channel:
-        size: 25                        # 缓存的channel数量
-        checkout-timeout: 0             # channel获取超时时间
+  # 引入rabbitmq配置文件
+  config:
+    import: classpath:application-rabbitmq.yml
 
 # 日志配置
 logging:
