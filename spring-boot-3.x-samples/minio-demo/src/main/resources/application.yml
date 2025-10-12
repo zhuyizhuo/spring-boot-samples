@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+# 引入MinIO配置文件
+spring:
+  config:
+    import: 
+      - optional:classpath:application-minio.yml
+  servlet:
+    multipart:
+      max-file-size: ${minio.max-file-size:100}MB
+      max-request-size: ${minio.max-request-size:100}MB
+
+logging:
+  level:
+    root: INFO
+    com.github.zhuyizhuo.minio.demo: DEBUG
+
+# Swagger配置
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true

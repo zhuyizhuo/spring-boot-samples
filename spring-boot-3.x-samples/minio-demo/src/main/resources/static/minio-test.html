@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot MinIO 演示</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 960px;
+        }
+        .card {
+            margin-bottom: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #343a40;
+            color: white;
+            font-weight: bold;
+        }
+        .tab-content {
+            padding: 1.5rem;
+        }
+        .tab-pane {
+            padding-top: 1rem;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+        .btn-info {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+        }
+        .btn-info:hover {
+            background-color: #138496;
+            border-color: #117a8b;
+        }
+        .progress {
+            height: 20px;
+            margin-top: 1rem;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .file-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #dee2e6;
+            transition: background-color 0.2s;
+        }
+        .file-item:hover {
+            background-color: #f8f9fa;
+        }
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        .file-info {
+            margin-left: 1rem;
+        }
+        .file-name {
+            font-weight: bold;
+            color: #495057;
+        }
+        .file-meta {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        .alert {
+            margin-top: 1rem;
+        }
+        .share-link {
+            display: flex;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+        .share-link input {
+            flex: 1;
+            margin-right: 0.5rem;
+        }
+        
+        /* 缩略图样式 */
+        .thumbnail-container {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            overflow: hidden;
+            border-radius: 4px;
+            margin-right: 0.5rem;
+        }
+        
+        .file-thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.2s ease;
+        }
+        
+        .file-item:hover .file-thumbnail {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="mb-5">
+            <h1 class="text-center text-dark mb-2">Spring Boot MinIO 演示</h1>
+            <p class="text-center text-muted">文件上传、下载、列表、删除、分享等功能演示</p>
+        </header>
+
+        <!-- 通知区域 -->
+        <div id="notification" class="alert" style="display: none;"></div>
+
+        <!-- 选项卡导航 -->
+        <ul class="nav nav-tabs mb-4" id="minioTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab" aria-controls="upload" aria-selected="true">
+                    <i class="fa fa-upload mr-2"></i>上传文件
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="file-list-tab" data-bs-toggle="tab" data-bs-target="#file-list" type="button" role="tab" aria-controls="file-list" aria-selected="false">
+                    <i class="fa fa-list mr-2"></i>文件列表
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="bucket-tab" data-bs-toggle="tab" data-bs-target="#bucket" type="button" role="tab" aria-controls="bucket" aria-selected="false">
+                    <i class="fa fa-database mr-2"></i>存储桶管理
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="help-tab" data-bs-toggle="tab" data-bs-target="#help" type="button" role="tab" aria-controls="help" aria-selected="false">
+                    <i class="fa fa-question-circle mr-2"></i>帮助
+                </button>
+            </li>
+        </ul>
+
+        <!-- 选项卡内容 -->
+        <div class="tab-content" id="minioTabsContent">
+            <!-- 上传文件选项卡 -->
+            <div class="tab-pane fade show active" id="upload" role="tabpanel" aria-labelledby="upload-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fa fa-upload mr-2"></i>上传到默认存储桶
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="defaultBucketFile" class="form-label">选择文件</label>
+                                    <input type="file" class="form-control" id="defaultBucketFile" accept=".*">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="defaultBucketObjectName" class="form-label">对象名称（可选）</label>
+                                    <input type="text" class="form-control" id="defaultBucketObjectName" placeholder="不填写则使用原文件名">
+                                </div>
+                                <button id="uploadToDefaultBtn" class="btn btn-primary w-100">
+                                    <i class="fa fa-cloud-upload mr-2"></i>上传文件
+                                </button>
+                                <div class="progress" id="defaultUploadProgress" style="display: none;">
+                                    <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fa fa-cloud mr-2"></i>上传到指定存储桶
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="bucketName" class="form-label">存储桶名称</label>
+                                    <input type="text" class="form-control" id="bucketName" placeholder="请输入存储桶名称">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="specifiedBucketFile" class="form-label">选择文件</label>
+                                    <input type="file" class="form-control" id="specifiedBucketFile" accept=".*">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="specifiedBucketObjectName" class="form-label">对象名称（可选）</label>
+                                    <input type="text" class="form-control" id="specifiedBucketObjectName" placeholder="不填写则使用原文件名">
+                                </div>
+                                <button id="uploadToSpecifiedBtn" class="btn btn-primary w-100">
+                                    <i class="fa fa-cloud-upload mr-2"></i>上传文件
+                                </button>
+                                <div class="progress" id="specifiedUploadProgress" style="display: none;">
+                                    <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文件列表选项卡 -->
+            <div class="tab-pane fade" id="file-list" role="tabpanel" aria-labelledby="file-list-tab">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="listBucketName" class="form-label">存储桶名称</label>
+                            <div class="input-group">
+                                <select class="form-control" id="listBucketName">
+                                    <option value="">请选择存储桶</option>
+                                    <!-- 存储桶列表将动态加载 -->
+                                </select>
+                                <button id="refreshBucketsBtn" class="btn btn-secondary">
+                                    <i class="fa fa-refresh mr-2"></i>刷新
+                                </button>
+                                <button id="listFilesBtn" class="btn btn-primary">
+                                    <i class="fa fa-list mr-2"></i>查看文件
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <button id="listDefaultBucketFilesBtn" class="btn btn-info w-100">
+                                <i class="fa fa-list-alt mr-2"></i>查看默认存储桶文件
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa fa-files-o mr-2"></i>文件列表
+                        <span class="badge bg-primary float-end" id="fileCount">0</span>
+                    </div>
+                    <div class="card-body" id="fileListContainer">
+                        <div id="fileList" class="overflow-auto" style="max-height: 500px;">
+                            <!-- 文件列表将在这里动态生成 -->
+                            <div class="text-center text-muted py-5">
+                                <i class="fa fa-folder-open-o fa-4x mb-3"></i>
+                                <p>暂无文件，请先上传文件或刷新列表</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 存储桶管理选项卡 -->
+            <div class="tab-pane fade" id="bucket" role="tabpanel" aria-labelledby="bucket-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa fa-plus-circle mr-2"></i>创建存储桶
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="createBucketName" class="form-label">存储桶名称</label>
+                            <input type="text" class="form-control" id="createBucketName" placeholder="请输入存储桶名称">
+                        </div>
+                        <button id="createBucketBtn" class="btn btn-success w-100">
+                            <i class="fa fa-plus mr-2"></i>创建存储桶
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <i class="fa fa-check-circle mr-2"></i>检查存储桶是否存在
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="checkBucketName" class="form-label">存储桶名称</label>
+                            <input type="text" class="form-control" id="checkBucketName" placeholder="请输入存储桶名称">
+                        </div>
+                        <button id="checkBucketBtn" class="btn btn-info w-100">
+                            <i class="fa fa-search mr-2"></i>检查存储桶
+                        </button>
+                        <div id="bucketCheckResult" class="mt-3 p-3 rounded" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 帮助选项卡 -->
+            <div class="tab-pane fade" id="help" role="tabpanel" aria-labelledby="help-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa fa-book mr-2"></i>使用帮助
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">MinIO 文件操作指南</h5>
+                        <div class="mb-4">
+                            <h6><i class="fa fa-upload text-primary mr-2"></i>文件上传</h6>
+                            <p class="text-muted">可以选择上传到默认存储桶或指定存储桶，支持自定义对象名称。</p>
+                        </div>
+                        <div class="mb-4">
+                            <h6><i class="fa fa-list text-primary mr-2"></i>文件列表</h6>
+                            <p class="text-muted">可以查看默认存储桶或指定存储桶中的所有文件，支持下载、删除、查看信息和生成分享链接。</p>
+                        </div>
+                        <div class="mb-4">
+                            <h6><i class="fa fa-database text-primary mr-2"></i>存储桶管理</h6>
+                            <p class="text-muted">可以创建新的存储桶或检查存储桶是否存在。</p>
+                        </div>
+                        <div class="mb-4">
+                            <h6><i class="fa fa-exclamation-triangle text-warning mr-2"></i>注意事项</h6>
+                            <ul class="list-unstyled text-muted">
+                                <li>• 请确保 MinIO 服务器已正确配置并运行</li>
+                                <li>• 上传的文件大小受服务器配置限制</li>
+                                <li>• 分享链接有过期时间限制</li>
+                                <li>• 默认存储桶名称为配置文件中指定的名称</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图片预览模态框 -->
+        <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-labelledby="imagePreviewModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="imagePreviewModalLabel">图片预览</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center">
+                            <img id="previewImage" src="" class="img-fluid" alt="图片预览">
+                            <p id="previewImageName" class="mt-2 text-muted"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="mt-8 text-center text-muted">
+            <p>Spring Boot MinIO 演示 &copy; 2023</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 显示通知
+        function showNotification(message, isSuccess = true) {
+            const notification = document.getElementById('notification');
+            notification.className = `alert ${isSuccess ? 'alert-success' : 'alert-danger'} alert-dismissible fade show`;
+            notification.innerHTML = `
+                ${isSuccess ? '<i class="fa fa-check-circle mr-2"></i>' : '<i class="fa fa-exclamation-circle mr-2"></i>'}
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            notification.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // 上传文件到默认存储桶
+        document.getElementById('uploadToDefaultBtn').addEventListener('click', function() {
+            const fileInput = document.getElementById('defaultBucketFile');
+            const objectNameInput = document.getElementById('defaultBucketObjectName');
+            const progressBar = document.getElementById('defaultUploadProgress');
+            const progress = progressBar.querySelector('.progress-bar');
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showNotification('请选择要上传的文件', false);
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const objectName = objectNameInput.value.trim() || file.name;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            if (objectName) {
+                formData.append('objectName', objectName);
+            }
+            
+            // 显示进度条
+            progressBar.style.display = 'block';
+            progress.style.width = '0%';
+            
+            axios.post('/api/minio/upload/default', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: function(progressEvent) {
+                    if (progressEvent.total) {
+                        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        progress.style.width = percentCompleted + '%';
+                        progress.setAttribute('aria-valuenow', percentCompleted);
+                    }
+                }
+            }).then(response => {
+                if (response.data.success) {
+                    showNotification('文件上传成功！');
+                    // 清空表单
+                    fileInput.value = '';
+                    objectNameInput.value = '';
+                } else {
+                    showNotification(response.data.message || '文件上传失败', false);
+                }
+            }).catch(error => {
+                showNotification('文件上传失败：' + (error.response?.data?.message || error.message), false);
+            }).finally(() => {
+                // 隐藏进度条
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                }, 500);
+            });
+        });
+
+        // 上传文件到指定存储桶
+        document.getElementById('uploadToSpecifiedBtn').addEventListener('click', function() {
+            const bucketNameInput = document.getElementById('bucketName');
+            const fileInput = document.getElementById('specifiedBucketFile');
+            const objectNameInput = document.getElementById('specifiedBucketObjectName');
+            const progressBar = document.getElementById('specifiedUploadProgress');
+            const progress = progressBar.querySelector('.progress-bar');
+            
+            const bucketName = bucketNameInput.value.trim();
+            if (!bucketName) {
+                showNotification('请输入存储桶名称', false);
+                return;
+            }
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showNotification('请选择要上传的文件', false);
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const objectName = objectNameInput.value.trim() || file.name;
+            
+            const formData = new FormData();
+            formData.append('bucketName', bucketName);
+            formData.append('file', file);
+            if (objectName) {
+                formData.append('objectName', objectName);
+            }
+            
+            // 显示进度条
+            progressBar.style.display = 'block';
+            progress.style.width = '0%';
+            
+            axios.post('/api/minio/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: function(progressEvent) {
+                    if (progressEvent.total) {
+                        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        progress.style.width = percentCompleted + '%';
+                        progress.setAttribute('aria-valuenow', percentCompleted);
+                    }
+                }
+            }).then(response => {
+                if (response.data.success) {
+                    showNotification('文件上传成功！');
+                    // 清空表单
+                    bucketNameInput.value = '';
+                    fileInput.value = '';
+                    objectNameInput.value = '';
+                } else {
+                    showNotification(response.data.message || '文件上传失败', false);
+                }
+            }).catch(error => {
+                showNotification('文件上传失败：' + (error.response?.data?.message || error.message), false);
+            }).finally(() => {
+                // 隐藏进度条
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                }, 500);
+            });
+        });
+
+        // 加载存储桶列表
+        function loadBucketList() {
+            axios.get('/api/minio/buckets/list').then(response => {
+                if (response.data.success) {
+                    const bucketSelect = document.getElementById('listBucketName');
+                    bucketSelect.innerHTML = '<option value="">请选择存储桶</option>';
+                    
+                    response.data.buckets.forEach(bucket => {
+                        const option = document.createElement('option');
+                        option.value = bucket;
+                        option.textContent = bucket;
+                        bucketSelect.appendChild(option);
+                    });
+                }
+            }).catch(error => {
+                console.error('加载存储桶列表失败:', error);
+            });
+        }
+        
+        // 刷新存储桶列表
+        document.getElementById('refreshBucketsBtn').addEventListener('click', function() {
+            loadBucketList();
+        });
+        
+        // 列出指定存储桶中的文件
+        document.getElementById('listFilesBtn').addEventListener('click', function() {
+            const bucketSelect = document.getElementById('listBucketName');
+            const bucketName = bucketSelect.value;
+            
+            if (!bucketName) {
+                showNotification('请选择存储桶', false);
+                return;
+            }
+            
+            listFiles(bucketName);
+        });
+        
+        // 页面加载时自动加载存储桶列表
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBucketList();
+        });
+
+        // 列出默认存储桶中的文件
+        document.getElementById('listDefaultBucketFilesBtn').addEventListener('click', function() {
+            listFilesInDefaultBucket();
+        });
+
+        // 列出指定存储桶中的文件
+        function listFiles(bucketName) {
+            axios.get('/api/minio/list', {
+                params: {
+                    bucketName: bucketName
+                }
+            }).then(response => {
+                if (response.data.success) {
+                    renderFileList(response.data.files, bucketName);
+                    showNotification('文件列表获取成功！');
+                } else {
+                    showNotification(response.data.message || '文件列表获取失败', false);
+                }
+            }).catch(error => {
+                showNotification('文件列表获取失败：' + (error.response?.data?.message || error.message), false);
+            });
+        }
+
+        // 列出默认存储桶中的文件
+        function listFilesInDefaultBucket() {
+            axios.get('/api/minio/list/default').then(response => {
+                if (response.data.success) {
+                    renderFileList(response.data.files, 'default');
+                    showNotification('默认存储桶文件列表获取成功！');
+                } else {
+                    showNotification(response.data.message || '文件列表获取失败', false);
+                }
+            }).catch(error => {
+                showNotification('文件列表获取失败：' + (error.response?.data?.message || error.message), false);
+            });
+        }
+
+        // 判断是否为图片文件
+        function isImageFile(fileName) {
+            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+            const extension = fileName.split('.').pop().toLowerCase();
+            return imageExtensions.includes(extension);
+        }
+
+        // 渲染文件列表
+        function renderFileList(files, bucketName) {
+            const fileList = document.getElementById('fileList');
+            const fileCount = document.getElementById('fileCount');
+            
+            fileCount.textContent = files.length;
+            
+            if (files.length === 0) {
+                fileList.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <i class="fa fa-folder-open-o fa-4x mb-3"></i>
+                        <p>存储桶中暂无文件</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            files.forEach(fileName => {
+                // 检查文件是否为图片
+                const isImage = isImageFile(fileName);
+                
+                // 构建图片缩略图URL
+                let thumbnailHtml = '';
+                if (isImage) {
+                    const thumbnailUrl = bucketName === 'default' 
+                        ? `/api/minio/download/default?objectName=${encodeURIComponent(fileName)}&thumbnail=true`
+                        : `/api/minio/download?bucketName=${encodeURIComponent(bucketName)}&objectName=${encodeURIComponent(fileName)}&thumbnail=true`;
+                    thumbnailHtml = `<div class="thumbnail-container">
+                        <img src="${thumbnailUrl}" class="file-thumbnail" alt="${fileName}" onError="this.style.display='none'">
+                    </div>`;
+                }
+                
+                // 根据文件类型显示不同图标
+                const fileIcon = isImage 
+                    ? '<i class="fa fa-file-image-o fa-lg text-primary"></i>'
+                    : '<i class="fa fa-file-o fa-lg text-primary"></i>';
+                
+                // 只有图片文件才显示预览按钮
+                const previewButton = isImage 
+                    ? `<button class="btn btn-secondary btn-sm mr-2 preview" data-bucket="${bucketName}" data-file="${fileName}">
+                        <i class="fa fa-eye"></i>
+                    </button>`
+                    : '';
+                
+                html += `
+                    <div class="file-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            ${thumbnailHtml}
+                            ${fileIcon}
+                            <div class="file-info">
+                                <div class="file-name">${fileName}</div>
+                            </div>
+                        </div>
+                        <div class="d-flex">
+                            <button class="btn btn-info btn-sm mr-2 view-info" data-bucket="${bucketName}" data-file="${fileName}">
+                                <i class="fa fa-info-circle"></i>
+                            </button>
+                            ${previewButton}
+                            <button class="btn btn-success btn-sm mr-2 download" data-bucket="${bucketName}" data-file="${fileName}">
+                                <i class="fa fa-download"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm mr-2 share" data-bucket="${bucketName}" data-file="${fileName}">
+                                <i class="fa fa-share-alt"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm delete" data-bucket="${bucketName}" data-file="${fileName}">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            fileList.innerHTML = html;
+            
+            // 绑定文件操作按钮事件
+            bindFileOperationEvents();
+        }
+
+        // 绑定文件操作按钮事件
+        function bindFileOperationEvents() {
+            // 查看文件信息
+            document.querySelectorAll('.view-info').forEach(button => {
+                button.addEventListener('click', function() {
+                    const bucketName = this.getAttribute('data-bucket');
+                    const fileName = this.getAttribute('data-file');
+                    
+                    if (bucketName === 'default') {
+                        getFileInfoFromDefaultBucket(fileName);
+                    } else {
+                        getFileInfo(bucketName, fileName);
+                    }
+                });
+            });
+            
+            // 预览图片
+            document.querySelectorAll('.preview').forEach(button => {
+                button.addEventListener('click', function() {
+                    const bucketName = this.getAttribute('data-bucket');
+                    const fileName = this.getAttribute('data-file');
+                    
+                    previewImage(bucketName, fileName);
+                });
+            });
+            
+            // 下载文件
+            document.querySelectorAll('.download').forEach(button => {
+                button.addEventListener('click', function() {
+                    const bucketName = this.getAttribute('data-bucket');
+                    const fileName = this.getAttribute('data-file');
+                    
+                    if (bucketName === 'default') {
+                        window.location.href = `/api/minio/download/default?objectName=${encodeURIComponent(fileName)}`;
+                    } else {
+                        window.location.href = `/api/minio/download?bucketName=${encodeURIComponent(bucketName)}&objectName=${encodeURIComponent(fileName)}`;
+                    }
+                });
+            });
+            
+            // 生成分享链接
+            document.querySelectorAll('.share').forEach(button => {
+                button.addEventListener('click', function() {
+                    const bucketName = this.getAttribute('data-bucket');
+                    const fileName = this.getAttribute('data-file');
+                    
+                    // 请求用户输入过期时间（秒）
+                    const expires = prompt('请输入分享链接的过期时间（秒），默认为86400秒（24小时）：', '86400');
+                    if (expires === null) return; // 用户取消
+                    
+                    const expiresSeconds = parseInt(expires) || 86400;
+                    
+                    if (bucketName === 'default') {
+                        generateShareLinkForDefaultBucket(fileName, expiresSeconds);
+                    } else {
+                        generateShareLink(bucketName, fileName, expiresSeconds);
+                    }
+                });
+            });
+            
+            // 删除文件
+            document.querySelectorAll('.delete').forEach(button => {
+                button.addEventListener('click', function() {
+                    const bucketName = this.getAttribute('data-bucket');
+                    const fileName = this.getAttribute('data-file');
+                    
+                    if (confirm(`确定要删除文件 "${fileName}" 吗？`)) {
+                        if (bucketName === 'default') {
+                            deleteFileFromDefaultBucket(fileName);
+                        } else {
+                            deleteFile(bucketName, fileName);
+                        }
+                    }
+                });
+            });
+        }
+
+        // 获取文件信息
+        function getFileInfo(bucketName, fileName) {
+            axios.get('/api/minio/info', {
+                params: {
+                    bucketName: bucketName,
+                    objectName: fileName
+                }
+            }).then(response => {
+                if (response.data.success) {
+                    const fileInfo = response.data.fileInfo;
+                    let infoHtml = `<div class="alert alert-info p-4">`;
+                    infoHtml += `<h5 class="mb-3">文件信息: ${fileName}</h5>`;
+                    
+                    for (const [key, value] of Object.entries(fileInfo)) {
+                        infoHtml += `<p><strong>${key}:</strong> ${value}</p>`;
+                    }
+                    
+                    infoHtml += `</div>`;
+                    
+                    showNotification(infoHtml, true);
+                } else {
+                    showNotification(response.data.message || '文件信息获取失败', false);
+                }
+            }).catch(error => {
+                showNotification('文件信息获取失败：' + (error.response?.data?.message || error.message), false);
+            });
+        }
+
+        // 获取默认存储桶中文件的信息
+        function getFileInfoFromDefaultBucket(fileName) {
+            axios.get('/api/minio/info/default', {
+                params: {
+                    objectName: fileName
+                }
+            }).then(response => {
+                if (response.data.success) {
+                    const fileInfo = response.data.fileInfo;
+                    let infoHtml = `<div class="alert alert-info p-4">`;
+                    infoHtml += `<h5 class="mb-3">文件信息: ${fileName}</h5>`;
+                    
+                    for (const [key, value] of Object.entries(fileInfo)) {
+                        infoHtml += `<p><strong>${key}:</strong> ${value}</p>`;
+                    }
+                    
+                    infoHtml += `</div>`;
+                    
+                    showNotification(infoHtml, true);
+                } else {
+                    showNotification(response.data.message || '文件信息获取失败', false);
+                }
+            }).catch(error => {
+                showNotification('文件信息获取失败：' + (error.response?.data?.message || error.message), false);
+            });
+        }
+
+        // 生成分享链接
+        function generateShareLink(bucketName, fileName, expires) {
+            axios.get('/api/minio/share', {
+                params: {
+                    bucketName: bucketName,
+                    objectName: fileName,
+                    expires: expires
+                }
+            }).then(response => {
+                if (response.data.success) {
+                    const shareUrl = response.data.shareUrl;
+                    
+                    // 创建一个临时输入框用于复制链接
+                    const tempInput = document.createElement('input');
+                    tempInput.value = shareUrl;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    
+                    showNotification(`分享链接已复制到剪贴板，有效期 ${expires} 秒：<br><a href="${shareUrl}" target="_blank">${shareUrl}</a>`, true);
+                } else {
+                    showNotification(response.data.message || '分享链接生成失败', false);
+                }
+            }).catch(error => {
+                showNotification('分享链接生成失败：' + (error.response?.data?.message || error.message), false);
+            });
+        }
+
+        // 生成默认存储桶中文件的分享链接
+        function generateShareLinkForDefaultBucket(fileName, expires) {
+            axios.get('/api/minio/share/default', {
+                params: {
+                    objectName: fileName,
+                    expires: expires
+                }
+            }).then(response => {
+                if (response.data.success) {
+                    const shareUrl = response.data.shareUrl;
+                    
+                    // 创建一个临时输入框用于复制链接
+                    const tempInput = document.createElement('input');
+                    tempInput.value = shareUrl;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    
+                    showNotification(`分享链接已复制到剪贴板，有效期 ${expires} 秒：<br><a href="${shareUrl}" target="_blank">${shareUrl}</a>`, true);
+                } else {
+                    showNotification(response.data.message || '分享链接生成失败', false);
+                }
+            }).catch(error => {
+                showNotification('分享链接生成失败：' + (error.response?.data?.message || error.message), false);
+            });
+        }
+
+        // 删除文件
+        function deleteFile(bucketName, fileName) {
+            axios.delete('/api/minio', {
+                params: {
+                    bucketName: bucketName,
+                    objectName: fileName
+                }
+            }).then(response => {
+                if (response.data.success) {
+                    showNotification('文件删除成功！');
+                    // 重新加载文件列表
+                    listFiles(bucketName);
+                } else {
+                    showNotification(response.data.message || '文件删除失败', false);
+                }
+            }).catch(error => {
+                showNotification('文件删除失败：' + (error.response?.data?.message || error.message), false);
+            });
+        }
+
+        // 删除默认存储桶中的文件
+        function deleteFileFromDefaultBucket(fileName) {
+            axios.delete('/api/minio/default', {
+                params: {
+                    objectName: fileName
+                }
+            }).then(response => {
+                if (response.data.success) {
+                    showNotification('文件删除成功！');
+                    // 重新加载文件列表
+                    listFilesInDefaultBucket();
+                } else {
+                    showNotification(response.data.message || '文件删除失败', false);
+                }
+            }).catch(error => {
+                showNotification('文件删除失败：' + (error.response?.data?.message || error.message), false);
+            });
+        }
+
+        // 创建存储桶
+        document.getElementById('createBucketBtn').addEventListener('click', function() {
+            const bucketNameInput = document.getElementById('createBucketName');
+            const bucketName = bucketNameInput.value.trim();
+            
+            if (!bucketName) {
+                showNotification('请输入存储桶名称', false);
+                return;
+            }
+            
+            axios.post('/api/minio/bucket', null, {
+                params: {
+                    bucketName: bucketName
+                }
+            }).then(response => {
+                if (response.data.success) {
+                    showNotification('存储桶创建成功！');
+                    // 清空表单
+                    bucketNameInput.value = '';
+                } else {
+                    showNotification(response.data.message || '存储桶创建失败', false);
+                }
+            }).catch(error => {
+                showNotification('存储桶创建失败：' + (error.response?.data?.message || error.message), false);
+            });
+        });
+
+        // 检查存储桶是否存在
+        document.getElementById('checkBucketBtn').addEventListener('click', function() {
+            const bucketNameInput = document.getElementById('checkBucketName');
+            const bucketName = bucketNameInput.value.trim();
+            const resultElement = document.getElementById('bucketCheckResult');
+            
+            if (!bucketName) {
+                showNotification('请输入存储桶名称', false);
+                return;
+            }
+            
+            axios.get('/api/minio/bucket/exists', {
+                params: {
+                    bucketName: bucketName
+                }
+            }).then(response => {
+                if (response.data.success) {
+                    if (response.data.exists) {
+                        resultElement.className = 'mt-3 p-3 rounded bg-success text-white';
+                        resultElement.innerHTML = `<i class="fa fa-check-circle mr-2"></i>存储桶 "${bucketName}" 存在`;
+                    } else {
+                        resultElement.className = 'mt-3 p-3 rounded bg-danger text-white';
+                        resultElement.innerHTML = `<i class="fa fa-times-circle mr-2"></i>存储桶 "${bucketName}" 不存在`;
+                    }
+                    resultElement.style.display = 'block';
+                } else {
+                    showNotification(response.data.message || '检查存储桶失败', false);
+                }
+            }).catch(error => {
+                showNotification('检查存储桶失败：' + (error.response?.data?.message || error.message), false);
+            });
+        });
+
+        // 预览图片功能
+        function previewImage(bucketName, fileName) {
+            // 获取图片的临时分享链接
+            const expiresSeconds = 60; // 临时链接有效期60秒
+            
+            let apiUrl = '';
+            if (bucketName === 'default') {
+                apiUrl = `/api/minio/share/default?objectName=${encodeURIComponent(fileName)}&expires=${expiresSeconds}`;
+            } else {
+                apiUrl = `/api/minio/share?bucketName=${encodeURIComponent(bucketName)}&objectName=${encodeURIComponent(fileName)}&expires=${expiresSeconds}`;
+            }
+            
+            // 显示加载中状态
+            const previewImage = document.getElementById('previewImage');
+            const previewImageName = document.getElementById('previewImageName');
+            const modal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+            
+            // 设置图片名称
+            previewImageName.textContent = fileName;
+            
+            // 打开模态框
+            modal.show();
+            
+            // 请求图片的临时链接
+            axios.get(apiUrl).then(response => {
+                if (response.data.success) {
+                    const imageUrl = response.data.shareUrl;
+                    
+                    // 设置图片源
+                    previewImage.src = imageUrl;
+                    previewImage.alt = fileName;
+                } else {
+                    showNotification(response.data.message || '获取图片预览链接失败', false);
+                    modal.hide();
+                }
+            }).catch(error => {
+                showNotification('获取图片预览失败：' + (error.response?.data?.message || error.message), false);
+                modal.hide();
+            });
+      }
+      </script>
+</body>
+</html>
