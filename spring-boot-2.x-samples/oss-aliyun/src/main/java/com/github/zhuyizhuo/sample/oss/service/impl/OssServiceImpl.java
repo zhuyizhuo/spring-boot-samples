@@ -118,7 +118,7 @@ public class OssServiceImpl implements OssService {
             
             // 生成预签名URL
             GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(
-                    ossConfig.getBucketName(), fileName, com.aliyun.oss.common.auth.ServiceRequest.Method.GET);
+                    ossConfig.getBucketName(), fileName);
             request.setExpiration(expiration);
             
             URL url = ossClient.generatePresignedUrl(request);

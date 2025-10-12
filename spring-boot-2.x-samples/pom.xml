@@ -38,7 +38,7 @@
 <!--        <module>ehcache</module>-->
         <module>multiple-data-sources</module>
         <module>elasticsearch</module>
-        <module>oss</module>
+        <module>oss-aliyun</module>
         <module>oss-qiniu</module>
     </modules>
 
