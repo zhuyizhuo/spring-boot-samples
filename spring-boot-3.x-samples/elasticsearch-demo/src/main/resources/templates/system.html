@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">系统信息 - Elasticsearch Demo</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        /* 已移除header部分，保留其他样式 */
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card-header {
+            background-color: #667eea;
+            color: white;
+            border-bottom: none;
+            border-radius: 12px 12px 0 0;
+        }
+        .system-info-card .card-header {
+            background-color: #28a745;
+        }
+        .es-info-card .card-header {
+            background-color: #007bff;
+        }
+        .java-info-card .card-header {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .property-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .property-item:last-child {
+            border-bottom: none;
+        }
+        .property-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .property-value {
+            color: #6c757d;
+            word-break: break-all;
+        }
+        .status-badge {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 20px;
+        }
+        .status-connected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .nav-item.active {
+            font-weight: bold;
+        }
+        .sidebar {
+            background-color: #f8f9fa;
+            height: calc(100vh - 120px);
+            position: sticky;
+            top: 20px;
+            border-radius: 8px;
+        }
+        .sidebar a {
+            display: block;
+            padding: 10px 15px;
+            margin-bottom: 5px;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        .sidebar a:hover {
+            background-color: #e9ecef;
+            color: #007bff;
+        }
+        .sidebar a.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .content {
+            padding: 20px;
+            flex: 1;
+        }
+        .info-section {
+            margin-bottom: 2rem;
+        }
+        .footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            background-color: #f1f3f5;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+        .feature-list li:before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/index">
+                <i class="fab fa-elasticsearch text-warning mr-2"></i>Elasticsearch Demo
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/index">数据查询</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/system">系统管理</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+                    <!-- Main Content -->
+            <main class="col-md-12 content">
+                <!-- 加载中 -->
+                <div id="loading" class="loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">加载中...</span>
+                    </div>
+                    <p class="mt-2">正在获取系统信息，请稍候...</p>
+                </div>
+
+                <!-- 系统信息卡片 -->
+                <div class="row info-section">
+                    <div class="col-md-4">
+                        <div class="card system-info-card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fa fa-server mr-2"></i>应用信息</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="property-item">
+                                    <span class="property-label">应用名称</span>
+                                    <span class="property-value" th:text="${applicationName}"></span>
+                                </div>
+                                <div class="property-item">
+                                    <span class="property-label">应用版本</span>
+                                    <span class="property-value" th:text="${applicationVersion}"></span>
+                                </div>
+                                <div class="property-item">
+                                    <span class="property-label">Spring Boot版本</span>
+                                    <span class="property-value" th:text="${springBootVersion}"></span>
+                                </div>
+                                <div class="property-item">
+                                    <span class="property-label">项目启动时间</span>
+                                    <span class="property-value" th:text="${startupTime}"></span>
+                                </div>
+                                <div class="property-item">
+                                <span class="property-label">运行时长</span>
+                                <span class="property-value" id="uptime"></span>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card es-info-card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fa fa-database mr-2"></i>Elasticsearch信息</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="property-item">
+                                    <span class="property-label">连接状态</span>
+                                    <span id="esConnectionStatus" class="property-value">
+                                        <span class="status-badge">
+                                            <i class="fa fa-circle-o-notch fa-spin mr-2"></i>
+                                            加载中...
+                                        </span>
+                                    </span>
+                                </div>
+                                <div class="property-item">
+                                    <span class="property-label">ES版本</span>
+                                    <span id="esVersion" class="property-value">-</span>
+                                </div>
+                                <div class="property-item">
+                                    <span class="property-label">连接地址</span>
+                                    <span id="esUris" class="property-value" th:text="${esUris}"></span>
+                                </div>
+                                <div class="property-item">
+                                    <span class="property-label">连接超时</span>
+                                    <span class="property-value" th:text="${esConnectionTimeout}"></span>
+                                </div>
+                                <div class="property-item">
+                                    <span class="property-label">Socket超时</span>
+                                    <span class="property-value" th:text="${esSocketTimeout}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card java-info-card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fa fa-coffee mr-2"></i>Java环境</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="property-item">
+                                    <span class="property-label">Java版本</span>
+                                    <span class="property-value" th:text="${javaVersion}"></span>
+                                </div>
+                                <div class="property-item">
+                                    <span class="property-label">Java供应商</span>
+                                    <span class="property-value" th:text="${javaVendor}"></span>
+                                </div>
+                                <div class="property-item">
+                                    <span class="property-label">操作系统</span>
+                                    <span class="property-value" th:text="${osName}"></span>
+                                </div>
+                                <div class="property-item">
+                                    <span class="property-label">系统架构</span>
+                                    <span class="property-value" th:text="${osArch}"></span>
+                                </div>
+                                <div class="property-item">
+                                    <span class="property-label">处理器核心数</span>
+                                    <span class="property-value" th:text="${availableProcessors}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 功能特性和系统操作 -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fa fa-check-square-o mr-2"></i>功能特性</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="feature-list">
+                                    <li>支持页面输入索引名称动态查询数据</li>
+                                    <li>支持高级多条件组合查询</li>
+                                    <li>支持索引名称动态切换</li>
+                                    <li>支持分页查询和结果展示</li>
+                                    <li>支持连接状态实时监控</li>
+                                    <li>响应式设计，适配移动端</li>
+                                    <li>支持动态查询参数处理</li>
+                                    <li>支持获取索引字段信息</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fa fa-cogs mr-2"></i>系统操作</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-4">
+                                    <div class="status-badge" id="systemStatus">
+                                        <i class="fa fa-circle-o-notch fa-spin mr-2"></i>
+                                        加载中...
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-3">
+                                    <button class="btn btn-outline-primary" id="testConnectionBtn">
+                                        <i class="fa fa-plug mr-2"></i>测试Elasticsearch连接
+                                    </button>
+                                    <button class="btn btn-outline-secondary" id="refreshInfoBtn">
+                                        <i class="fa fa-refresh mr-2"></i>刷新系统信息
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container text-center">
+            <p class="mb-0">© 2024 Spring Boot Elasticsearch Demo | 基于 Spring Boot 3.x 和 Elasticsearch</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const testConnectionBtn = document.getElementById('testConnectionBtn');
+            const refreshInfoBtn = document.getElementById('refreshInfoBtn');
+            const loading = document.getElementById('loading');
+            const esConnectionStatus = document.getElementById('esConnectionStatus');
+            const esVersion = document.getElementById('esVersion');
+            const uptimeElement = document.getElementById('uptime');
+            const systemStatus = document.getElementById('systemStatus');
+            const navbarCurrentIndex = document.querySelector('.navbar-text strong');
+            
+            // 初始化
+            init();
+
+            // 初始化函数
+            function init() {
+                // 更新运行时长
+                updateUptime();
+                setInterval(updateUptime, 1000);
+                
+                // 获取系统状态
+                fetchSystemStatus();
+                
+                // 测试ES连接
+                testEsConnection();
+                
+                // 绑定事件
+                bindEvents();
+            }
+            
+            // 绑定事件
+            function bindEvents() {
+                testConnectionBtn.addEventListener('click', function() {
+                    testEsConnection(true);
+                });
+
+                refreshInfoBtn.addEventListener('click', function() {
+                    showLoading();
+                    // 获取系统状态和重新测试ES连接
+                    fetchSystemStatus();
+                    testEsConnection();
+                    setTimeout(hideLoading, 1000);
+                });
+            }
+
+            // 获取系统状态信息
+            function fetchSystemStatus() {
+                fetch('/api/system/status')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('获取系统状态失败');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // 更新系统状态
+                        if (data.systemRunning) {
+                            systemStatus.innerHTML = `
+                                <i class="fa fa-circle text-success mr-2"></i>
+                                系统运行正常
+                            `;
+                        } else {
+                            systemStatus.innerHTML = `
+                                <i class="fa fa-circle text-danger mr-2"></i>
+                                系统异常
+                            `;
+                        }
+                        
+                        // 更新当前索引显示
+                        if (data.currentIndex && navbarCurrentIndex) {
+                            navbarCurrentIndex.textContent = data.currentIndex;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('获取系统状态失败:', error);
+                        systemStatus.innerHTML = `
+                            <i class="fa fa-exclamation-triangle text-warning mr-2"></i>
+                            状态未知
+                        `;
+                    });
+            }
+
+            // 测试Elasticsearch连接
+            function testEsConnection(showLoadingFlag = false) {
+                if (showLoadingFlag) {
+                    showLoading();
+                }
+                
+                fetch('/api/system/es-status')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (showLoadingFlag) {
+                            hideLoading();
+                        }
+                        
+                        // 直接使用返回的数据（后端返回的是扁平化结构）
+                        const statusClass = data.connected ? 'status-connected' : 'status-disconnected';
+                        const statusText = data.connected ? '已连接' : '未连接';
+                        const iconClass = data.connected ? 'text-success' : 'text-danger';
+                        
+                        esConnectionStatus.innerHTML = `
+                            <span class="status-badge ${statusClass}">
+                                <i class="fa fa-circle ${iconClass} mr-2"></i>
+                                ${statusText}
+                            </span>
+                        `;
+                        
+                        // 更新ES版本信息
+                        if (data.version) {
+                            esVersion.textContent = data.version;
+                        } else {
+                            esVersion.textContent = '-';
+                        }
+                        
+                        // 更新连接地址
+                        const esUrisElement = document.getElementById('esUris');
+                        if (esUrisElement) {
+                            if (data.connectionAddress) {
+                                esUrisElement.textContent = data.connectionAddress;
+                            } else if (data.host && data.port) {
+                                esUrisElement.textContent = `${data.host}:${data.port}`;
+                            }
+                        }
+                        
+                        // 更新连接超时
+                        const connectionTimeoutElement = document.getElementById('connectionTimeout');
+                        if (connectionTimeoutElement && data.connectionTimeout) {
+                            connectionTimeoutElement.textContent = (data.connectionTimeout / 1000) + 's';
+                        }
+                        
+                        // 更新Socket超时
+                        const socketTimeoutElement = document.getElementById('socketTimeout');
+                        if (socketTimeoutElement && data.socketTimeout) {
+                            socketTimeoutElement.textContent = (data.socketTimeout / 1000) + 's';
+                        }
+                    })
+                    .catch(error => {
+                        if (showLoadingFlag) {
+                            hideLoading();
+                        }
+                        esConnectionStatus.innerHTML = `
+                            <span class="status-badge status-disconnected">
+                                <i class="fa fa-circle text-danger mr-2"></i>
+                                连接错误
+                            </span>
+                        `;
+                        esVersion.textContent = '-';
+                    });
+            }
+
+            // 更新运行时长
+            function updateUptime() {
+                // 从后端传递的启动时间 - 使用更可靠的选择方式
+                const appInfoCard = document.querySelector('.system-info-card .card-body');
+                const propertyItems = appInfoCard ? appInfoCard.querySelectorAll('.property-item') : [];
+                let startupTimeStr = new Date().toLocaleString();
+                
+                // 查找第四个property-item中的值（对应启动时间）
+                if (propertyItems.length >= 4) {
+                    const startupTimeElement = propertyItems[3].querySelector('.property-value');
+                    if (startupTimeElement) {
+                        startupTimeStr = startupTimeElement.textContent;
+                    }
+                }
+                
+                const startTime = new Date(startupTimeStr);
+                const now = new Date();
+                const diff = now - startTime;
+                
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                let uptimeText = '';
+                if (days > 0) uptimeText += `${days} 天 `;
+                if (hours > 0 || days > 0) uptimeText += `${hours} 小时 `;
+                if (minutes > 0 || hours > 0 || days > 0) uptimeText += `${minutes} 分钟 `;
+                uptimeText += `${seconds} 秒`;
+                
+                uptimeElement.textContent = uptimeText;
+            }
+
+            // 显示加载中
+            function showLoading() {
+                loading.style.display = 'block';
+                // 禁用按钮
+                testConnectionBtn.disabled = true;
+                refreshInfoBtn.disabled = true;
+            }
+
+            // 隐藏加载中
+            function hideLoading() {
+                loading.style.display = 'none';
+                // 启用按钮
+                testConnectionBtn.disabled = false;
+                refreshInfoBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

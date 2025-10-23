@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>内容处理 - Spring AI Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .card {
+            border-radius: 0.5rem;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .content-input {
+            min-height: 300px;
+            resize: vertical;
+        }
+        .result-container {
+            background-color: #f8f9fa;
+            min-height: 300px;
+            border-radius: 0.25rem;
+        }
+        .result-content {
+            padding: 1rem;
+        }
+        .keyword-tag {
+            display: inline-block;
+            background-color: #e7f3ff;
+            color: #0056b3;
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .summary-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 1rem;
+            border-radius: 0 0.25rem 0.25rem 0;
+            margin-bottom: 1rem;
+        }
+        .summary-stats {
+            background-color: #e9ecef;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
+        }
+        .stat-item {
+            display: inline-block;
+            margin-right: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .stat-value {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #007bff;
+        }
+        .file-upload-area {
+            border: 2px dashed #ced4da;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .file-upload-area:hover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <i class="fas fa-robot text-primary me-2"></i>
+                <span class="fw-bold text-dark">Spring AI Demo</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-tachometer-alt me-1"></i> 仪表板
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/chat">
+                            <i class="fas fa-comment-dots me-1"></i> 智能聊天
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/code">
+                            <i class="fas fa-code me-1"></i> 代码工具
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/content">
+                            <i class="fas fa-file-alt me-1"></i> 内容处理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/utility">
+                            <i class="fas fa-tools me-1"></i> 实用工具
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="text-sm text-muted mr-3">
+                        <span id="connection-status" class="badge bg-success">已连接</span>
+                    </div>
+                    <button class="btn btn-outline-primary" id="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">内容处理</h1>
+                <p class="text-muted mb-5">使用AI能力帮助您处理文本内容，包括摘要生成、关键词提取和多语言翻译。</p>
+            </div>
+        </div>
+
+        <!-- 功能选择标签页 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <ul class="nav nav-pills" id="contentTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="summary-tab" data-bs-toggle="pill" data-bs-target="#summary" type="button" role="tab">
+                            <i class="fas fa-file-alt mr-2"></i> 文本摘要
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="keywords-tab" data-bs-toggle="pill" data-bs-target="#keywords" type="button" role="tab">
+                            <i class="fas fa-tags mr-2"></i> 关键词提取
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="translate-tab" data-bs-toggle="pill" data-bs-target="#translate" type="button" role="tab">
+                            <i class="fas fa-language mr-2"></i> 文本翻译
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="row">
+            <!-- 左侧输入区域 -->
+            <div class="col-lg-6">
+                <div class="tab-content" id="contentTabsContent">
+                    <!-- 文本摘要选项卡 -->
+                    <div class="tab-pane fade show active" id="summary" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">文本摘要</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="summary-text" class="form-label">输入需要摘要的文本</label>
+                                    <textarea class="form-control content-input" id="summary-text" placeholder="请输入或粘贴需要生成摘要的文本内容..."></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">摘要设置</label>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="summary-length" class="form-label">摘要长度</label>
+                                            <select class="form-select" id="summary-length">
+                                                <option value="short">简短 (1-2段)</option>
+                                                <option value="medium" selected>中等 (3-5段)</option>
+                                                <option value="long">详细 (5段以上)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="summary-format" class="form-label">摘要格式</label>
+                                            <select class="form-select" id="summary-format">
+                                                <option value="paragraph" selected>段落形式</option>
+                                                <option value="bullet">要点形式</option>
+                                                <option value="both">段落+要点</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">重点关注</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="focus-main" checked>
+                                        <label class="form-check-label" for="focus-main">主要观点</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="focus-details">
+                                        <label class="form-check-label" for="focus-details">关键细节</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="focus-conclusion">
+                                        <label class="form-check-label" for="focus-conclusion">结论</label>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-primary w-100" id="generate-summary-btn">
+                                    <i class="fas fa-magic mr-2"></i>
+                                    <span>生成摘要</span>
+                                    <span class="loader" id="summary-loader" style="display: none;"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 关键词提取选项卡 -->
+                    <div class="tab-pane fade" id="keywords" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">关键词提取</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="keywords-text" class="form-label">输入需要提取关键词的文本</label>
+                                    <textarea class="form-control content-input" id="keywords-text" placeholder="请输入或粘贴需要提取关键词的文本内容..."></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">提取设置</label>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="keywords-count" class="form-label">关键词数量</label>
+                                            <input type="range" class="form-range" id="keywords-count" min="5" max="30" value="10">
+                                            <div class="d-flex justify-content-between">
+                                                <span>5</span>
+                                                <span id="keywords-count-value">10</span>
+                                                <span>30</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="keywords-type" class="form-label">关键词类型</label>
+                                            <select class="form-select" id="keywords-type">
+                                                <option value="all" selected>全部关键词</option>
+                                                <option value="noun">仅名词</option>
+                                                <option value="phrase">短语优先</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="include-weights" checked>
+                                        <label class="form-check-label" for="include-weights">显示关键词权重</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="group-synonyms">
+                                        <label class="form-check-label" for="group-synonyms">合并同义词</label>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-primary w-100" id="extract-keywords-btn">
+                                    <i class="fas fa-tags mr-2"></i>
+                                    <span>提取关键词</span>
+                                    <span class="loader" id="keywords-loader" style="display: none;"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 文本翻译选项卡 -->
+                    <div class="tab-pane fade" id="translate" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">文本翻译</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="translate-text" class="form-label">输入需要翻译的文本</label>
+                                    <textarea class="form-control content-input" id="translate-text" placeholder="请输入或粘贴需要翻译的文本内容..."></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">翻译设置</label>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="source-language" class="form-label">源语言</label>
+                                            <select class="form-select" id="source-language">
+                                                <option value="auto" selected>自动检测</option>
+                                                <option value="zh">中文</option>
+                                                <option value="en">英语</option>
+                                                <option value="ja">日语</option>
+                                                <option value="ko">韩语</option>
+                                                <option value="fr">法语</option>
+                                                <option value="de">德语</option>
+                                                <option value="es">西班牙语</option>
+                                                <option value="ru">俄语</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="target-language" class="form-label">目标语言</label>
+                                            <select class="form-select" id="target-language">
+                                                <option value="en">英语</option>
+                                                <option value="zh" selected>中文</option>
+                                                <option value="ja">日语</option>
+                                                <option value="ko">韩语</option>
+                                                <option value="fr">法语</option>
+                                                <option value="de">德语</option>
+                                                <option value="es">西班牙语</option>
+                                                <option value="ru">俄语</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">翻译类型</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="translate-type" id="translate-standard" checked>
+                                        <label class="form-check-label" for="translate-standard">标准翻译</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="translate-type" id="translate-formal">
+                                        <label class="form-check-label" for="translate-formal">正式用语</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="translate-type" id="translate-casual">
+                                        <label class="form-check-label" for="translate-casual">口语化</label>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-primary w-100" id="translate-btn">
+                                    <i class="fas fa-language mr-2"></i>
+                                    <span>翻译文本</span>
+                                    <span class="loader" id="translate-loader" style="display: none;"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧结果区域 -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">处理结果</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="result-container" class="result-container">
+                            <div class="result-content">
+                                <div class="text-center py-5" id="empty-result">
+                                    <i class="fas fa-file-alt text-muted mb-3" style="font-size: 4rem;"></i>
+                                    <h4 class="text-muted">等待处理结果</h4>
+                                    <p class="text-sm text-muted">请在左侧填写内容并点击相应按钮开始处理</p>
+                                </div>
+                                
+                                <!-- 摘要结果 -->
+                                <div id="summary-result" style="display: none;">
+                                    <div class="summary-stats">
+                                        <div class="stat-item">
+                                            <span class="stat-label">原文字数:</span>
+                                            <span class="stat-value" id="original-word-count">0</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">摘要字数:</span>
+                                            <span class="stat-value" id="summary-word-count">0</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">压缩率:</span>
+                                            <span class="stat-value" id="compression-rate">0%</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <h6 class="mb-2">摘要内容:</h6>
+                                    <div class="summary-section" id="summary-content"></div>
+                                    
+                                    <div class="mt-4">
+                                        <div class="d-flex justify-content-end">
+                                            <button class="btn btn-sm btn-outline-primary" id="copy-summary">
+                                                <i class="fas fa-copy mr-1"></i> 复制摘要
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 关键词结果 -->
+                                <div id="keywords-result" style="display: none;">
+                                    <div class="mb-3">
+                                        <h6 class="mb-2">提取的关键词:</h6>
+                                        <div id="keywords-list"></div>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <div class="d-flex justify-content-end">
+                                            <button class="btn btn-sm btn-outline-primary" id="copy-keywords">
+                                                <i class="fas fa-copy mr-1"></i> 复制关键词
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 翻译结果 -->
+                                <div id="translation-result" style="display: none;">
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">翻译结果</h6>
+                                            <div class="text-sm">
+                                                <span id="translation-source-lang">中文</span> → 
+                                                <span id="translation-target-lang">英语</span>
+                                            </div>
+                                        </div>
+                                        <div id="translation-content" class="bg-white p-3 border rounded"></div>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <div class="d-flex justify-content-end">
+                                            <button class="btn btn-sm btn-outline-primary mr-2" id="swap-languages">
+                                                <i class="fas fa-exchange-alt mr-1"></i> 交换语言
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-primary" id="copy-translation">
+                                                <i class="fas fa-copy mr-1"></i> 复制翻译
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 错误信息 -->
+                                <div id="error-message" class="alert alert-danger" style="display: none;">
+                                    <i class="fas fa-exclamation-circle mr-2"></i>
+                                    <span id="error-text">处理过程中发生错误，请稍后重试。</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 示例文本区域 -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3 class="mb-3">示例文本</h3>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title">技术文章</h6>
+                                        <p class="card-text text-sm">关于人工智能和机器学习的技术文章示例。</p>
+                                        <button class="btn btn-sm btn-outline-primary load-sample" data-sample="tech">加载示例</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title">新闻报道</h6>
+                                        <p class="card-text text-sm">关于最新科技发展的新闻报道示例。</p>
+                                        <button class="btn btn-sm btn-outline-primary load-sample" data-sample="news">加载示例</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title">产品描述</h6>
+                                        <p class="card-text text-sm">关于新产品发布的详细描述示例。</p>
+                                        <button class="btn btn-sm btn-outline-primary load-sample" data-sample="product">加载示例</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 页面加载后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化关键词数量滑块
+            const keywordsCount = document.getElementById('keywords-count');
+            const keywordsCountValue = document.getElementById('keywords-count-value');
+            keywordsCount.addEventListener('input', function() {
+                keywordsCountValue.textContent = this.value;
+            });
+            
+            // 初始化按钮事件
+            document.getElementById('generate-summary-btn').addEventListener('click', generateSummary);
+            document.getElementById('extract-keywords-btn').addEventListener('click', extractKeywords);
+            document.getElementById('translate-btn').addEventListener('click', translateText);
+            
+            // 复制按钮事件
+            document.getElementById('copy-summary').addEventListener('click', copySummary);
+            document.getElementById('copy-keywords').addEventListener('click', copyKeywords);
+            document.getElementById('copy-translation').addEventListener('click', copyTranslation);
+            
+            // 交换语言按钮
+            document.getElementById('swap-languages').addEventListener('click', swapLanguages);
+            
+            // 加载示例文本
+            document.querySelectorAll('.load-sample').forEach(button => {
+                button.addEventListener('click', function() {
+                    loadSampleText(this.dataset.sample);
+                });
+            });
+        });
+        
+        // 显示加载状态
+        function showLoading(loaderId) {
+            document.getElementById(loaderId).style.display = 'inline-block';
+        }
+        
+        // 隐藏加载状态
+        function hideLoading(loaderId) {
+            document.getElementById(loaderId).style.display = 'none';
+        }
+        
+        // 重置结果区域
+        function resetResultArea() {
+            document.getElementById('empty-result').style.display = 'block';
+            document.getElementById('summary-result').style.display = 'none';
+            document.getElementById('keywords-result').style.display = 'none';
+            document.getElementById('translation-result').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+        }
+        
+        // 显示错误消息
+        function showError(message) {
+            resetResultArea();
+            document.getElementById('error-text').textContent = message;
+            document.getElementById('error-message').style.display = 'block';
+        }
+        
+        // 生成摘要
+        function generateSummary() {
+            const text = document.getElementById('summary-text').value.trim();
+            
+            if (!text) {
+                showError('请输入需要摘要的文本');
+                return;
+            }
+            
+            // 构建请求参数
+            const requestData = {
+                action: 'summarize',
+                text: text,
+                length: document.getElementById('summary-length').value,
+                format: document.getElementById('summary-format').value,
+                focusMain: document.getElementById('focus-main').checked,
+                focusDetails: document.getElementById('focus-details').checked,
+                focusConclusion: document.getElementById('focus-conclusion').checked
+            };
+            
+            // 显示加载状态
+            showLoading('summary-loader');
+            
+            // 发送请求
+            fetch('/api/content', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading('summary-loader');
+                
+                if (data.success) {
+                    // 显示摘要结果
+                    resetResultArea();
+                    document.getElementById('summary-result').style.display = 'block';
+                    
+                    // 填充摘要内容
+                    document.getElementById('summary-content').innerHTML = formatSummary(data.result);
+                    
+                    // 计算统计信息
+                    const originalWordCount = text.length;
+                    const summaryWordCount = data.result.length;
+                    const compressionRate = Math.round((1 - summaryWordCount / originalWordCount) * 100);
+                    
+                    document.getElementById('original-word-count').textContent = originalWordCount;
+                    document.getElementById('summary-word-count').textContent = summaryWordCount;
+                    document.getElementById('compression-rate').textContent = `${compressionRate}%`;
+                } else {
+                    showError(data.error || '摘要生成失败，请稍后重试');
+                }
+            })
+            .catch(error => {
+                hideLoading('summary-loader');
+                showError('请求失败: ' + error.message);
+            });
+        }
+        
+        // 提取关键词
+        function extractKeywords() {
+            const text = document.getElementById('keywords-text').value.trim();
+            
+            if (!text) {
+                showError('请输入需要提取关键词的文本');
+                return;
+            }
+            
+            // 构建请求参数
+            const requestData = {
+                action: 'keywords',
+                text: text,
+                count: parseInt(document.getElementById('keywords-count').value),
+                type: document.getElementById('keywords-type').value,
+                includeWeights: document.getElementById('include-weights').checked,
+                groupSynonyms: document.getElementById('group-synonyms').checked
+            };
+            
+            // 显示加载状态
+            showLoading('keywords-loader');
+            
+            // 发送请求
+            fetch('/api/content', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading('keywords-loader');
+                
+                if (data.success) {
+                    // 显示关键词结果
+                    resetResultArea();
+                    document.getElementById('keywords-result').style.display = 'block';
+                    
+                    // 填充关键词列表
+                    const keywordsList = document.getElementById('keywords-list');
+                    keywordsList.innerHTML = '';
+                    
+                    if (data.keywords && data.keywords.length > 0) {
+                        data.keywords.forEach(keyword => {
+                            const tag = document.createElement('span');
+                            tag.className = 'keyword-tag';
+                            
+                            if (typeof keyword === 'object' && keyword.text) {
+                                tag.textContent = `${keyword.text}${keyword.weight ? ` (${keyword.weight})` : ''}`;
+                            } else {
+                                tag.textContent = keyword;
+                            }
+                            
+                            keywordsList.appendChild(tag);
+                        });
+                    } else {
+                        keywordsList.innerHTML = '<p class="text-muted">未提取到关键词</p>';
+                    }
+                } else {
+                    showError(data.error || '关键词提取失败，请稍后重试');
+                }
+            })
+            .catch(error => {
+                hideLoading('keywords-loader');
+                showError('请求失败: ' + error.message);
+            });
+        }
+        
+        // 翻译文本
+        function translateText() {
+            const text = document.getElementById('translate-text').value.trim();
+            
+            if (!text) {
+                showError('请输入需要翻译的文本');
+                return;
+            }
+            
+            // 获取翻译类型
+            let translateType = 'standard';
+            if (document.getElementById('translate-formal').checked) {
+                translateType = 'formal';
+            } else if (document.getElementById('translate-casual').checked) {
+                translateType = 'casual';
+            }
+            
+            // 构建请求参数
+            const requestData = {
+                action: 'translate',
+                text: text,
+                sourceLanguage: document.getElementById('source-language').value,
+                targetLanguage: document.getElementById('target-language').value,
+                type: translateType
+            };
+            
+            // 显示加载状态
+            showLoading('translate-loader');
+            
+            // 发送请求
+            fetch('/api/content', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading('translate-loader');
+                
+                if (data.success) {
+                    // 显示翻译结果
+                    resetResultArea();
+                    document.getElementById('translation-result').style.display = 'block';
+                    
+                    // 填充翻译内容
+                    document.getElementById('translation-content').textContent = data.result;
+                    
+                    // 更新语言信息
+                    const sourceLang = getLanguageName(requestData.sourceLanguage);
+                    const targetLang = getLanguageName(requestData.targetLanguage);
+                    document.getElementById('translation-source-lang').textContent = sourceLang;
+                    document.getElementById('translation-target-lang').textContent = targetLang;
+                } else {
+                    showError(data.error || '翻译失败，请稍后重试');
+                }
+            })
+            .catch(error => {
+                hideLoading('translate-loader');
+                showError('请求失败: ' + error.message);
+            });
+        }
+        
+        // 格式化摘要内容
+        function formatSummary(summary) {
+            // 将文本按段落分割并添加HTML格式
+            const paragraphs = summary.split('\n\n');
+            return paragraphs.map(p => `<p>${p}</p>`).join('');
+        }
+        
+        // 获取语言名称
+        function getLanguageName(code) {
+            const languages = {
+                'auto': '自动检测',
+                'zh': '中文',
+                'en': '英语',
+                'ja': '日语',
+                'ko': '韩语',
+                'fr': '法语',
+                'de': '德语',
+                'es': '西班牙语',
+                'ru': '俄语'
+            };
+            return languages[code] || code;
+        }
+        
+        // 复制摘要
+        function copySummary() {
+            const summary = document.getElementById('summary-content').textContent;
+            navigator.clipboard.writeText(summary).then(showCopySuccess('copy-summary'));
+        }
+        
+        // 复制关键词
+        function copyKeywords() {
+            const keywords = Array.from(document.querySelectorAll('.keyword-tag'))
+                .map(tag => tag.textContent.replace(/ \(.*\)/, ''))
+                .join(', ');
+            navigator.clipboard.writeText(keywords).then(showCopySuccess('copy-keywords'));
+        }
+        
+        // 复制翻译
+        function copyTranslation() {
+            const translation = document.getElementById('translation-content').textContent;
+            navigator.clipboard.writeText(translation).then(showCopySuccess('copy-translation'));
+        }
+        
+        // 显示复制成功提示
+        function showCopySuccess(buttonId) {
+            const btn = document.getElementById(buttonId);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check mr-1"></i> 已复制';
+            btn.classList.add('btn-primary');
+            btn.classList.remove('btn-outline-primary');
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline-primary');
+            }, 2000);
+        }
+        
+        // 交换语言
+        function swapLanguages() {
+            const sourceLanguage = document.getElementById('source-language');
+            const targetLanguage = document.getElementById('target-language');
+            
+            // 不能交换自动检测选项
+            if (sourceLanguage.value !== 'auto') {
+                const temp = sourceLanguage.value;
+                sourceLanguage.value = targetLanguage.value;
+                targetLanguage.value = temp;
+            }
+        }
+        
+        // 加载示例文本
+        function loadSampleText(sampleId) {
+            let text = '';
+            
+            switch(sampleId) {
+                case 'tech':
+                    text = '人工智能（Artificial Intelligence，简称AI）是计算机科学的一个分支，它旨在开发能够模拟人类智能的系统。这些系统能够学习、推理、解决问题、感知和理解自然语言。机器学习是人工智能的一个重要子集，它使计算机能够从数据中学习而不需要明确编程。深度学习是机器学习的一个更专门的子集，它使用神经网络来模拟人脑的工作方式。近年来，人工智能技术取得了显著进展，特别是在图像识别、自然语言处理和自动驾驶等领域。人工智能的应用正在各行各业中扩展，包括医疗保健、金融、制造和零售等。然而，人工智能的发展也带来了一些挑战，如隐私问题、就业市场变化和伦理考量。';
+                    break;
+                case 'news':
+                    text = '据最新报道，科技巨头XYZ公司今日宣布推出其新一代人工智能助手，该助手基于最新的大语言模型技术，能够理解和生成更加自然的对话内容。这款新助手不仅可以回答问题，还能协助用户完成各种任务，如日程安排、邮件撰写和数据分析等。XYZ公司的CEO在发布会上表示，这款助手的目标是成为用户的个人数字伙伴，帮助他们更高效地工作和生活。分析师预测，这款新助手的推出将进一步推动人工智能在消费市场的普及，预计到2025年，全球人工智能助手市场规模将达到500亿美元。然而，一些专家也对隐私和数据安全问题表示担忧，呼吁加强相关监管。';
+                    break;
+                case 'product':
+                    text = '全新智能办公助手Pro是一款专为现代办公环境设计的多功能设备。它集成了高性能处理器和先进的AI算法，能够同时处理多项任务，大幅提升工作效率。产品采用了10.8英寸全高清触控显示屏，搭配专业级的手写笔，支持精准的手写输入和绘图功能。内置的10000mAh大容量电池确保长达12小时的连续使用时间，满足全天办公需求。智能办公助手Pro还配备了高清摄像头和降噪麦克风，为远程会议提供出色的音视频体验。此外，产品支持无线充电和快速数据传输，方便用户随时随地使用。其时尚轻薄的设计（厚度仅8.2毫米，重量540克）使其成为移动办公的理想选择。现在购买还可享受一年免费的云存储服务和优先技术支持。';
+                    break;
+            }
+            
+            // 根据当前激活的标签页设置文本
+            const activeTab = document.querySelector('.tab-pane.active');
+            if (activeTab.id === 'summary') {
+                document.getElementById('summary-text').value = text;
+            } else if (activeTab.id === 'keywords') {
+                document.getElementById('keywords-text').value = text;
+            } else if (activeTab.id === 'translate') {
+                document.getElementById('translate-text').value = text;
+            }
+        }
+    </script>
+</body>
+</html>

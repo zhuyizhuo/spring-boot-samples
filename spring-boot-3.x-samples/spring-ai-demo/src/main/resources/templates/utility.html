@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实用工具 - Spring AI Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .card {
+            border-radius: 0.5rem;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .tool-card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .tool-card .card-body {
+            flex-grow: 1;
+        }
+        .tool-icon {
+            font-size: 2.5rem;
+            color: #007bff;
+            margin-bottom: 1rem;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .result-container {
+            background-color: #f8f9fa;
+            min-height: 250px;
+            border-radius: 0.25rem;
+            padding: 1rem;
+        }
+        .mail-template {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+        .mail-header {
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+        .mail-body {
+            padding-bottom: 1rem;
+        }
+        .mail-footer {
+            border-top: 1px solid #e9ecef;
+            padding-top: 1rem;
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+        .outline-item {
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+        .outline-item:hover {
+            background-color: #f8f9fa;
+            border-radius: 0.25rem;
+            padding-left: 0.5rem;
+        }
+        .outline-level-1 {
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+        .outline-level-2 {
+            margin-left: 1.5rem;
+            font-weight: 500;
+        }
+        .outline-level-3 {
+            margin-left: 3rem;
+            color: #495057;
+        }
+        .learning-plan {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+        .plan-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .plan-section:last-child {
+            border-bottom: none;
+        }
+        .plan-item {
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        .plan-item:before {
+            content: "•";
+            color: #007bff;
+            position: absolute;
+            left: 0;
+        }
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .btn-tool {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        .btn-tool.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .tool-content {
+            display: none;
+        }
+        .tool-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <i class="fas fa-robot text-primary me-2"></i>
+                <span class="fw-bold text-dark">Spring AI Demo</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-tachometer-alt me-1"></i> 仪表板
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/chat">
+                            <i class="fas fa-comment-dots me-1"></i> 智能聊天
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/code">
+                            <i class="fas fa-code me-1"></i> 代码工具
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/content">
+                            <i class="fas fa-file-alt me-1"></i> 内容处理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/utility">
+                            <i class="fas fa-tools me-1"></i> 实用工具
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="text-sm text-muted mr-3">
+                        <span id="connection-status" class="badge bg-success">已连接</span>
+                    </div>
+                    <button class="btn btn-outline-primary" id="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">实用工具</h1>
+                <p class="text-muted mb-5">使用AI驱动的实用工具，帮助您提高工作和学习效率。</p>
+            </div>
+        </div>
+
+        <!-- 工具导航 -->
+        <div class="row mb-5">
+            <div class="col-md-4">
+                <div class="card tool-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-envelope-open-text tool-icon"></i>
+                        <h5 class="card-title mb-2">智能邮件助手</h5>
+                        <p class="card-text text-muted mb-4">根据需求快速生成专业的邮件内容，支持多种邮件类型和风格。</p>
+                        <button class="btn btn-primary btn-tool" data-tool="email">开始使用</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card tool-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-list-ol tool-icon"></i>
+                        <h5 class="card-title mb-2">内容大纲生成</h5>
+                        <p class="card-text text-muted mb-4">自动为您的文章、报告或演示文稿创建结构化的大纲和框架。</p>
+                        <button class="btn btn-primary btn-tool" data-tool="outline">开始使用</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card tool-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-graduation-cap tool-icon"></i>
+                        <h5 class="card-title mb-2">学习计划制定</h5>
+                        <p class="card-text text-muted mb-4">为特定主题或技能创建个性化的学习路径和时间表。</p>
+                        <button class="btn btn-primary btn-tool" data-tool="learning-plan">开始使用</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 工具内容区域 -->
+        <div class="row">
+            <!-- 左侧输入区域 -->
+            <div class="col-lg-6">
+                <!-- 智能邮件助手 -->
+                <div class="card tool-content active" id="email-tool">
+                    <div class="card-header">
+                        <h5 class="mb-0">智能邮件助手</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="email-type" class="form-label">邮件类型</label>
+                            <select class="form-select" id="email-type">
+                                <option value="business">商务邮件</option>
+                                <option value="job-application">求职信</option>
+                                <option value="follow-up">跟进邮件</option>
+                                <option value="thank-you">感谢信</option>
+                                <option value="complaint">投诉信</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email-recipient" class="form-label">收件人</label>
+                            <input type="text" class="form-control" id="email-recipient" placeholder="收件人的职位或称呼，例如：招聘经理、客户服务团队等">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email-purpose" class="form-label">邮件目的</label>
+                            <textarea class="form-control" rows="3" id="email-purpose" placeholder="简要描述邮件的主要目的和关键信息..."></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email-tone" class="form-label">语气风格</label>
+                            <select class="form-select" id="email-tone">
+                                <option value="formal">正式</option>
+                                <option value="professional" selected>专业</option>
+                                <option value="friendly">友好</option>
+                                <option value="casual">随意</option>
+                                <option value="persuasive">说服力强</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email-length" class="form-label">邮件长度</label>
+                            <select class="form-select" id="email-length">
+                                <option value="short">简短</option>
+                                <option value="medium" selected>中等</option>
+                                <option value="detailed">详细</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include-greeting" checked>
+                                <label class="form-check-label" for="include-greeting">包含问候语</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include-signature" checked>
+                                <label class="form-check-label" for="include-signature">包含结束语</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include-action">
+                                <label class="form-check-label" for="include-action">包含行动呼吁</label>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary w-100" id="generate-email-btn">
+                            <i class="fas fa-envelope mr-2"></i>
+                            <span>生成邮件</span>
+                            <span class="loader" id="email-loader" style="display: none;"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 内容大纲生成 -->
+                <div class="card tool-content" id="outline-tool">
+                    <div class="card-header">
+                        <h5 class="mb-0">内容大纲生成</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="outline-topic" class="form-label">主题</label>
+                            <input type="text" class="form-control" id="outline-topic" placeholder="输入您要创建大纲的主题...">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="outline-purpose" class="form-label">目的</label>
+                            <select class="form-select" id="outline-purpose">
+                                <option value="informative" selected>提供信息</option>
+                                <option value="persuasive">说服他人</option>
+                                <option value="instructional">指导说明</option>
+                                <option value="research">研究报告</option>
+                                <option value="creative">创意写作</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="outline-audience" class="form-label">目标受众</label>
+                            <input type="text" class="form-control" id="outline-audience" placeholder="例如：初学者、专业人士、学生等">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="outline-key-points" class="form-label">关键点（可选）</label>
+                            <textarea class="form-control" rows="3" id="outline-key-points" placeholder="列出您希望在大纲中包含的关键要点..."></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="outline-depth" class="form-label">大纲深度</label>
+                            <select class="form-select" id="outline-depth">
+                                <option value="basic">基本（2级层次）</option>
+                                <option value="intermediate" selected>中级（3级层次）</option>
+                                <option value="detailed">详细（4级或更多层次）</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="outline-structure" class="form-label">组织结构</label>
+                            <select class="form-select" id="outline-structure">
+                                <option value="chronological">时间顺序</option>
+                                <option value="logical" selected>逻辑顺序</option>
+                                <option value="problem-solution">问题-解决方案</option>
+                                <option value="comparison">比较对照</option>
+                                <option value="hierarchical">层级结构</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-primary w-100" id="generate-outline-btn">
+                            <i class="fas fa-list-ol mr-2"></i>
+                            <span>生成大纲</span>
+                            <span class="loader" id="outline-loader" style="display: none;"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 学习计划制定 -->
+                <div class="card tool-content" id="learning-plan-tool">
+                    <div class="card-header">
+                        <h5 class="mb-0">学习计划制定</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="learning-topic" class="form-label">学习主题</label>
+                            <input type="text" class="form-control" id="learning-topic" placeholder="输入您想学习的主题或技能...">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="learning-level" class="form-label">当前水平</label>
+                            <select class="form-select" id="learning-level">
+                                <option value="beginner" selected>初学者</option>
+                                <option value="intermediate">中级</option>
+                                <option value="advanced">高级</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="learning-goal" class="form-label">学习目标</label>
+                            <textarea class="form-control" rows="3" id="learning-goal" placeholder="描述您的学习目标和期望达成的效果..."></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="learning-duration" class="form-label">学习周期</label>
+                            <div class="row">
+                                <div class="col-6">
+                                    <input type="number" class="form-control" id="learning-duration" min="1" max="52" value="4">
+                                </div>
+                                <div class="col-6">
+                                    <select class="form-select" id="duration-unit">
+                                        <option value="week" selected>周</option>
+                                        <option value="month">月</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="learning-hours" class="form-label">每周学习时间（小时）</label>
+                            <input type="range" class="form-range" id="learning-hours" min="2" max="40" value="10">
+                            <div class="d-flex justify-content-between">
+                                <span>2小时</span>
+                                <span id="learning-hours-value">10小时</span>
+                                <span>40小时</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">学习资源偏好</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="resource-video" checked>
+                                <label class="form-check-label" for="resource-video">视频教程</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="resource-article" checked>
+                                <label class="form-check-label" for="resource-article">文章/文档</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="resource-practice" checked>
+                                <label class="form-check-label" for="resource-practice">实践项目</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="resource-book">
+                                <label class="form-check-label" for="resource-book">书籍</label>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary w-100" id="generate-learning-plan-btn">
+                            <i class="fas fa-graduation-cap mr-2"></i>
+                            <span>生成学习计划</span>
+                            <span class="loader" id="learning-plan-loader" style="display: none;"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧结果区域 -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">生成结果</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="result-container" class="result-container">
+                            <div id="empty-result" class="text-center py-5">
+                                <i class="fas fa-tools text-muted mb-3" style="font-size: 4rem;"></i>
+                                <h4 class="text-muted">等待生成结果</h4>
+                                <p class="text-sm text-muted">请在左侧选择工具并填写相关信息后点击生成按钮</p>
+                            </div>
+                            
+                            <!-- 邮件结果 -->
+                            <div id="email-result" class="mail-template" style="display: none;">
+                                <div class="mail-header">
+                                    <div class="mb-2">
+                                        <strong>主题：</strong> <span id="email-subject"></span>
+                                    </div>
+                                </div>
+                                <div class="mail-body" id="email-body">
+                                </div>
+                                <div class="mail-footer">
+                                    此邮件由Spring AI Demo自动生成
+                                </div>
+                                <div class="mt-4">
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-sm btn-outline-primary" id="copy-email">
+                                            <i class="fas fa-copy mr-1"></i> 复制邮件
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 大纲结果 -->
+                            <div id="outline-result" style="display: none;">
+                                <h6 class="mb-3">内容大纲：</h6>
+                                <div id="outline-content"></div>
+                                <div class="mt-4">
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-sm btn-outline-primary" id="copy-outline">
+                                            <i class="fas fa-copy mr-1"></i> 复制大纲
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 学习计划结果 -->
+                            <div id="learning-plan-result" class="learning-plan" style="display: none;">
+                                <div class="mb-3">
+                                    <h5 id="learning-plan-title"></h5>
+                                    <p class="text-muted text-sm" id="learning-plan-subtitle"></p>
+                                </div>
+                                <div class="plan-section">
+                                    <h6 class="mb-2">学习目标</h6>
+                                    <div id="learning-plan-goals"></div>
+                                </div>
+                                <div class="plan-section">
+                                    <h6 class="mb-2">学习路径</h6>
+                                    <div id="learning-plan-path"></div>
+                                </div>
+                                <div class="plan-section">
+                                    <h6 class="mb-2">推荐资源</h6>
+                                    <div id="learning-plan-resources"></div>
+                                </div>
+                                <div class="plan-section">
+                                    <h6 class="mb-2">评估方法</h6>
+                                    <div id="learning-plan-assessment"></div>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-sm btn-outline-primary" id="copy-learning-plan">
+                                            <i class="fas fa-copy mr-1"></i> 复制学习计划
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 错误信息 -->
+                            <div id="error-message" class="alert alert-danger" style="display: none;">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                <span id="error-text">生成过程中发生错误，请稍后重试。</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 页面加载后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化学习时间滑块
+            const learningHours = document.getElementById('learning-hours');
+            const learningHoursValue = document.getElementById('learning-hours-value');
+            learningHours.addEventListener('input', function() {
+                learningHoursValue.textContent = this.value + '小时';
+            });
+            
+            // 初始化工具切换
+            document.querySelectorAll('.btn-tool').forEach(button => {
+                button.addEventListener('click', function() {
+                    const toolId = this.getAttribute('data-tool');
+                    switchTool(toolId);
+                });
+            });
+            
+            // 初始化生成按钮事件
+            document.getElementById('generate-email-btn').addEventListener('click', generateEmail);
+            document.getElementById('generate-outline-btn').addEventListener('click', generateOutline);
+            document.getElementById('generate-learning-plan-btn').addEventListener('click', generateLearningPlan);
+            
+            // 初始化复制按钮事件
+            document.getElementById('copy-email').addEventListener('click', copyEmail);
+            document.getElementById('copy-outline').addEventListener('click', copyOutline);
+            document.getElementById('copy-learning-plan').addEventListener('click', copyLearningPlan);
+        });
+        
+        // 切换工具
+        function switchTool(toolId) {
+            // 隐藏所有工具内容
+            document.querySelectorAll('.tool-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 移除所有按钮的活动状态
+            document.querySelectorAll('.btn-tool').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // 显示选中的工具内容
+            document.getElementById(toolId + '-tool').classList.add('active');
+            
+            // 设置选中按钮的活动状态
+            document.querySelector(`.btn-tool[data-tool="${toolId}"]`).classList.add('active');
+            
+            // 重置结果区域
+            resetResultArea();
+        }
+        
+        // 显示加载状态
+        function showLoading(loaderId) {
+            document.getElementById(loaderId).style.display = 'inline-block';
+        }
+        
+        // 隐藏加载状态
+        function hideLoading(loaderId) {
+            document.getElementById(loaderId).style.display = 'none';
+        }
+        
+        // 重置结果区域
+        function resetResultArea() {
+            document.getElementById('empty-result').style.display = 'block';
+            document.getElementById('email-result').style.display = 'none';
+            document.getElementById('outline-result').style.display = 'none';
+            document.getElementById('learning-plan-result').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+        }
+        
+        // 显示错误消息
+        function showError(message) {
+            resetResultArea();
+            document.getElementById('error-text').textContent = message;
+            document.getElementById('error-message').style.display = 'block';
+        }
+        
+        // 生成邮件
+        function generateEmail() {
+            const recipient = document.getElementById('email-recipient').value.trim();
+            const purpose = document.getElementById('email-purpose').value.trim();
+            
+            if (!recipient || !purpose) {
+                showError('请填写收件人和邮件目的');
+                return;
+            }
+            
+            // 构建请求参数
+            const requestData = {
+                action: 'email',
+                type: document.getElementById('email-type').value,
+                recipient: recipient,
+                purpose: purpose,
+                tone: document.getElementById('email-tone').value,
+                length: document.getElementById('email-length').value,
+                includeGreeting: document.getElementById('include-greeting').checked,
+                includeSignature: document.getElementById('include-signature').checked,
+                includeAction: document.getElementById('include-action').checked
+            };
+            
+            // 显示加载状态
+            showLoading('email-loader');
+            
+            // 发送请求
+            fetch('/api/utility', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading('email-loader');
+                
+                if (data.success) {
+                    // 显示邮件结果
+                    resetResultArea();
+                    document.getElementById('email-result').style.display = 'block';
+                    
+                    // 提取主题和正文（简单解析，实际中可能需要更复杂的处理）
+                    const emailContent = data.result;
+                    const lines = emailContent.split('\n');
+                    
+                    // 查找主题行
+                    let subject = "主题：";
+                    let body = [];
+                    let inBody = false;
+                    
+                    lines.forEach(line => {
+                        if (line.startsWith('主题：') || line.startsWith('Subject:')) {
+                            subject = line.replace('主题：', '').replace('Subject:', '').trim();
+                        } else if (line.trim() !== '') {
+                            inBody = true;
+                            body.push(line);
+                        } else if (inBody) {
+                            body.push(line);
+                        }
+                    });
+                    
+                    document.getElementById('email-subject').textContent = subject || "无主题";
+                    document.getElementById('email-body').innerHTML = body.join('\n').replace(/\n/g, '<br>');
+                } else {
+                    showError(data.error || '邮件生成失败，请稍后重试');
+                }
+            })
+            .catch(error => {
+                hideLoading('email-loader');
+                showError('请求失败: ' + error.message);
+            });
+        }
+        
+        // 生成大纲
+        function generateOutline() {
+            const topic = document.getElementById('outline-topic').value.trim();
+            
+            if (!topic) {
+                showError('请输入主题');
+                return;
+            }
+            
+            // 构建请求参数
+            const requestData = {
+                action: 'outline',
+                topic: topic,
+                purpose: document.getElementById('outline-purpose').value,
+                audience: document.getElementById('outline-audience').value.trim(),
+                keyPoints: document.getElementById('outline-key-points').value.trim(),
+                depth: document.getElementById('outline-depth').value,
+                structure: document.getElementById('outline-structure').value
+            };
+            
+            // 显示加载状态
+            showLoading('outline-loader');
+            
+            // 发送请求
+            fetch('/api/utility', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading('outline-loader');
+                
+                if (data.success) {
+                    // 显示大纲结果
+                    resetResultArea();
+                    document.getElementById('outline-result').style.display = 'block';
+                    
+                    // 格式化大纲内容
+                    const outlineContent = document.getElementById('outline-content');
+                    outlineContent.innerHTML = formatOutline(data.result);
+                } else {
+                    showError(data.error || '大纲生成失败，请稍后重试');
+                }
+            })
+            .catch(error => {
+                hideLoading('outline-loader');
+                showError('请求失败: ' + error.message);
+            });
+        }
+        
+        // 生成学习计划
+        function generateLearningPlan() {
+            const topic = document.getElementById('learning-topic').value.trim();
+            const goal = document.getElementById('learning-goal').value.trim();
+            
+            if (!topic || !goal) {
+                showError('请输入学习主题和学习目标');
+                return;
+            }
+            
+            // 构建请求参数
+            const requestData = {
+                action: 'learning-plan',
+                topic: topic,
+                level: document.getElementById('learning-level').value,
+                goal: goal,
+                duration: parseInt(document.getElementById('learning-duration').value),
+                durationUnit: document.getElementById('duration-unit').value,
+                weeklyHours: parseInt(document.getElementById('learning-hours').value),
+                resources: {
+                    video: document.getElementById('resource-video').checked,
+                    article: document.getElementById('resource-article').checked,
+                    practice: document.getElementById('resource-practice').checked,
+                    book: document.getElementById('resource-book').checked
+                }
+            };
+            
+            // 显示加载状态
+            showLoading('learning-plan-loader');
+            
+            // 发送请求
+            fetch('/api/utility', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading('learning-plan-loader');
+                
+                if (data.success) {
+                    // 显示学习计划结果
+                    resetResultArea();
+                    document.getElementById('learning-plan-result').style.display = 'block';
+                    
+                    // 填充学习计划内容
+                    document.getElementById('learning-plan-title').textContent = `"${requestData.topic}" 学习计划`;
+                    document.getElementById('learning-plan-subtitle').textContent = 
+                        `为期 ${requestData.duration} ${requestData.durationUnit === 'week' ? '周' : '个月'}，每周 ${requestData.weeklyHours} 小时`;
+                    
+                    // 简单解析学习计划内容
+                    // 注意：在实际应用中，可能需要更复杂的解析逻辑或调整API返回的数据格式
+                    const content = data.result;
+                    document.getElementById('learning-plan-goals').innerHTML = formatAsListItems(content, '学习目标');
+                    document.getElementById('learning-plan-path').innerHTML = formatAsListItems(content, '学习路径');
+                    document.getElementById('learning-plan-resources').innerHTML = formatAsListItems(content, '推荐资源');
+                    document.getElementById('learning-plan-assessment').innerHTML = formatAsListItems(content, '评估方法');
+                } else {
+                    showError(data.error || '学习计划生成失败，请稍后重试');
+                }
+            })
+            .catch(error => {
+                hideLoading('learning-plan-loader');
+                showError('请求失败: ' + error.message);
+            });
+        }
+        
+        // 格式化大纲内容
+        function formatOutline(outline) {
+            const lines = outline.split('\n');
+            const formattedLines = [];
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (line) {
+                    let level = 1;
+                    let content = line;
+                    
+                    // 检测缩进级别（假设使用空格或数字标记）
+                    if (line.startsWith('1.') || line.startsWith('一、') || !line.startsWith(' ') && !line.startsWith('\t')) {
+                        level = 1;
+                    } else if (line.startsWith('  ')) {
+                        level = 2;
+                        content = line.substring(2);
+                    } else if (line.startsWith('    ')) {
+                        level = 3;
+                        content = line.substring(4);
+                    } else if (line.startsWith('\t')) {
+                        level = 2;
+                        content = line.substring(1);
+                    } else if (line.startsWith('\t\t')) {
+                        level = 3;
+                        content = line.substring(2);
+                    }
+                    
+                    // 移除编号标记
+                    content = content.replace(/^\d+\.\s*/, '').replace(/^[一二三四五六七八九十]+、\s*/, '');
+                    content = content.replace(/^[a-z]\)\s*/, '').replace(/^[A-Z]\)\s*/, '');
+                    
+                    formattedLines.push(`<div class="outline-item outline-level-${level}">${content}</div>`);
+                }
+            });
+            
+            return formattedLines.join('');
+        }
+        
+        // 格式化为列表项
+        function formatAsListItems(content, sectionTitle) {
+            // 简单实现：查找包含sectionTitle的部分并格式化为列表
+            const lines = content.split('\n');
+            const sectionLines = [];
+            let inSection = false;
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.includes(sectionTitle)) {
+                    inSection = true;
+                } else if (inSection && line && (line.startsWith('-') || line.startsWith('•') || /^\d+\./.test(line))) {
+                    // 这是一个列表项
+                    const text = line.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '');
+                    sectionLines.push(`<div class="plan-item">${text}</div>`);
+                } else if (inSection && line && sectionLines.length > 0 && 
+                           (line.startsWith('1.') || line.startsWith('一、') || line.includes('：'))) {
+                    // 可能是下一个大标题，结束当前部分
+                    inSection = false;
+                }
+            });
+            
+            // 如果没有找到匹配的部分，返回默认内容
+            if (sectionLines.length === 0) {
+                return `<div class="plan-item">请参考完整的学习计划内容</div>`;
+            }
+            
+            return sectionLines.join('');
+        }
+        
+        // 复制邮件
+        function copyEmail() {
+            const subject = document.getElementById('email-subject').textContent;
+            const body = document.getElementById('email-body').textContent;
+            const fullEmail = `主题：${subject}\n\n${body}`;
+            navigator.clipboard.writeText(fullEmail).then(() => showCopySuccess('copy-email'));
+        }
+        
+        // 复制大纲
+        function copyOutline() {
+            const outline = document.getElementById('outline-content').textContent;
+            navigator.clipboard.writeText(outline).then(() => showCopySuccess('copy-outline'));
+        }
+        
+        // 复制学习计划
+        function copyLearningPlan() {
+            const plan = document.getElementById('learning-plan-result').textContent;
+            navigator.clipboard.writeText(plan).then(() => showCopySuccess('copy-learning-plan'));
+        }
+        
+        // 显示复制成功提示
+        function showCopySuccess(buttonId) {
+            const btn = document.getElementById(buttonId);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check mr-1"></i> 已复制';
+            btn.classList.add('btn-primary');
+            btn.classList.remove('btn-outline-primary');
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline-primary');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

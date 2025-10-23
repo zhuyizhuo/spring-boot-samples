@@ -1,37 +1,56 @@
 server:
-  port: 8083
+  port: 8080
+  servlet:
+    context-path: /
 
 spring:
+  # Thymeleaf配置
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+  
+  # Spring AI配置
   ai:
-    # OpenAI配置
+    # OpenAI配置（Spring AI 1.0.0-M1格式）
     openai:
-      api-key: "your-openai-api-key"
+      api-key: demo-api-key-for-test
       chat:
         options:
           model: gpt-3.5-turbo
-          temperature: 0.7
-    # Ollama配置（本地运行的模型）
-    ollama:
-      base-url: "http://localhost:11434"
-      chat:
-        options:
-          model: llama3
-          temperature: 0.7
-    # Pinecone配置
-    pinecone:
-      api-key: "your-pinecone-api-key"
-      environment: "gcp-starter"
-      index-name: "spring-ai-demo"
+    
+    # Azure OpenAI配置（如果使用Azure OpenAI服务）
+    # azure:
+    #   openai:
+    #     api-key: ${AZURE_OPENAI_API_KEY:your-api-key}
+    #     endpoint: ${AZURE_OPENAI_ENDPOINT:your-endpoint}
+    #     chat:
+    #       options:
+    #         model: your-model-name
+    
+    # 本地模型配置（如果使用本地部署的模型）
+    # chat:
+    #   options:
+    #     model: gpt-4o  # 默认模型名称，实际部署时需要根据环境调整
 
-# 应用信息
-info:
-  app:
-    name: spring-ai-demo
-    description: Spring Boot 3.x 集成 AI 示例应用
-    version: 1.0.0
+# 应用程序配置
+spring-ai-demo:
+  # 会话管理配置
+  session:
+    max-history-length: 10  # 每个会话保留的最大历史消息数
+    timeout-minutes: 60  # 会话超时时间（分钟）
+  
+  # 速率限制配置
+  rate-limit:
+    requests-per-minute: 60  # 每分钟最大请求数
+    enabled: true  # 是否启用速率限制
 
 # 日志配置
 logging:
   level:
     root: INFO
-    com.github.zhuyizhuo.springai: DEBUG
+    com.github.zhuyizhuo.ai.demo: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

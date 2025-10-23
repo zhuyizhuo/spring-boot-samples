@@ -1,6 +1,5 @@
 package com.github.zhuyizhuo;
 
-
 import com.github.zhuyizhuo.config.ESClientConfig;
 import com.github.zhuyizhuo.util.ElasticsearchUtil;
 import org.elasticsearch.client.RestHighLevelClient;

@@ -1,6 +1,6 @@
 package com.github.zhuyizhuo;
 
-
+import com.github.zhuyizhuo.util.EsClientUtil;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;

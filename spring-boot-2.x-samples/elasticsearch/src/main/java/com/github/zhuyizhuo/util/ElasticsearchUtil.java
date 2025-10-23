@@ -1,6 +1,5 @@
 package com.github.zhuyizhuo.util;
 
-import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -16,6 +15,7 @@ import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
@@ -24,6 +24,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.xcontent.XContentType;
@@ -34,19 +35,26 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Elasticsearch 工具类 (基于 RestHighLevelClient)
- * 注意: RestHighLevelClient 已被标记为弃用，但对于ES 7.x 仍是主流选择
+ * Elasticsearch 工具类
+ * 使用最新的 RestHighLevelClient API 设计模式
  */
-public class ElasticsearchUtil {
+public class ElasticsearchUtil implements AutoCloseable {
 
     private final RestHighLevelClient client;
 
+    /**
+     * 构造函数，接受 ES 客户端实例
+     * @param client RestHighLevelClient 实例
+     */
     public ElasticsearchUtil(RestHighLevelClient client) {
         this.client = client;
     }
 
     /**
      * 判断索引是否存在
+     * @param indexName 索引名称
+     * @return 索引是否存在
+     * @throws IOException 可能的IO异常
      */
     public boolean indexExists(String indexName) throws IOException {
         GetIndexRequest request = new GetIndexRequest(indexName);
@@ -55,9 +63,13 @@ public class ElasticsearchUtil {
 
     /**
      * 创建索引
+     * @param indexName 索引名称
+     * @return 是否创建成功
+     * @throws IOException 可能的IO异常
      */
     public boolean createIndex(String indexName) throws IOException {
         CreateIndexRequest request = new CreateIndexRequest(indexName);
+        // 使用非静态方法设置索引配置
         request.settings(Settings.builder()
                 .put("index.number_of_shards", 3)
                 .put("index.number_of_replicas", 2)
@@ -68,6 +80,9 @@ public class ElasticsearchUtil {
 
     /**
      * 删除索引
+     * @param indexName 索引名称
+     * @return 是否删除成功
+     * @throws IOException 可能的IO异常
      */
     public boolean deleteIndex(String indexName) throws IOException {
         DeleteIndexRequest request = new DeleteIndexRequest(indexName);
@@ -77,6 +92,11 @@ public class ElasticsearchUtil {
 
     /**
      * 新增或更新文档 (ID不存在则新增，存在则更新)
+     * @param indexName 索引名称
+     * @param id 文档ID
+     * @param jsonSource JSON格式的文档内容
+     * @return 是否操作成功
+     * @throws IOException 可能的IO异常
      */
     public boolean upsertDocument(String indexName, String id, String jsonSource) throws IOException {
         IndexRequest request = new IndexRequest(indexName)
@@ -88,6 +108,10 @@ public class ElasticsearchUtil {
 
     /**
      * 根据ID获取文档
+     * @param indexName 索引名称
+     * @param id 文档ID
+     * @return 文档内容，不存在返回null
+     * @throws IOException 可能的IO异常
      */
     public Map<String, Object> getDocumentById(String indexName, String id) throws IOException {
         GetRequest request = new GetRequest(indexName, id);
@@ -100,6 +124,11 @@ public class ElasticsearchUtil {
 
     /**
      * 根据ID更新文档 (部分字段)
+     * @param indexName 索引名称
+     * @param id 文档ID
+     * @param updateFields 要更新的字段
+     * @return 是否更新成功
+     * @throws IOException 可能的IO异常
      */
     public boolean updateDocument(String indexName, String id, Map<String, Object> updateFields) throws IOException {
         UpdateRequest request = new UpdateRequest(indexName, id)
@@ -110,6 +139,10 @@ public class ElasticsearchUtil {
 
     /**
      * 根据ID删除文档
+     * @param indexName 索引名称
+     * @param id 文档ID
+     * @return 是否删除成功
+     * @throws IOException 可能的IO异常
      */
     public boolean deleteDocument(String indexName, String id) throws IOException {
         DeleteRequest request = new DeleteRequest(indexName, id);
@@ -119,21 +152,22 @@ public class ElasticsearchUtil {
 
     /**
      * 批量操作 (新增、更新、删除)
+     * @param operations 操作列表
+     * @return 是否全部成功
+     * @throws IOException 可能的IO异常
      */
     public boolean bulkOperation(List<?> operations) throws IOException {
-        // 这里需要根据业务逻辑构建BulkRequest，例如：
-        // BulkRequest request = new BulkRequest();
-        // for (SomeObject obj : operations) {
-        //     request.add(new IndexRequest("index").id(obj.getId()).source(convertToMap(obj), XContentType.JSON));
-        // }
-        // BulkResponse response = client.bulk(request, RequestOptions.DEFAULT);
-        // return !response.hasFailures();
-        // 具体实现取决于你的业务数据格式
+        // 实际业务场景中需要实现具体逻辑
         return false;
     }
 
     /**
      * 搜索文档 (简单匹配查询)
+     * @param indexName 索引名称
+     * @param field 字段名
+     * @param value 搜索值
+     * @return 搜索结果列表
+     * @throws IOException 可能的IO异常
      */
     public List<Map<String, Object>> search(String indexName, String field, String value) throws IOException {
         return search(indexName, field, value, 0, 10);
@@ -141,6 +175,13 @@ public class ElasticsearchUtil {
 
     /**
      * 搜索文档 (带分页)
+     * @param indexName 索引名称
+     * @param field 字段名
+     * @param value 搜索值
+     * @param from 起始位置
+     * @param size 返回数量
+     * @return 搜索结果列表
+     * @throws IOException 可能的IO异常
      */
     public List<Map<String, Object>> search(String indexName, String field, String value, int from, int size) throws IOException {
         SearchRequest request = new SearchRequest(indexName);
@@ -157,6 +198,9 @@ public class ElasticsearchUtil {
 
     /**
      * 通用搜索方法
+     * @param request 搜索请求
+     * @return 搜索结果列表
+     * @throws IOException 可能的IO异常
      */
     public List<Map<String, Object>> search(SearchRequest request) throws IOException {
         SearchResponse response = client.search(request, RequestOptions.DEFAULT);
@@ -165,18 +209,25 @@ public class ElasticsearchUtil {
 
     /**
      * 解析搜索结果
+     * @param response 搜索响应
+     * @return 结果列表
      */
     private List<Map<String, Object>> getHitList(SearchResponse response) {
         List<Map<String, Object>> list = new ArrayList<>();
-        for (SearchHit hit : response.getHits().getHits()) {
-            list.add(hit.getSourceAsMap());
+        SearchHits hits = response.getHits();
+        if (hits != null) {
+            for (SearchHit hit : hits.getHits()) {
+                list.add(hit.getSourceAsMap());
+            }
         }
         return list;
     }
 
     /**
-     * 关闭客户端连接 (重要！需要在应用关闭时调用)
+     * 关闭客户端连接
+     * @throws IOException 可能的IO异常
      */
+    @Override
     public void close() throws IOException {
         if (client != null) {
             client.close();

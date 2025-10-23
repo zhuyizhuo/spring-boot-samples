@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: elasticsearch-demo
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    mode: HTML5
+  web:
+    resources:
+      static-locations: classpath:/static/
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  # 导入Elasticsearch配置文件（包含敏感信息）
+  config:
+    import: classpath:/application-es.yml
+  # 配置Elasticsearch客户端在连接失败时不阻止应用启动
+  # 注意: ES具体连接配置已移至application-es.yml文件（不提交到版本控制）
+  # 本地开发时请创建application-es.yml文件并配置正确的ES连接信息
+
+# 服务器配置
+server:
+  port: 8083
+  servlet:
+    context-path: /
+  tomcat:
+    uri-encoding: UTF-8
+    threads:
+      max: 200
+      min-spare: 10
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.github.zhuyizhuo.esdemo: DEBUG
+    org.elasticsearch.client: WARN
+    org.springframework.web: INFO
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
+    file: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
+  file:
+    name: logs/elasticsearch-demo.log
+    max-size: 10MB
+    max-history: 10
+
+# 应用信息
+info:
+  app:
+    name: ${spring.application.name}
+    version: 1.0.0
+    description: Spring Boot 3.x Elasticsearch 集成示例
+    author: JavaTechLead

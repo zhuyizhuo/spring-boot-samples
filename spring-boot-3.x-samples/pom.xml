@@ -20,7 +20,7 @@
         <module>data-jpa</module>
         <module>mybatis-plus-demo</module>
         <module>minio-demo</module>
-<!--        <module>spring-ai-demo</module>-->
+        <module>kafka-demo</module>
         <!-- 后续会添加更多示例模块 -->
     </modules>
 

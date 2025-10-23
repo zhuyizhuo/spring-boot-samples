@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring AI Demo - 主仪表板</title>
+    <link th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+        .content {
+            flex: 1;
+        }
+        .card-hover {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .connection-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-connected {
+            background-color: #28a745;
+        }
+        .status-disconnected {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-robot"></i> Spring AI Demo
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">
+                            <i class="fas fa-home"></i> 仪表板
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/chat">
+                            <i class="fas fa-comment-dots"></i> 智能聊天
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/code">
+                            <i class="fas fa-code"></i> 代码工具
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/content">
+                            <i class="fas fa-file-alt"></i> 内容处理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/utilities">
+                            <i class="fas fa-tools"></i> 实用工具
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-text">
+                    <span class="connection-status" 
+                          th:classappend="${connectionStatus ? 'status-connected' : 'status-disconnected'}"></span>
+                    <span th:text="${connectionStatus ? 'AI服务已连接' : 'AI服务未连接'}"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="content container mt-4">
+        <!-- 系统状态卡片 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-tachometer-alt"></i> 系统状态
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <div class="h4" th:text="${usageStats.totalRequests}">0</div>
+                                    <div class="text-muted">总请求数</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <div class="h4" th:text="${usageStats.conversationCount}">0</div>
+                                    <div class="text-muted">活跃会话</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <div class="h4" th:text="${usageStats.maxRequestsPerMinute}">60</div>
+                                    <div class="text-muted">每分钟限制</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle"></i> 关于项目
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Spring Boot 3.x 集成 AI 功能演示项目，提供智能聊天、代码生成、内容处理等多种AI功能。</p>
+                        <p><strong>技术栈：</strong>Spring Boot 3.2.x + Spring AI + Thymeleaf + Bootstrap 5</p>
+                        <a href="/actuator/health" class="btn btn-sm btn-outline-secondary" target="_blank">
+                            <i class="fas fa-heartbeat"></i> 健康检查
+                        </a>
+                        <a href="/h2-console" class="btn btn-sm btn-outline-secondary" target="_blank">
+                            <i class="fas fa-database"></i> H2控制台
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能导航卡片 -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <a href="/chat" class="text-decoration-none">
+                    <div class="card h-100 card-hover bg-primary text-white">
+                        <div class="card-body">
+                            <div class="text-center">
+                                <i class="fas fa-comment-dots fa-4x mb-3"></i>
+                                <h5 class="card-title">智能聊天</h5>
+                                <p class="card-text">与AI进行自然语言对话，支持多种回复风格</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <a href="/code" class="text-decoration-none">
+                    <div class="card h-100 card-hover bg-success text-white">
+                        <div class="card-body">
+                            <div class="text-center">
+                                <i class="fas fa-code fa-4x mb-3"></i>
+                                <h5 class="card-title">代码工具</h5>
+                                <p class="card-text">代码生成、解释和审查，支持多种编程语言</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <a href="/content" class="text-decoration-none">
+                    <div class="card h-100 card-hover bg-info text-white">
+                        <div class="card-body">
+                            <div class="text-center">
+                                <i class="fas fa-file-alt fa-4x mb-3"></i>
+                                <h5 class="card-title">内容处理</h5>
+                                <p class="card-text">文本摘要、关键词提取和多语言翻译</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <a href="/utilities" class="text-decoration-none">
+                    <div class="card h-100 card-hover bg-warning text-dark">
+                        <div class="card-body">
+                            <div class="text-center">
+                                <i class="fas fa-tools fa-4x mb-3"></i>
+                                <h5 class="card-title">实用工具</h5>
+                                <p class="card-text">邮件生成、文档大纲和学习计划制定</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- 最近对话 -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-history"></i> 最近对话
+                            </h5>
+                            <form method="post" action="/conversation/create">
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus"></i> 新建对话
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${conversations.empty}" class="text-center text-muted py-4">
+                            暂无对话记录，点击"新建对话"开始聊天
+                        </div>
+                        <div th:unless="${conversations.empty}">
+                            <div class="list-group">
+                                <a th:each="conversation : ${conversations}"
+                                   th:href="@{/chat(conversationId=${conversation.id})}"
+                                   class="list-group-item list-group-item-action">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 th:text="${conversation.name}"></h6>
+                                            <p class="text-muted mb-0">
+                                                <small th:text="${conversation.messages.size()} + ' 条消息'">0 条消息</small>
+                                            </p>
+                                        </div>
+                                        <form method="post" th:action="@{/conversation/delete(conversationId=${conversation.id})}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-4 mt-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2024 Spring AI Demo</p>
+                </div>
+                <div class="col-md-6 text-md-right">
+                    <p>使用 Spring Boot 3.2.x + Spring AI 构建</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+</body>
+</html>

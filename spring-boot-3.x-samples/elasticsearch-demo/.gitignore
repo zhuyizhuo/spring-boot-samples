@@ -1,0 +1,50 @@
+# 忽略构建目录
+target/
+build/
+
+# 忽略IDE文件
+.idea/
+*.iml
+*.project
+*.classpath
+.settings/
+.vscode/
+
+# 忽略操作系统文件
+.DS_Store
+Thumbs.db
+
+# 忽略日志文件
+logs/
+*.log
+
+# 忽略环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 忽略敏感配置文件（包含密码、密钥等）
+application-es.yml
+application-prod.yml
+application-test.yml
+application-dev.yml
+
+# 忽略Maven本地仓库
+.m2/
+
+# 忽略Java编译文件
+*.class
+
+# 忽略打包文件
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# 忽略临时文件
+*.tmp
+*.temp
+.cache/

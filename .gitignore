@@ -36,3 +36,4 @@ hs_err_pid*
 **/src/main/resources/application-*.yml
 **/src/main/resources/application-*.properties
 .vscode
+spring-boot-2.x-samples/elasticsearch/src/main/resources/application.properties

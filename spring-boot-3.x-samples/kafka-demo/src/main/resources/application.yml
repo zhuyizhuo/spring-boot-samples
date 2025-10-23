@@ -1,0 +1,52 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /kafka-demo
+
+spring:
+  # Kafka配置
+  kafka:
+    bootstrap-servers: 81.70.18.89:9092
+    # 生产者配置
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      batch-size: 16384
+      buffer-memory: 33554432
+    # 消费者配置
+    consumer:
+      group-id: kafka-demo-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.github.zhuyizhuo.kafka.demo.model
+    # 监听器配置
+    listener:
+      concurrency: 3
+      missing-topics-fatal: false
+  
+  # Thymeleaf配置
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    mode: HTML5
+
+# SpringDoc OpenAPI配置
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+# 应用配置
+kafka-demo:
+  topics:
+    demo-topic: "kafka-demo-topic"
+    json-topic: "kafka-demo-json-topic"
+    batch-topic: "kafka-demo-batch-topic"
