@@ -1,0 +1,12 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: sentinel-demo
+
+# Sentinel 配置
+# 启动时添加 JVM 参数: -Dcsp.sentinel.dashboard.server=localhost:8080 -Dproject.name=sentinel-demo
+
+# 自定义配置
+# 注意：Sentinel 的具体规则通常在运行时通过 Dashboard 配置或动态数据源加载
