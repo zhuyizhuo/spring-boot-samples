@@ -70,16 +70,18 @@ src/main/
    cd spring-boot-samples/spring-boot-3.x-samples/kafka-demo
    ```
 
-3. 修改配置文件（可选）
-   编辑 `src/main/resources/application.yml` 文件，修改 Kafka 连接信息
-   ```yaml
-   spring:
-     kafka:
-       producer:
+3. 配置 Kafka 连接信息
+   - Kafka 配置已分离到独立文件中，以保护敏感信息
+   - 复制配置文件示例并填写实际配置：
+     ```bash
+     cp src/main/resources/application-kafka.yml.demo src/main/resources/application-kafka.yml
+     ```
+   - 编辑 `application-kafka.yml` 文件，修改 Kafka 服务器地址：
+     ```yaml
+     spring:
+       kafka:
          bootstrap-servers: localhost:9092  # 修改为你的 Kafka 服务器地址
-       consumer:
-         bootstrap-servers: localhost:9092  # 修改为你的 Kafka 服务器地址
-   ```
+     ```
 
 4. 构建项目
    ```bash
@@ -96,8 +98,8 @@ src/main/
 
 项目启动成功后，可以通过以下地址访问：
 
-- 首页（测试界面）: `http://localhost:8080/kafka-demo/`
-- API 文档: `http://localhost:8080/kafka-demo/swagger-ui.html`
+- 首页（测试界面）: `http://localhost:8989/kafka-demo/`
+- API 文档: `http://localhost:8989/kafka-demo/swagger-ui.html`
 
 ## 功能说明
 

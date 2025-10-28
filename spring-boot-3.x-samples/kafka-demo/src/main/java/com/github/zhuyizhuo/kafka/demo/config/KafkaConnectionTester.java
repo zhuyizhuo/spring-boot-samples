@@ -7,6 +7,7 @@ import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -25,30 +26,23 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class KafkaConnectionTester {
 
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
+    
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
 
     @EventListener(ApplicationReadyEvent.class)
     public void testConnectionOnStartup() {
         log.info("🔍 开始Kafka连接测试...");
-
-        // 方法1: 使用KafkaTemplate测试
-        try {
-            // 发送测试消息到临时主题
-            String testTopic = "connection-test-" + System.currentTimeMillis();
-            kafkaTemplate.send(testTopic, "test-message").get(10, TimeUnit.SECONDS);
-            log.info("✅ Kafka连接测试成功 - 生产者正常工作");
-        } catch (Exception e) {
-            log.warn("⚠️ Kafka生产者连接测试失败: {}", e.getMessage());
-        }
-
-        // 方法2: 直接使用AdminClient测试
+        
+        // 仅使用AdminClient测试连接
         testWithAdminClient();
     }
 
     private void testWithAdminClient() {
         Properties props = new Properties();
-        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, "81.70.18.89:9092");
+        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, 30000);
         props.put(AdminClientConfig.RETRIES_CONFIG, 3);
         props.put(AdminClientConfig.RETRY_BACKOFF_MS_CONFIG, 1000);

@@ -70,7 +70,7 @@ public class KafkaConsumerListener {
     /**
      * 批量监听消息
      */
-    @KafkaListener(topics = "${kafka-demo.topics.batch-topic}", groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(topics = "${kafka-demo.topics.batch-topic}", groupId = "${spring.kafka.consumer.group-id}", containerFactory = "batchKafkaListenerContainerFactory")
     public void listenBatchMessages(List<ConsumerRecord<String, KafkaMessage>> records, Acknowledgment acknowledgment) {
         try {
             System.out.println("接收到批量消息，数量: " + records.size());

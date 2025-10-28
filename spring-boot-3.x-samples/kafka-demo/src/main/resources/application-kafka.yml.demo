@@ -1,0 +1,34 @@
+# Kafka配置示例文件
+# 使用说明：复制此文件为 application-kafka.yml 并填入实际配置值
+
+spring:
+  kafka:
+    # 替换为您的Kafka服务器地址
+    bootstrap-servers: kafka-server:9092
+    # 生产者配置
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      batch-size: 16384
+      buffer-memory: 33554432
+    # 消费者配置
+    consumer:
+      group-id: kafka-demo-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.github.zhuyizhuo.kafka.demo.model
+    # 监听器配置
+    listener:
+      concurrency: 3
+      missing-topics-fatal: false
+
+# 应用配置 - Kafka主题
+kafka-demo:
+  topics:
+    demo-topic: "kafka-demo-topic"
+    json-topic: "kafka-demo-json-topic"
+    batch-topic: "kafka-demo-batch-topic"

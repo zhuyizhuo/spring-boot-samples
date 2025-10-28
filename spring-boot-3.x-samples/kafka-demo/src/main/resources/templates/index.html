@@ -4,59 +4,337 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spring Boot Kafka Demo</title>
-    <!-- 引入Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- 引入Font Awesome图标 -->
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 移除外部CDN依赖，使用内置样式 -->
     
     <style>
+        /* 基础样式重置 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa;
+            line-height: 1.6;
         }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        h1, h5 {
+            margin-bottom: 1rem;
+        }
+        
+        /* 头部样式 */
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
+            text-align: center;
         }
+        
+        /* 卡片样式 */
         .card {
+            background: white;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
             transition: transform 0.3s ease;
         }
+        
         .card:hover {
             transform: translateY(-5px);
         }
+        
         .card-header {
             background-color: #667eea;
             color: white;
             font-weight: bold;
+            padding: 1rem;
+            margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
         }
-        .btn-primary {
-            background-color: #667eea;
-            border-color: #667eea;
-        }
-        .btn-primary:hover {
-            background-color: #5a67d8;
-            border-color: #5a67d8;
-        }
+        
+        /* 统计卡片 */
         .stats-card {
             background-color: #e3f2fd;
+            text-align: center;
         }
+        
+        .display-4 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        /* 表单样式 */
+        .mb-3 {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
         .form-control:focus {
             border-color: #667eea;
+            outline: none;
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
         }
+        
+        textarea.form-control {
+            resize: vertical;
+        }
+        
+        /* 按钮样式 */
+        button {
+            cursor: pointer;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #5a67d8;
+        }
+        
+        .w-100 {
+            width: 100%;
+        }
+        
+        /* 警告框样式 */
         .alert {
-            transition: opacity 0.5s ease;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .topic-section {
+            margin-top: 20px;
+            margin-bottom: 50px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 页面布局优化 */
+        body {
+            padding-bottom: 100px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            flex: 1;
+        }
+        
+        /* 重置并设置页面基础布局 */
+        * {
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 确保主内容区占满剩余空间 */
+        .container {
+            flex: 1;
+            padding-bottom: 30px; /* 额外底部空间 */
+        }
+        
+        /* 页脚样式，确保在最上层 */
+        footer {
+            position: relative;
+            z-index: 100; /* 确保页脚在最上层 */
+            margin-top: auto; /* 页脚推到最底部 */
+        }
+        
+        /* 主题管理卡片样式 */
+        .card {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 30px;
+            overflow: visible; /* 确保内容不会被裁剪 */
+        }
+        
+        /* 主题列表容器样式 */
+        /* 主题列表样式优化 */
+        .topic-table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .topic-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* 确保响应式设计 */
+        @media (max-width: 768px) {
+            .topic-table {
+                max-height: 250px;
+            }
+            
+            .topic-table thead th:first-child {
+                width: 75%;
+            }
+            
+            .topic-table thead th:last-child {
+                width: 25%;
+            }
+        }
+        
+        .topic-form button:hover {
+            background-color: #0056b3;
+        }
+        
+        .topic-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .topic-table th {
+            background-color: #007bff;
+            color: white;
+            text-align: left;
+            padding: 10px;
+        }
+        
+        .topic-table th:last-child {
+            text-align: center;
+        }
+        
+        .topic-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .topic-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .delete-topic-btn {
+            transition: background-color 0.3s ease;
+        }
+        
+        .delete-topic-btn:hover {
+            background-color: #c82333 !important;
+            border-color: #bd2130 !important;
+        }
+        
+        .topic-empty {
+            text-align: center;
+            color: #666;
+            padding: 20px !important;
+            font-style: italic;
+        }
+        
+        /* 网格布局 */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+        }
+        
+        .col-md-4 {
+            flex: 0 0 33.3333%;
+            max-width: 33.3333%;
+            padding: 0 10px;
+            margin-bottom: 20px;
+        }
+        
+        /* 响应式布局 */
+        @media (max-width: 768px) {
+            .col-md-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+        
+        /* 页脚样式 */
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 2rem 0;
+            margin-top: 2rem;
+            text-align: center;
+        }
+        
+        /* 列表样式 */
+        ul {
+            padding-left: 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* 链接样式 */
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <header class="header">
         <div class="container">
-            <h1 class="text-center"><i class="fa fa-paper-plane"></i> Spring Boot 3.x Kafka Demo</h1>
+            <h1 class="text-center">Spring Boot 3.x Kafka Demo</h1>
             <p class="text-center text-white-80 mt-2">基于Spring Boot 3.x的Kafka集成示例项目</p>
         </div>
     </header>
@@ -67,7 +345,7 @@
             <div class="col-md-4">
                 <div class="card stats-card">
                     <div class="card-body text-center">
-                        <h5 class="card-title"><i class="fa fa-comment"></i> 字符串消息</h5>
+                        <h5 class="card-title">字符串消息</h5>
                         <p class="card-text display-4" th:text="${stats?.stringMessage ?: 0}">0</p>
                     </div>
                 </div>
@@ -75,7 +353,7 @@
             <div class="col-md-4">
                 <div class="card stats-card">
                     <div class="card-body text-center">
-                        <h5 class="card-title"><i class="fa fa-code"></i> JSON消息</h5>
+                        <h5 class="card-title">JSON消息</h5>
                         <p class="card-text display-4" th:text="${stats?.jsonMessage ?: 0}">0</p>
                     </div>
                 </div>
@@ -83,7 +361,7 @@
             <div class="col-md-4">
                 <div class="card stats-card">
                     <div class="card-body text-center">
-                        <h5 class="card-title"><i class="fa fa-cubes"></i> 批量消息</h5>
+                        <h5 class="card-title">批量消息</h5>
                         <p class="card-text display-4" th:text="${stats?.batchMessage ?: 0}">0</p>
                     </div>
                 </div>
@@ -96,7 +374,7 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="fa fa-comment"></i> 发送字符串消息</h5>
+                        <h5 class="mb-0">发送字符串消息</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -104,7 +382,7 @@
                             <textarea class="form-control" id="stringMessage" rows="3" placeholder="请输入要发送的消息..."></textarea>
                         </div>
                         <button id="sendStringBtn" class="btn btn-primary w-100">
-                            <i class="fa fa-paper-plane"></i> 发送
+                            发送
                         </button>
                     </div>
                 </div>
@@ -114,7 +392,7 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="fa fa-code"></i> 发送JSON消息</h5>
+                        <h5 class="mb-0">发送JSON消息</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -126,7 +404,7 @@
                             <input type="text" class="form-control" id="jsonSender" placeholder="请输入发送者名称">
                         </div>
                         <button id="sendJsonBtn" class="btn btn-primary w-100">
-                            <i class="fa fa-paper-plane"></i> 发送
+                            发送
                         </button>
                     </div>
                 </div>
@@ -136,7 +414,7 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="fa fa-cubes"></i> 批量发送消息</h5>
+                        <h5 class="mb-0">批量发送消息</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -152,7 +430,7 @@
                             <input type="number" class="form-control" id="batchCount" value="10" min="1" max="1000">
                         </div>
                         <button id="sendBatchBtn" class="btn btn-primary w-100">
-                            <i class="fa fa-paper-plane"></i> 批量发送
+                            批量发送
                         </button>
                     </div>
                 </div>
@@ -162,147 +440,457 @@
         <!-- 操作结果提示 -->
         <div id="resultAlert" class="mt-4 alert d-none" role="alert"></div>
 
+        <!-- 主题管理 -->
+        <div class="mt-5">
+              <div class="card">
+                  <div class="card-header">
+                      <h5 class="mb-0">Kafka主题管理</h5>
+                  </div>
+                  <div class="card-body">
+                      <!-- 创建主题表单 -->
+                      <div class="topic-form">
+                          <h6>创建新主题</h6>
+                          <div class="row">
+                              <div class="col-md-8">
+                                  <input type="text" id="topicNameInput" class="form-control" placeholder="请输入主题名称">
+                              </div>
+                              <div class="col-md-4">
+                                  <button id="createTopicBtn" class="btn btn-primary w-100">创建主题</button>
+                              </div>
+                          </div>
+                      </div>
+
+                      <!-- 主题列表 -->
+                      <div class="mt-4">
+                          <h6>现有主题</h6>
+                          <!-- 直接使用表格作为滚动容器，增加高度并确保z-index正确 -->
+                          <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; position: relative; z-index: 10;">
+                              <table class="topic-table" style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                                  <thead style="background-color: #007bff; color: white; position: sticky; top: 0; z-index: 11;">
+                                      <tr>
+                                          <th style="width: 85%; text-align: left; padding: 12px 10px; border-bottom: none;">主题名称</th>
+                                          <th style="width: 15%; text-align: center; padding: 12px 10px; border-bottom: none;">操作</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody id="topicsTableBody">
+                                      <tr th:each="topic : ${topics}">
+                                          <td th:text="${topic}" class="topic-name-cell" style="padding: 10px; border-bottom: 1px solid #ddd; word-break: break-all;"></td>
+                                          <td class="topic-action-cell" style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">
+                                              <button class="btn btn-danger btn-sm delete-topic-btn" th:data-topic="${topic}" style="margin: 0;">删除</button>
+                                          </td>
+                                      </tr>
+                                      <tr th:if="${topics.empty}">
+                                          <td colspan="2" class="text-center topic-empty" style="padding: 20px; border-bottom: none;">暂无主题</td>
+                                      </tr>
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+        </div>
+        
         <!-- 功能说明 -->
         <div class="mt-5">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fa fa-info-circle"></i> 功能说明</h5>
+                    <h5 class="mb-0">功能说明</h5>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled">
-                        <li class="mb-2"><i class="fa fa-check-circle text-success"></i> 支持三种消息发送模式：字符串消息、JSON消息和批量消息</li>
-                        <li class="mb-2"><i class="fa fa-check-circle text-success"></i> 实时显示各类消息的接收统计</li>
-                        <li class="mb-2"><i class="fa fa-check-circle text-success"></i> 使用Kafka消费者自动接收并处理消息</li>
-                        <li class="mb-2"><i class="fa fa-check-circle text-success"></i> 支持消息发送确认和错误处理</li>
-                        <li class="mb-2"><i class="fa fa-check-circle text-success"></i> 提供API文档：<a href="/swagger-ui.html" target="_blank">Swagger UI</a></li>
+                        <li class="mb-2">✓ 支持三种消息发送模式：字符串消息、JSON消息和批量消息</li>
+                        <li class="mb-2">✓ 实时显示各类消息的接收统计</li>
+                        <li class="mb-2">✓ 使用Kafka消费者自动接收并处理消息</li>
+                        <li class="mb-2">✓ 支持消息发送确认和错误处理</li>
+                        <li class="mb-2">✓ 支持Kafka主题管理：查看、创建和删除主题</li>
+                        <li class="mb-2">✓ 提供API文档：<a href="/kafka-demo/swagger-ui/index.html" target="_blank">Swagger UI</a></li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- 分隔空间 -->
+    <div class="clearfix" style="height: 30px;"></div>
+    
     <!-- 页脚 -->
-    <footer class="bg-dark text-white py-4">
+    <footer class="bg-dark text-white py-4" style="position: relative; z-index: 10;">
         <div class="container text-center">
             <p class="mb-0">Spring Boot 3.x Kafka Demo &copy; 2024</p>
         </div>
     </footer>
 
-    <!-- 引入jQuery -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
-    <!-- 引入Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 移除所有外部JS依赖，使用原生JavaScript -->
 
     <script>
+        // 全局错误处理
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error('JavaScript错误:', message, '在', source, '行:', lineno, '列:', colno);
+            if (error) {
+                console.error('错误详情:', error.stack);
+            }
+            return true;
+        };
+
+        // 简单的AJAX工具函数
+        function ajax(url, method, data, successCallback, errorCallback) {
+            const xhr = new XMLHttpRequest();
+            xhr.open(method, url, true);
+            
+            if (method === 'POST' && data) {
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                // 将对象转换为URL编码的字符串
+                const params = Object.keys(data)
+                    .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
+                    .join('&');
+                xhr.send(params);
+            } else {
+                xhr.send();
+            }
+            
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        successCallback(response);
+                    } catch (e) {
+                        console.error('解析响应失败:', e);
+                        errorCallback(xhr, 'parse_error', e);
+                    }
+                } else {
+                    errorCallback(xhr, 'status_error', xhr.statusText);
+                }
+            };
+            
+            xhr.onerror = function() {
+                errorCallback(xhr, 'network_error', '网络错误');
+            };
+        }
+
         // 显示操作结果
         function showResult(success, message) {
-            const alert = $('#resultAlert');
-            alert.removeClass('d-none alert-success alert-danger');
-            alert.addClass(success ? 'alert-success' : 'alert-danger');
-            alert.text(message);
+            console.log('显示结果:', {success: success, message: message});
+            const alert = document.getElementById('resultAlert');
+            if (!alert) {
+                console.error('结果提示元素未找到');
+                return;
+            }
             
+            // 移除所有类
+            alert.className = 'mt-4 alert';
+            alert.classList.add(success ? 'alert-success' : 'alert-danger');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            // 简单的淡出效果
             setTimeout(() => {
-                alert.fadeOut(500, () => {
-                    alert.addClass('d-none');
-                    alert.show(); // 重置显示状态
-                });
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                    alert.style.opacity = '1';
+                }, 500);
             }, 3000);
         }
 
         // 刷新统计数据
         function refreshStats() {
-            $.get('/api/stats', function(data) {
-                $('.display-4:eq(0)').text(data.stringMessage);
-                $('.display-4:eq(1)').text(data.jsonMessage);
-                $('.display-4:eq(2)').text(data.batchMessage);
+            console.log('开始刷新统计数据');
+            ajax('/kafka-demo/api/stats', 'GET', null, 
+                function(data) {
+                    console.log('获取统计数据成功:', data);
+                    const displays = document.querySelectorAll('.display-4');
+                    if (displays.length >= 3) {
+                        displays[0].textContent = data.stringMessage;
+                        displays[1].textContent = data.jsonMessage;
+                        displays[2].textContent = data.batchMessage;
+                    }
+                },
+                function(xhr, status, error) {
+                    console.error('获取统计数据失败:', status, error);
+                    console.error('XHR状态:', xhr.status);
+                }
+            );
+        }
+
+        // 初始化页面
+        function initPage() {
+            console.log('开始初始化页面...');
+            
+            // 确保DOM元素已加载
+            if (!document.getElementById('sendStringBtn')) {
+                console.error('发送按钮元素未找到');
+                return;
+            }
+            
+            // 发送字符串消息
+            document.getElementById('sendStringBtn').addEventListener('click', function() {
+                console.log('发送字符串消息按钮被点击');
+                const message = document.getElementById('stringMessage').value.trim();
+                if (!message) {
+                    showResult(false, '请输入消息内容');
+                    return;
+                }
+
+                console.log('准备发送消息:', message);
+                ajax('/kafka-demo/send/string', 'POST', { message: message },
+                    function(response) {
+                        console.log('收到响应:', response);
+                        if (response.success) {
+                            showResult(true, response.message);
+                            document.getElementById('stringMessage').value = '';
+                        } else {
+                            showResult(false, response.message);
+                        }
+                    },
+                    function(xhr, status, error) {
+                        console.error('请求失败:', status, error);
+                        showResult(false, '发送请求失败: ' + error);
+                    }
+                );
+            });
+
+            // 发送JSON消息
+            document.getElementById('sendJsonBtn').addEventListener('click', function() {
+                console.log('发送JSON消息按钮被点击');
+                const content = document.getElementById('jsonContent').value.trim();
+                const sender = document.getElementById('jsonSender').value.trim();
+                
+                if (!content) {
+                    showResult(false, '请输入消息内容');
+                    return;
+                }
+                if (!sender) {
+                    showResult(false, '请输入发送者名称');
+                    return;
+                }
+
+                console.log('准备发送JSON消息:', {content, sender});
+                ajax('/kafka-demo/send/json', 'POST', { content: content, sender: sender },
+                    function(response) {
+                        console.log('收到响应:', response);
+                        if (response.success) {
+                            showResult(true, response.message);
+                            document.getElementById('jsonContent').value = '';
+                            document.getElementById('jsonSender').value = '';
+                        } else {
+                            showResult(false, response.message);
+                        }
+                    },
+                    function(xhr, status, error) {
+                        console.error('请求失败:', status, error);
+                        showResult(false, '发送请求失败');
+                    }
+                );
+            });
+
+            // 批量发送消息
+            document.getElementById('sendBatchBtn').addEventListener('click', function() {
+                console.log('批量发送消息按钮被点击');
+                const content = document.getElementById('batchContent').value.trim();
+                const sender = document.getElementById('batchSender').value.trim();
+                const count = parseInt(document.getElementById('batchCount').value);
+                
+                if (!content) {
+                    showResult(false, '请输入消息内容');
+                    return;
+                }
+                if (!sender) {
+                    showResult(false, '请输入发送者名称');
+                    return;
+                }
+                if (isNaN(count) || count < 1 || count > 1000) {
+                    showResult(false, '请输入1-1000之间的发送数量');
+                    return;
+                }
+
+                console.log('准备批量发送消息:', {content, sender, count});
+                ajax('/kafka-demo/send/batch', 'POST', { content: content, sender: sender, count: count },
+                    function(response) {
+                        console.log('收到响应:', response);
+                        if (response.success) {
+                            showResult(true, response.message);
+                            document.getElementById('batchContent').value = '';
+                            document.getElementById('batchSender').value = '';
+                        } else {
+                            showResult(false, response.message);
+                        }
+                    },
+                    function(xhr, status, error) {
+                        console.error('请求失败:', status, error);
+                        showResult(false, '发送请求失败');
+                    }
+                );
+            });
+
+            // 主题管理功能
+            // 创建主题按钮点击事件
+            if (document.getElementById('createTopicBtn')) {
+                document.getElementById('createTopicBtn').addEventListener('click', createTopic);
+            }
+
+            // 初始化删除按钮事件
+            initDeleteButtons();
+
+            // 定时刷新统计数据
+            setInterval(function() {
+                try {
+                    refreshStats();
+                } catch (e) {
+                    console.error('刷新统计数据时发生异常:', e);
+                }
+            }, 2000);
+
+            // 定时刷新主题列表（每30秒刷新一次）
+            setInterval(function() {
+                try {
+                    refreshTopics();
+                } catch (e) {
+                    console.error('刷新主题列表时发生异常:', e);
+                }
+            }, 30000);
+
+            // 初始化时加载统计数据和主题列表
+            refreshStats();
+            // 延迟加载主题列表，确保DOM完全渲染
+            setTimeout(refreshTopics, 500);
+            console.log('页面初始化完成');
+        }
+
+        // 刷新主题列表
+        function refreshTopics() {
+            console.log('开始刷新主题列表');
+            ajax('/kafka-demo/api/topics', 'GET', null, 
+                function(data) {
+                    console.log('获取主题列表成功:', data);
+                    if (data.success) {
+                        const tableBody = document.getElementById('topicsTableBody');
+                        if (tableBody) {
+                            // 清空表格内容
+                            tableBody.innerHTML = '';
+                            
+                            if (data.topics && data.topics.length > 0) {
+                                // 添加主题行，使用与静态HTML相同的样式
+                                data.topics.forEach(topic => {
+                                    const row = document.createElement('tr');
+                                    
+                                    const nameCell = document.createElement('td');
+                                    nameCell.textContent = topic;
+                                    nameCell.className = 'topic-name-cell';
+                                    nameCell.style.padding = '10px';
+                                    nameCell.style.borderBottom = '1px solid #ddd';
+                                    nameCell.style.wordBreak = 'break-all';
+                                    row.appendChild(nameCell);
+                                    
+                                    const actionCell = document.createElement('td');
+                                    actionCell.className = 'topic-action-cell';
+                                    actionCell.style.textAlign = 'center';
+                                    actionCell.style.padding = '10px';
+                                    actionCell.style.borderBottom = '1px solid #ddd';
+                                    
+                                    const deleteBtn = document.createElement('button');
+                                    deleteBtn.className = 'btn btn-danger btn-sm delete-topic-btn';
+                                    deleteBtn.setAttribute('data-topic', topic);
+                                    deleteBtn.textContent = '删除';
+                                    deleteBtn.style.margin = '0';
+                                    deleteBtn.addEventListener('click', function() {
+                                        deleteTopic(topic);
+                                    });
+                                    actionCell.appendChild(deleteBtn);
+                                    row.appendChild(actionCell);
+                                    
+                                    tableBody.appendChild(row);
+                                });
+                            } else {
+                                // 显示空行
+                                const emptyRow = document.createElement('tr');
+                                const emptyCell = document.createElement('td');
+                                emptyCell.colSpan = 2;
+                                emptyCell.className = 'text-center topic-empty';
+                                emptyCell.textContent = '暂无主题';
+                                emptyCell.style.padding = '20px';
+                                emptyCell.style.borderBottom = 'none';
+                                emptyRow.appendChild(emptyCell);
+                                tableBody.appendChild(emptyRow);
+                            }
+                        }
+                    }
+                },
+                function(xhr, status, error) {
+                    console.error('获取主题列表失败:', status, error);
+                    showResult(false, '获取主题列表失败: ' + error);
+                }
+            );
+        }
+
+        // 创建主题
+        function createTopic() {
+            console.log('创建主题按钮被点击');
+            const topicName = document.getElementById('topicNameInput').value.trim();
+            
+            if (!topicName) {
+                showResult(false, '请输入主题名称');
+                return;
+            }
+
+            console.log('准备创建主题:', topicName);
+            ajax('/kafka-demo/api/topic/create', 'POST', { topicName: topicName },
+                function(response) {
+                    console.log('收到创建主题响应:', response);
+                    if (response.success) {
+                        showResult(true, response.message);
+                        document.getElementById('topicNameInput').value = '';
+                        // 刷新主题列表
+                        refreshTopics();
+                    } else {
+                        showResult(false, response.message);
+                    }
+                },
+                function(xhr, status, error) {
+                    console.error('创建主题请求失败:', status, error);
+                    showResult(false, '创建主题失败: ' + error);
+                }
+            );
+        }
+
+        // 删除主题
+        function deleteTopic(topicName) {
+            console.log('删除主题按钮被点击', topicName);
+
+            console.log('准备删除主题:', topicName);
+            ajax('/kafka-demo/api/topic/delete', 'POST', { topicName: topicName },
+                function(response) {
+                    console.log('收到删除主题响应:', response);
+                    if (response.success) {
+                        showResult(true, response.message);
+                        // 刷新主题列表
+                        refreshTopics();
+                    } else {
+                        showResult(false, response.message);
+                    }
+                },
+                function(xhr, status, error) {
+                    console.error('删除主题请求失败:', status, error);
+                    showResult(false, '删除主题失败: ' + error);
+                }
+            );
+        }
+
+        // 初始化删除按钮事件
+        function initDeleteButtons() {
+            const deleteButtons = document.querySelectorAll('.delete-topic-btn');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const topicName = this.getAttribute('data-topic');
+                    deleteTopic(topicName);
+                });
             });
         }
 
-        // 定时刷新统计数据
-        setInterval(refreshStats, 2000);
-
-        // 发送字符串消息
-        $('#sendStringBtn').click(function() {
-            const message = $('#stringMessage').val().trim();
-            if (!message) {
-                showResult(false, '请输入消息内容');
-                return;
-            }
-
-            $.post('/send/string', { message: message }, function(response) {
-                if (response.success) {
-                    showResult(true, response.message);
-                    $('#stringMessage').val('');
-                } else {
-                    showResult(false, response.message);
-                }
-            }).fail(function() {
-                showResult(false, '发送请求失败');
-            });
-        });
-
-        // 发送JSON消息
-        $('#sendJsonBtn').click(function() {
-            const content = $('#jsonContent').val().trim();
-            const sender = $('#jsonSender').val().trim();
-            
-            if (!content) {
-                showResult(false, '请输入消息内容');
-                return;
-            }
-            if (!sender) {
-                showResult(false, '请输入发送者名称');
-                return;
-            }
-
-            $.post('/send/json', { content: content, sender: sender }, function(response) {
-                if (response.success) {
-                    showResult(true, response.message);
-                    $('#jsonContent').val('');
-                    $('#jsonSender').val('');
-                } else {
-                    showResult(false, response.message);
-                }
-            }).fail(function() {
-                showResult(false, '发送请求失败');
-            });
-        });
-
-        // 批量发送消息
-        $('#sendBatchBtn').click(function() {
-            const content = $('#batchContent').val().trim();
-            const sender = $('#batchSender').val().trim();
-            const count = parseInt($('#batchCount').val());
-            
-            if (!content) {
-                showResult(false, '请输入消息内容');
-                return;
-            }
-            if (!sender) {
-                showResult(false, '请输入发送者名称');
-                return;
-            }
-            if (isNaN(count) || count < 1 || count > 1000) {
-                showResult(false, '请输入1-1000之间的发送数量');
-                return;
-            }
-
-            $.post('/send/batch', { content: content, sender: sender, count: count }, function(response) {
-                if (response.success) {
-                    showResult(true, response.message);
-                    $('#batchContent').val('');
-                    $('#batchSender').val('');
-                } else {
-                    showResult(false, response.message);
-                }
-            }).fail(function() {
-                showResult(false, '发送请求失败');
-            });
-        });
-
-        // 初始化时加载统计数据
-        $(document).ready(function() {
-            refreshStats();
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM加载完成');
+            initPage();
         });
     </script>
 </body>

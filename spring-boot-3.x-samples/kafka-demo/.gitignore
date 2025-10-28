@@ -1,0 +1,29 @@
+# Maven
+/target/
+
+# IDE
+/.idea/
+/.vscode/
+*.iml
+*.class
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+
+# Build
+/build/
+
+# Kafka配置文件 - 包含敏感信息
+/src/main/resources/application-kafka.yml
+# 但保留示例配置文件，它应该被提交到仓库中
+# /src/main/resources/application-kafka.yml.demo
