@@ -2,8 +2,13 @@ server:
   port: 8080
 
 spring:
+  application:
+    name: nacos-demo
   profiles:
-    active: local
+    active: nacos
+  config:
+    import-check:
+      enabled: false
 
 # SpringDoc OpenAPI 配置
 springdoc:
@@ -23,3 +28,6 @@ logging:
   level:
     root: INFO
     com.github.zhuyizhuo.springboot.nacosdemo: DEBUG
+    com.alibaba.nacos: DEBUG
+    com.alibaba.cloud.nacos: DEBUG
+    io.grpc: WARN

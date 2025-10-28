@@ -30,39 +30,111 @@
 2. **Maven 3.6** 或更高版本
 3. **Nacos Server 2.x**
 
-## Nacos 配置说明
+## 配置结构说明
 
-本项目使用 Nacos 作为配置中心和服务注册中心。配置文件使用 `application-local.yml` 进行本地开发配置，主要配置项如下：
+本项目采用清晰的配置分层结构，将通用配置和环境特定配置分离：
+
+### 1. 配置文件分层
+
+- **application.yml**: 包含通用配置，如端口、应用名称、Swagger配置和通用日志设置
+- **application-local.yml**: 包含本地开发环境特定配置，如Nacos连接信息和本地测试配置
+
+### 2. Nacos配置说明
+
+本地开发环境的Nacos配置位于`application-local.yml`中，为了安全性，敏感信息已改为从环境变量获取。主要配置项如下：
 
 ```yaml
 spring:
+  config:
+    activate:
+      on-profile: local
+    import: optional:nacos:nacos-demo-local.properties
+  # Nacos配置中心配置
   cloud:
     nacos:
-      discovery:
-        server-addr: localhost:8848
-        namespace: public
-        # 本地开发时可以设置为false不注册到Nacos
-        # register-enabled: false
       config:
-        server-addr: localhost:8848
-        namespace: public
-        file-extension: yml
-        # 本地开发时可以设置为false不从Nacos获取配置
-        # enabled: false
+        # 基本配置
+        server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:your_password}
+        file-extension: properties
+        # 确保编码设置正确
+        encode: UTF-8
+        # 简化配置，只保留必要项
+        timeout: ${NACOS_TIMEOUT:5000}
+        refresh-enabled: true
+        # 禁用服务发现
+        discovery:
+          enabled: false
+```
 
-# 本地开发环境的其他配置
-server:
-  port: 8080
+### 3. 本地备用配置
 
-# 本地开发的调试配置
-debug: false
+当Nacos不可用时，可以通过取消`application-local.yml`中的注释来使用本地配置：
 
-# 演示用的Nacos配置项
-nacos:
-  demo:
-    config: This is a demo configuration from application-local.yml
-    enabled: true
-    version: 1.0.0
+```yaml
+# 取消注释后可以不依赖Nacos进行本地开发测试
+#nacos:
+#  demo:
+#    config:
+#      name: "Nacos配置示例"
+#      description: "这是一个测试配置，用于演示Nacos配置中心的动态刷新功能"
+#      version: "1.0.0"
+#      enabled: true
+#      timeout: 30
+#      maxConnections: 100
+```
+
+### 4. 配置优先级
+
+Spring Boot配置加载优先级（从高到低）：
+1. 命令行参数
+2. Nacos配置中心的配置
+3. 环境变量
+4. `application-{profile}.yml`（如`application-local.yml`）
+5. `application.yml`
+
+### 5. 环境变量配置指南
+
+为了提高安全性，项目中敏感的Nacos配置信息已改为从环境变量获取。以下是可用的环境变量配置项：
+
+| 环境变量名 | 描述 | 默认值 | 示例 |
+|----------|------|-------|------|
+| NACOS_SERVER_ADDR | Nacos服务器地址和端口 | localhost:8848 | localhost:8848 |
+| NACOS_NAMESPACE | Nacos命名空间ID | 空字符串 | public |
+| NACOS_GROUP | Nacos配置分组 | DEFAULT_GROUP | MY_GROUP |
+| NACOS_USERNAME | Nacos访问用户名 | nacos | my_username |
+| NACOS_PASSWORD | Nacos访问密码 | 空字符串 | my_secure_password |
+| NACOS_TIMEOUT | Nacos连接超时时间（毫秒） | 5000 | 10000 |
+
+#### 设置环境变量的方法
+
+**Windows (PowerShell):**
+```powershell
+$env:NACOS_SERVER_ADDR="localhost:8848"
+$env:NACOS_USERNAME="my_user"
+$env:NACOS_PASSWORD="my_password"
+java -jar nacos-demo-1.0-SNAPSHOT.jar --spring.profiles.active=local
+```
+
+**Linux/MacOS (Bash):**
+```bash
+export NACOS_SERVER_ADDR="localhost:8848"
+export NACOS_USERNAME="my_user"
+export NACOS_PASSWORD="my_password"
+java -jar nacos-demo-1.0-SNAPSHOT.jar --spring.profiles.active=local
+```
+
+**Docker环境:**
+```bash
+docker run -d \
+  -e NACOS_SERVER_ADDR="nacos-server:8848" \
+  -e NACOS_USERNAME="my_user" \
+  -e NACOS_PASSWORD="my_password" \
+  -p 8080:8080 \
+  nacos-demo:1.0-SNAPSHOT
 ```
 
 ## 构建与启动
@@ -179,18 +251,26 @@ src/main/java/com/github/zhuyizhuo/springboot/nacosdemo/
 ├── controller/                   # 控制器
 │   └── NacosConfigController.java    # Nacos配置控制器
 src/main/resources/
-├── bootstrap.yml                 # Spring Cloud Bootstrap配置
-├── application.yml               # 主配置文件
-├── application-local.yml         # 本地开发环境配置
+├── application.yml               # 主配置文件（包含通用配置）
+├── application-local.yml         # 本地开发环境配置（包含Nacos连接信息）
 └── static/                       # 静态资源
     └── index.html                # HTML测试页面
 pom.xml                           # Maven依赖管理
 ```
 
+### 配置文件说明
+
+- **application.yml**: 存放通用配置，如端口、应用名称、Swagger配置和日志级别设置
+- **application-local.yml**: 存放环境特定配置，包括Nacos连接信息和本地测试备用配置
+- 这种分层设计确保了配置的清晰性和可维护性，同时支持多环境部署
+
 ## 工作原理
 
 1. **配置管理**：
-   - 应用启动时，通过 `bootstrap.yml` 配置连接到 Nacos 配置中心
+   - 应用启动时，优先加载 `application.yml` 中的通用配置
+   - 然后加载激活的 profile 配置（`application-local.yml`），覆盖同名配置
+   - 通过 `application-local.yml` 中的 `spring.config.import` 配置连接到 Nacos 配置中心
+   - Nacos 配置中心的配置优先级高于本地配置文件
    - 使用 `@RefreshScope` 注解标记需要动态刷新配置的类
    - 当 Nacos 中的配置变更时，应用会自动刷新相关配置
 

@@ -4,9 +4,9 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: localhost:8848
-        namespace: public
+        server-addr: ${NACOS_SERVER_ADDR}
+        namespace: ${NACOS_NAMESPACE}
       config:
-        server-addr: localhost:8848
-        namespace: public
+        server-addr: ${NACOS_SERVER_ADDR}
+        namespace: ${NACOS_NAMESPACE}
         file-extension: yml
