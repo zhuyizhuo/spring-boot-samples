@@ -9,14 +9,17 @@
 spring-boot-3.x-samples/
 ├── .gitignore             # Git忽略文件配置
 ├── README.md              # 项目说明文档
-├── changelog.md           # 项目更新日志
 ├── TODO.md                # 待办事项清单
+├── pom.xml                # 父POM文件，定义公共依赖和版本管理
 ├── data-jpa/              # Spring Boot 3.x集成JPA和MySQL示例
 ├── dingtalk-message-demo/ # 钉钉消息推送示例
+├── elasticsearch-demo/    # Spring Boot 3.x集成Elasticsearch示例
 ├── h2-demo/               # Spring Boot 3.x集成H2内存数据库示例
 ├── hello-world/           # Hello World基础示例
+├── kafka-demo/            # Spring Boot 3.x集成Kafka消息队列示例
+├── minio-demo/            # Spring Boot 3.x集成MinIO对象存储示例
+├── mybatis-plus-demo/     # Spring Boot 3.x集成MyBatis-Plus示例
 ├── nacos-demo/            # Nacos服务发现与配置管理示例
-├── pom.xml                # 父POM文件，定义公共依赖和版本管理
 ├── rabbitmq-demo/         # RabbitMQ消息队列集成示例
 ├── redis-pubsub-demo/     # Redis发布订阅模式示例
 ├── spring-ai-demo/        # Spring AI人工智能集成示例
@@ -29,17 +32,21 @@ spring-boot-3.x-samples/
 - Maven
 
 ## 示例模块列表
-| 模块名称 | 说明 | 主要功能 |
-|---------|------|---------|
-| [hello-world](hello-world) | Spring Boot 3.x基础入门示例 | 基础REST API，展示参数传递和对象处理 |
-| [data-jpa](data-jpa) | Spring Boot 3.x集成JPA和MySQL示例 | 完整的用户管理CRUD功能，带前端界面 |
-| [h2-demo](h2-demo) | Spring Boot 3.x集成H2内存数据库示例 | 用户管理CRUD功能，无需额外数据库配置 |
-| [dingtalk-message-demo](dingtalk-message-demo) | 钉钉消息推送示例 | 实现钉钉机器人消息推送功能 |
-| [nacos-demo](nacos-demo) | Nacos服务发现与配置管理示例 | 微服务注册发现和配置管理 |
-| [rabbitmq-demo](rabbitmq-demo) | RabbitMQ消息队列集成示例 | 消息发布、订阅、路由等功能 |
-| [redis-pubsub-demo](redis-pubsub-demo) | Redis发布订阅模式示例 | 基于Redis的消息发布订阅实现 |
-| [spring-ai-demo](spring-ai-demo) | Spring AI人工智能集成示例 | 集成AI能力到Spring Boot应用 |
-| [wechat-message-demo](wechat-message-demo) | 微信消息推送示例 | 微信公众号消息推送功能 |
+| 序号 | 模块名称 | 说明 | 主要功能 |
+|-----|---------|------|---------|
+| 1 | [hello-world](hello-world) | Spring Boot 3.x基础入门示例 | 基础REST API，展示参数传递和对象处理 |
+| 2 | [data-jpa](data-jpa) | Spring Boot 3.x集成JPA和MySQL示例 | 完整的用户管理CRUD功能，带前端界面 |
+| 3 | [elasticsearch-demo](elasticsearch-demo) | Spring Boot 3.x集成Elasticsearch示例 | 全文搜索、数据索引和查询功能 |
+| 4 | [h2-demo](h2-demo) | Spring Boot 3.x集成H2内存数据库示例 | 用户管理CRUD功能，无需额外数据库配置 |
+| 5 | [kafka-demo](kafka-demo) | Spring Boot 3.x集成Kafka消息队列示例 | 高性能消息发布订阅、流处理功能 |
+| 6 | [dingtalk-message-demo](dingtalk-message-demo) | 钉钉消息推送示例 | 实现钉钉机器人消息推送功能 |
+| 7 | [minio-demo](minio-demo) | Spring Boot 3.x集成MinIO对象存储示例 | 文件上传、下载、删除等对象存储功能 |
+| 8 | [mybatis-plus-demo](mybatis-plus-demo) | Spring Boot 3.x集成MyBatis-Plus示例 | 增强型ORM框架，简化数据库操作 |
+| 9 | [nacos-demo](nacos-demo) | Nacos服务发现与配置管理示例 | 微服务注册发现和配置管理 |
+| 10 | [rabbitmq-demo](rabbitmq-demo) | RabbitMQ消息队列集成示例 | 消息发布、订阅、路由等功能 |
+| 11 | [redis-pubsub-demo](redis-pubsub-demo) | Redis发布订阅模式示例 | 基于Redis的消息发布订阅实现 |
+| 12 | [spring-ai-demo](spring-ai-demo) | Spring AI人工智能集成示例 | 集成AI能力到Spring Boot应用 |
+| 13 | [wechat-message-demo](wechat-message-demo) | 微信消息推送示例 | 微信公众号消息推送功能 |
 
 ## 如何使用
 
@@ -80,9 +87,13 @@ mvn spring-boot:run
 ## 与Spring Boot 2.x的主要区别
 1. **Java版本要求**：Spring Boot 3.x要求JDK 17+，而Spring Boot 2.x支持JDK 8+（部分版本支持到JDK 11+）
 2. **Jakarta EE迁移**：从javax.*包迁移到jakarta.*包
-3. **依赖升级**：升级了各种依赖库的版本
+3. **依赖升级**：升级了各种依赖库的版本，包括Spring Framework 6.0+，Hibernate 6.0+等
 4. **移除了一些旧API**：删除了Spring Boot 2.x中已弃用的API
 5. **文档系统变更**：从SpringFox Swagger变更为SpringDoc OpenAPI
+6. **GraalVM原生镜像支持**：更完善的GraalVM原生镜像支持
+7. **改进的条件装配**：更精确的条件装配机制
+8. **支持Jakarta Persistence 3.0**：使用最新的JPA规范
+9. **移除了对废弃的配置属性的支持**：清理了过时的配置选项
 
 ## 贡献指南
 如果你对本项目有任何建议或想要贡献新的示例模块，欢迎提交Pull Request或Issue。
