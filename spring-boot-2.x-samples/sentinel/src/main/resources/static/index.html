@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel 限流测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1890ff;
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e8f4fd;
+        }
+        h2 {
+            color: #1890ff;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .test-section {
+            background-color: #fafafa;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #1890ff;
+        }
+        .btn {
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn:hover {
+            background-color: #40a9ff;
+        }
+        .btn-secondary {
+            background-color: #52c41a;
+        }
+        .btn-secondary:hover {
+            background-color: #73d13d;
+        }
+        .btn-warning {
+            background-color: #faad14;
+        }
+        .btn-warning:hover {
+            background-color: #ffc53d;
+        }
+        .btn-danger {
+            background-color: #f5222d;
+        }
+        .btn-danger:hover {
+            background-color: #ff4d4f;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: inline-block;
+            width: 100px;
+            margin-right: 10px;
+        }
+        input[type="text"], input[type="number"] {
+            padding: 8px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            width: 200px;
+        }
+        .result-area {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            font-size: 14px;
+        }
+        .info-box {
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .code-block {
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            font-size: 13px;
+            border: 1px solid #ddd;
+        }
+        .success { color: #52c41a; }
+        .error { color: #f5222d; }
+        .warning { color: #faad14; font-weight: bold; }
+        .api-list {
+            list-style: none;
+            padding: 0;
+        }
+        .api-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .api-list li:last-child {
+            border-bottom: none;
+        }
+        .rate-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            min-height: 32px;
+            line-height: 1.4;
+        }
+        
+        .radio-group label:hover {
+            background-color: #f0f7ff;
+            border-left: 3px solid #1890ff;
+        }
+        
+        .radio-group input[type="radio"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+        
+        /* 选中状态的样式 */
+        .radio-group input[type="radio"]:checked + span {
+            font-weight: 600;
+            color: #1890ff;
+        }
+        
+        .radio-group span {
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .stop-btn {
+            background-color: #f5222d;
+            display: none;
+        }
+        .stop-btn.visible {
+            display: inline-block;
+        }
+        .loading {
+            display: none;
+            margin-left: 10px;
+            color: #1890ff;
+        }
+        .loading.active {
+            display: inline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sentinel 限流测试平台</h1>
+        
+        <div class="info-box">
+            <h3>关于 Sentinel</h3>
+            <p>Sentinel 是阿里开源的流量控制、熔断降级和系统保护组件，提供了丰富的流量控制策略和实时监控能力。</p>
+            <p>本页面提供了简单的测试界面，可以帮助您快速验证 Sentinel 的限流功能。</p>
+            <p class="warning">提示：如果测试结果不符合预期，请尝试清除浏览器缓存后再试。</p>
+        </div>
+
+        <div class="test-section">
+            <h2>1. 单个请求测试</h2>
+            <p>点击下方按钮发送单个请求到对应的接口：</p>
+            
+            <button class="btn" onclick="sendRequest('/api/users/001', 'annotationResult')">
+                测试注解方式限流 (@SentinelResource)
+            </button>
+            <button class="btn btn-secondary" onclick="sendRequest('/api/users/programmatic/001', 'programmaticResult')">
+                测试编程式限流 (SphU.entry)
+            </button>
+            <button class="btn btn-warning" onclick="sendRequest('/api/users/context/001', 'contextResult')">
+                测试上下文限流 (ContextUtil)
+            </button>
+            <button class="btn btn-warning" onclick="sendRequest('/api/users/999', 'exceptionResult')">
+                测试异常降级
+            </button>
+            
+            <div class="result-area" id="annotationResult">
+                注解方式限流结果将显示在这里...
+            </div>
+            
+            <div class="result-area" id="programmaticResult">
+                编程式限流结果将显示在这里...
+            </div>
+            
+            <div class="result-area" id="exceptionResult">
+                异常降级结果将显示在这里...
+            </div>
+            <div class="result-area" id="contextResult">
+                上下文限流结果将显示在这里...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. 并发请求测试</h2>
+            <p>通过以下控件可以发送多个并发请求来测试限流效果：</p>
+            <p class="warning">提示：现在可以在页面上直接看到限流响应内容，便于直观观察限流效果！</p>
+            
+            <div class="rate-control">
+                <label for="requestCount">请求数量：</label>
+                <input type="number" id="requestCount" value="10" min="1" max="100">
+                
+                <label for="interval">间隔(ms)：</label>
+                <input type="number" id="interval" value="100" min="50" max="1000">
+                
+                <button class="btn" id="startBatchBtn" onclick="startBatchRequests()">
+                    开始批量请求
+                </button>
+                <button class="btn stop-btn" id="stopBatchBtn" onclick="stopBatchRequests()">
+                    停止请求
+                </button>
+                <span class="loading" id="batchLoading">加载中...</span>
+            </div>
+            
+            <div class="input-group">
+                <label for="apiUrl">请求地址：</label>
+                <input type="text" id="apiUrl" value="/api/users/001">
+                <small class="warning">注意：测试编程式限流时，请使用 /api/users/programmatic/001 或 /api/users/context/001</small>
+            </div>
+            
+            <div class="result-area" id="batchResult">
+                批量请求结果将显示在这里...
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>3. 第三方服务测试（信号量隔离与熔断策略）</h2>
+            <p>测试配置了信号量隔离和熔断策略的第三方服务接口：</p>
+            
+            <div class="info-box">
+                <h4>配置说明：</h4>
+                <ul>
+                    <li><strong>支付接口</strong>: 信号量隔离（QPS=20），异常比例熔断（阈值=50%，熔断时间=5秒）</li>
+                    <li><strong>短信接口</strong>: 信号量隔离（QPS=30），异常比例熔断（阈值=60%，熔断时间=5秒）</li>
+                    <li><strong>物流接口</strong>: 信号量隔离（QPS=15），慢调用比例熔断（阈值=100ms，比例=30%，熔断时间=10秒）</li>
+                </ul>
+            </div>
+            
+            <h3>单个请求测试</h3>
+            
+            <h4>支付接口测试</h4>
+            <div class="input-group">
+                <label for="orderId">订单ID:</label>
+                <input type="text" id="orderId" value="ORDER001">
+            </div>
+            <div class="input-group">
+                <label for="amount">金额:</label>
+                <input type="text" id="amount" value="99.99">
+            </div>
+            <button class="btn btn-warning" onclick="testPayment()">测试支付接口</button>
+            <div class="result-area" id="paymentResult">
+                支付接口测试结果将显示在这里...
+            </div>
+            
+            <h4>短信接口测试</h4>
+            <div class="input-group">
+                <label for="phoneNumber">手机号:</label>
+                <input type="text" id="phoneNumber" value="13800138000">
+            </div>
+            <div class="input-group">
+                <label for="smsMessage">短信内容:</label>
+                <input type="text" id="smsMessage" value="这是一条测试短信">
+            </div>
+            <button class="btn btn-warning" onclick="testSms()">测试短信接口</button>
+            <div class="result-area" id="smsResult">
+                短信接口测试结果将显示在这里...
+            </div>
+            
+            <h4>物流接口测试（慢调用熔断测试）</h4>
+            <div class="input-group">
+                <label for="trackingNumber">运单号:</label>
+                <input type="text" id="trackingNumber" value="SF1234567890">
+            </div>
+            <button class="btn btn-warning" onclick="testLogistics()">测试物流接口</button>
+            <div class="result-area" id="logisticsResult">
+                物流接口测试结果将显示在这里...
+            </div>
+            
+            <h3>批量请求测试（用于测试熔断效果）</h3>
+            
+            <div class="input-group">
+                <label>选择要测试的API:</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="apiSelect" value="1" checked> <span>1. 支付接口</span></label>
+                    <label><input type="radio" name="apiSelect" value="2"> <span>2. 短信接口</span></label>
+                    <label><input type="radio" name="apiSelect" value="3"> <span>3. 物流接口（慢调用熔断测试）</span></label>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="thirdPartyRequestCount">请求数量:</label>
+                <input type="number" id="thirdPartyRequestCount" value="30" min="1" max="1000">
+            </div>
+            
+            <div class="input-group">
+                <label for="thirdPartyDelay">请求间隔(ms):</label>
+                <input type="number" id="thirdPartyDelay" value="30" min="1" max="1000">
+            </div>
+            
+            <div class="rate-control">
+                <button class="btn btn-danger" id="thirdPartyBatchBtn" onclick="testThirdPartyBatch()">
+                    开始第三方服务批量测试
+                </button>
+                <button class="btn btn-danger stop-btn" id="stopThirdPartyBatchBtn" onclick="stopThirdPartyBatch()">
+                    停止测试
+                </button>
+                <span class="loading" id="thirdPartyBatchLoading">请求中...</span>
+            </div>
+            
+            <div class="result-area" id="thirdPartyBatchResult">
+                第三方服务批量测试结果将显示在这里...（物流接口会模拟30%的慢调用，便于测试熔断效果）
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. 编程式限流说明</h2>
+            <p>Sentinel 提供了两种主要的使用方式：<strong>注解式</strong> 和 <strong>编程式</strong>。</p>
+            
+            <h3>编程式限流实现</h3>
+            <p>编程式限流通过直接调用 Sentinel API 来实现，主要使用 <code>SphU.entry(resourceName)</code> 方法来标记需要保护的资源：</p>
+            
+            <div class="code-block">
+                // 定义资源名
+                String resourceName = "getUserInfoProgrammatic";
+                Entry entry = null;
+                try {
+                    // 进入保护的资源
+                    entry = SphU.entry(resourceName);
+                    // 执行业务逻辑
+                    return "用户信息：张三，ID：001";
+                } catch (BlockException e) {
+                    // 处理限流或熔断
+                    return "请求被限流或熔断，请稍后重试";
+                } finally {
+                    if (entry != null) {
+                        entry.exit();
+                    }
+                }
+            </div>
+            
+            <h3>上下文限流</h3>
+            <p>使用上下文可以实现更精细的资源隔离和流量控制：</p>
+            
+            <div class="code-block">
+                // 创建上下文
+                ContextUtil.enter("userContext", "appA");
+                try {
+                    // 定义资源名
+                    String resourceName = "getUserWithContext";
+                    Entry entry = SphU.entry(resourceName);
+                    try {
+                        // 执行业务逻辑
+                        return "上下文环境中获取用户信息";
+                    } finally {
+                        if (entry != null) {
+                            entry.exit();
+                        }
+                    }
+                } catch (BlockException e) {
+                    return "上下文环境中请求被限流";
+                } finally {
+                    ContextUtil.exit();
+                }
+            </div>
+            
+            <h3>API 接口列表</h3>
+            <ul class="api-list">
+                <li><strong>GET /api/users/{userId}</strong> - 使用 @SentinelResource 注解的限流接口 (使用001或002获取用户，其他ID触发降级)</li>
+                <li><strong>GET /api/users/programmatic/{userId}</strong> - 使用编程式方式的限流接口，使用 SphU.entry() 实现</li>
+                <li><strong>GET /api/users/context/{userId}</strong> - 使用上下文的限流接口，结合 ContextUtil 和 SphU.entry() 实现</li>
+            </ul>
+            
+            <div class="info-box">
+                <h4>如何演示编程式限流效果？</h4>
+                <ol>
+                    <li>选择 "测试编程式限流 (SphU.entry)" 按钮发送单个请求，观察正常响应</li>
+                    <li>在下方的批量请求测试中，设置 <strong>请求地址</strong> 为 <code>/api/users/programmatic/001</code></li>
+                    <li>设置 <strong>请求数量</strong> 为 10-20，<strong>间隔</strong> 为 50-100ms</li>
+                    <li>点击 "开始批量请求"，观察结果统计中是否有请求被限流</li>
+                    <li>限流触发时，响应消息会包含 "请求被限流或熔断，请稍后重试"</li>
+                    <li>您也可以使用相同方法测试 "上下文限流" 效果</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. 限流规则说明</h2>
+            <div class="info-box">
+                <p>默认情况下，Sentinel 会对所有资源进行保护。您可以通过以下方式配置限流规则：</p>
+                <ol>
+                    <li>使用 Sentinel Dashboard 动态配置（推荐）</li>
+                    <li>在代码中通过 API 静态配置</li>
+                    <li>使用配置文件配置</li>
+                </ol>
+                <p>要启用 Sentinel Dashboard，请在启动应用时添加以下 JVM 参数：</p>
+                <div class="code-block">
+                    -Dcsp.sentinel.dashboard.server=localhost:8080 -Dproject.name=sentinel-demo
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 单个请求发送函数
+        function sendRequest(url, resultId) {
+            const resultElement = document.getElementById(resultId);
+            resultElement.innerHTML = "请求发送中...";
+            
+            fetch(url)
+                .then(response => {
+                    // 无论状态码如何，都获取响应文本
+                    return response.text().then(text => {
+                        const statusText = response.ok ? '成功' : '失败';
+                        return { text, status: response.status, statusText };
+                    });
+                })
+                .then(data => {
+                    // 检查是否为限流响应，即使状态码是200
+                    const isLimited = data.text && (data.text.includes('限流') || data.text.includes('熔断'));
+                    let colorClass = isLimited ? 'warning' : (data.status === 200 ? 'success' : 'error');
+                    
+                    let result = `状态码: <span class="${colorClass}">${data.status} ${data.statusText}</span>\n`;
+                    
+                    // 为限流请求添加特殊标识
+                    if (isLimited) {
+                        result += `<span class="warning">警告: 此请求被限流或熔断!</span>\n`;
+                    }
+                    
+                    try {
+                        // 尝试解析JSON
+                        const jsonData = JSON.parse(data.text);
+                        result += "响应数据: " + JSON.stringify(jsonData, null, 2);
+                    } catch (e) {
+                        result += "响应数据: " + data.text;
+                    }
+                    
+                    resultElement.innerHTML = result;
+                })
+                .catch(error => {
+                    resultElement.innerHTML = `错误: <span class="error">${error.message}</span>`;
+                });
+        }
+
+        let requestInterval = null;
+        let requestCount = 0;
+        let totalRequests = 0;
+        let successCount = 0;
+        let failCount = 0;
+        
+        // 用于第三方服务批量测试的全局变量
+        let thirdPartyRequestCount = 0;
+        let thirdPartyTotalRequests = 0;
+        let thirdPartySuccessCount = 0;
+        let thirdPartyFailCount = 0;
+        let thirdPartyLimitedCount = 0;
+        let thirdPartyRequestInterval = null;
+        let thirdPartyCurrentApi = '';
+        
+        // 开始批量请求
+        function startBatchRequests() {
+            const count = parseInt(document.getElementById('requestCount').value);
+            const interval = parseInt(document.getElementById('interval').value);
+            const urlPath = document.getElementById('apiUrl').value.trim();
+            
+            // 确保URL格式正确，添加前导斜杠
+            const url = urlPath.startsWith('/') ? urlPath : '/' + urlPath;
+            
+            // 重置计数器
+            requestCount = 0;
+            totalRequests = count;
+            successCount = 0;
+            failCount = 0;
+            
+            document.getElementById('batchResult').innerHTML = `开始发送 ${count} 个请求，间隔 ${interval}ms...\n`;
+            document.getElementById('startBatchBtn').disabled = true;
+            document.getElementById('stopBatchBtn').classList.add('visible');
+            document.getElementById('batchLoading').classList.add('active');
+            
+            // 立即发送第一个请求
+            sendBatchRequest(url);
+            
+            // 设置定时器发送后续请求
+            requestInterval = setInterval(() => {
+                if (requestCount < totalRequests) {
+                    sendBatchRequest(url);
+                } else {
+                    // 所有请求发送完成
+                    stopBatchRequests();
+                    const resultText = document.getElementById('batchResult').innerHTML;
+                    document.getElementById('batchResult').innerHTML = 
+                        resultText + `\n===== 请求统计 =====\n` +
+                        `总请求数: ${totalRequests}\n` +
+                        `成功请求: <span class="success">${successCount}</span>\n` +
+                        `失败请求: <span class="error">${failCount}</span>\n` +
+                        `成功率: ${Math.round((successCount / totalRequests) * 100)}%`;
+                }
+            }, interval);
+        }
+        
+        // 发送单个批量请求
+        function sendBatchRequest(url) {
+            requestCount++;
+            const requestId = requestCount;
+            
+            fetch(url)
+                .then(response => {
+                    // 无论状态码如何，都获取响应文本
+                    return response.text().then(text => {
+                        const statusText = response.ok ? '成功' : '失败';
+                        return { text, status: response.status, statusText };
+                    });
+                })
+                .then(data => {
+                    const resultElement = document.getElementById('batchResult');
+                    
+                    // 更全面地检查是否为限流响应，包含更多可能的限流响应关键词
+                    const isLimited = data.text && (
+                        data.text.includes('限流') || 
+                        data.text.includes('熔断') ||
+                        data.text.includes('流量控制') ||
+                        data.text.includes('blocked') ||
+                        data.text.includes('Rate limit') ||
+                        data.text.includes('请求被限流')
+                    );
+                    
+                    // 即使状态码为200，如果包含限流内容也标记为警告
+                    let colorClass = isLimited ? 'warning' : (data.status === 200 ? 'success' : 'error');
+                    let statusDisplay = isLimited ? `${data.status} (限流)` : `${data.status} ${data.statusText}`;
+                    
+                    // 根据状态更新统计信息
+                    if (isLimited) {
+                        failCount++; // 限流请求计入失败
+                    } else if (data.status === 200) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                    }
+                    
+                    // 显示完整的请求结果，包括状态和响应内容
+                    resultElement.innerHTML += 
+                        `请求 ${requestId}: <span class="${colorClass}">${statusDisplay}</span> - ${data.text}\n`;
+                    
+                    // 自动滚动到底部
+                    resultElement.scrollTop = resultElement.scrollHeight;
+                    
+                    // 检查是否已完成所有请求
+                    if (requestCount >= totalRequests) {
+                        stopBatchRequests();
+                        resultElement.innerHTML += 
+                            `\n===== 请求统计 =====\n` +
+                            `总请求数: ${totalRequests}\n` +
+                            `成功请求: <span class="success">${successCount}</span>\n` +
+                            `失败请求: <span class="error">${failCount}</span>\n` +
+                            `限流请求: <span class="warning">${failCount}</span>\n` +
+                            `成功率: ${Math.round((successCount / totalRequests) * 100)}%`;
+                        resultElement.scrollTop = resultElement.scrollHeight;
+                    }
+                })
+                .catch(error => {
+                    failCount++;
+                    const resultElement = document.getElementById('batchResult');
+                    resultElement.innerHTML += 
+                        `请求 ${requestId}: <span class="error">失败 - ${error.message}</span>\n`;
+                    resultElement.scrollTop = resultElement.scrollHeight;
+                    
+                    // 检查是否已完成所有请求
+                    if (requestCount >= totalRequests) {
+                        stopBatchRequests();
+                        resultElement.innerHTML += 
+                            `\n===== 请求统计 =====\n` +
+                            `总请求数: ${totalRequests}\n` +
+                            `成功请求: <span class="success">${successCount}</span>\n` +
+                            `失败请求: <span class="error">${failCount}</span>\n` +
+                            `成功率: ${Math.round((successCount / totalRequests) * 100)}%`;
+                        resultElement.scrollTop = resultElement.scrollHeight;
+                    }
+                });
+        }
+        
+        // 停止批量请求
+        function stopBatchRequests() {
+            if (requestInterval) {
+                clearInterval(requestInterval);
+                requestInterval = null;
+            }
+            
+            document.getElementById('startBatchBtn').disabled = false;
+            document.getElementById('stopBatchBtn').classList.remove('visible');
+            document.getElementById('batchLoading').classList.remove('active');
+        }
+        
+        // 测试第三方支付接口
+        function testPayment() {
+            const orderId = document.getElementById('orderId').value;
+            const amount = document.getElementById('amount').value;
+            const url = `/api/third-party/payment?orderId=${orderId}&amount=${amount}`;
+            
+            fetch(url, {
+                method: 'POST'
+            })
+            .then(response => response.text())
+            .then(data => {
+                const resultElement = document.getElementById('paymentResult');
+                resultElement.innerHTML = data;
+                
+                // 检查是否被限流或熔断
+                if (data.includes('限流') || data.includes('熔断')) {
+                    resultElement.className = 'result-area warning';
+                } else {
+                    resultElement.className = 'result-area';
+                }
+            })
+            .catch(error => {
+                document.getElementById('paymentResult').innerHTML = `请求失败: ${error.message}`;
+            });
+        }
+        
+        // 测试第三方短信接口
+        function testSms() {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const message = document.getElementById('smsMessage').value;
+            const url = `/api/third-party/sms?phoneNumber=${phoneNumber}&message=${encodeURIComponent(message)}`;
+            
+            fetch(url, {
+                method: 'POST'
+            })
+            .then(response => response.text())
+            .then(data => {
+                const resultElement = document.getElementById('smsResult');
+                resultElement.innerHTML = data;
+                
+                // 检查是否被限流或熔断
+                if (data.includes('限流') || data.includes('熔断')) {
+                    resultElement.className = 'result-area warning';
+                } else {
+                    resultElement.className = 'result-area';
+                }
+            })
+            .catch(error => {
+                document.getElementById('smsResult').innerHTML = `请求失败: ${error.message}`;
+            });
+        }
+        
+        // 测试第三方物流接口
+        function testLogistics() {
+            const trackingNumber = document.getElementById('trackingNumber').value;
+            const url = `/api/third-party/logistics/${trackingNumber}`;
+            
+            sendRequest(url, 'logisticsResult');
+        }
+        
+        // 批量测试第三方服务
+        function testThirdPartyBatch() {
+            // 从单选框获取选择的API
+            const selectedRadio = document.querySelector('input[name="apiSelect"]:checked');
+            const apiSelect = selectedRadio ? selectedRadio.value : null;
+            
+            if (!apiSelect || !['1', '2', '3'].includes(apiSelect)) {
+                alert('请选择有效的API');
+                return;
+            }
+            
+            thirdPartyTotalRequests = parseInt(document.getElementById('thirdPartyRequestCount').value) || 20;
+            const delay = parseInt(document.getElementById('thirdPartyDelay').value) || 50;
+            
+            // 重置统计
+            thirdPartyRequestCount = 0;
+            thirdPartySuccessCount = 0;
+            thirdPartyFailCount = 0;
+            thirdPartyLimitedCount = 0;
+            
+            // 根据选择设置API
+            switch(apiSelect) {
+                case '1':
+                    thirdPartyCurrentApi = `/api/third-party/payment?orderId=TEST${Date.now()}&amount=99.99`;
+                    break;
+                case '2':
+                    thirdPartyCurrentApi = `/api/third-party/sms?phoneNumber=13800138000&message=Test${Date.now()}`;
+                    break;
+                case '3':
+                    thirdPartyCurrentApi = `/api/third-party/logistics/SF${Date.now()}`;
+                    break;
+            }
+            
+            // 清空结果区域
+            document.getElementById('thirdPartyBatchResult').innerHTML = '';
+            
+            // 更新UI状态
+            document.getElementById('thirdPartyBatchLoading').classList.add('active');
+            document.getElementById('stopThirdPartyBatchBtn').classList.add('visible');
+            
+            // 开始批量请求
+            thirdPartyRequestInterval = setInterval(() => {
+                if (thirdPartyRequestCount < thirdPartyTotalRequests) {
+                    sendThirdPartyBatchRequest(thirdPartyCurrentApi, apiSelect === '1' || apiSelect === '2');
+                } else {
+                    stopThirdPartyBatch();
+                }
+            }, delay);
+        }
+        
+        // 发送第三方服务批量请求
+        function sendThirdPartyBatchRequest(url, isPost = false) {
+            thirdPartyRequestCount++;
+            const requestId = thirdPartyRequestCount;
+            
+            const options = isPost ? { method: 'POST' } : {};
+            
+            fetch(url, options)
+                .then(response => {
+                    return response.text().then(text => {
+                        const statusText = response.ok ? '成功' : '失败';
+                        return { text, status: response.status, statusText };
+                    });
+                })
+                .then(data => {
+                    const resultElement = document.getElementById('thirdPartyBatchResult');
+                    
+                    // 检查是否为限流或熔断响应
+                    const isLimited = data.text && (
+                        data.text.includes('限流') || 
+                        data.text.includes('熔断') ||
+                        data.text.includes('流量控制') ||
+                        data.text.includes('blocked') ||
+                        data.text.includes('Rate limit') ||
+                        data.text.includes('请求被限流')
+                    );
+                    
+                    // 检查是否为熔断响应
+                    const isCircuitOpen = data.text && (
+                        data.text.includes('熔断') ||
+                        data.text.includes('Circuit') ||
+                        data.text.includes('open')
+                    );
+                    
+                    let colorClass = isLimited ? 'warning' : (data.status === 200 ? 'success' : 'error');
+                    let statusDisplay = '';
+                    
+                    if (isCircuitOpen) {
+                        statusDisplay = `${data.status} (熔断)`;
+                        colorClass = 'error';
+                    } else if (isLimited) {
+                        statusDisplay = `${data.status} (限流)`;
+                    } else {
+                        statusDisplay = `${data.status} ${data.statusText}`;
+                    }
+                    
+                    // 更新统计
+                    if (isCircuitOpen) {
+                        thirdPartyFailCount++;
+                        thirdPartyLimitedCount++;
+                    } else if (isLimited) {
+                        thirdPartyFailCount++;
+                        thirdPartyLimitedCount++;
+                    } else if (data.status === 200) {
+                        thirdPartySuccessCount++;
+                    } else {
+                        thirdPartyFailCount++;
+                    }
+                    
+                    resultElement.innerHTML += 
+                        `请求 ${requestId}: <span class="${colorClass}">${statusDisplay}</span> - ${data.text}\n`;
+                    
+                    resultElement.scrollTop = resultElement.scrollHeight;
+                    
+                    // 显示熔断信息
+                    if (isCircuitOpen) {
+                        resultElement.innerHTML += `<span class="error">⚠️ 熔断触发！服务暂时不可用，请稍后重试</span>\n`;
+                    }
+                    
+                    if (thirdPartyRequestCount >= thirdPartyTotalRequests) {
+                        stopThirdPartyBatch();
+                    }
+                })
+                .catch(error => {
+                    thirdPartyFailCount++;
+                    const resultElement = document.getElementById('thirdPartyBatchResult');
+                    resultElement.innerHTML += 
+                        `请求 ${requestId}: <span class="error">失败 - ${error.message}</span>\n`;
+                    resultElement.scrollTop = resultElement.scrollHeight;
+                    
+                    if (thirdPartyRequestCount >= thirdPartyTotalRequests) {
+                        stopThirdPartyBatch();
+                    }
+                });
+        }
+        
+        // 停止第三方服务批量测试
+        function stopThirdPartyBatch() {
+            if (thirdPartyRequestInterval) {
+                clearInterval(thirdPartyRequestInterval);
+                thirdPartyRequestInterval = null;
+            }
+            
+            document.getElementById('stopThirdPartyBatchBtn').classList.remove('visible');
+            document.getElementById('thirdPartyBatchLoading').classList.remove('active');
+            
+            // 显示统计结果
+            const resultElement = document.getElementById('thirdPartyBatchResult');
+            resultElement.innerHTML += 
+                `\n===== 第三方服务测试统计 =====\n` +
+                `总请求数: ${thirdPartyTotalRequests}\n` +
+                `成功请求: <span class="success">${thirdPartySuccessCount}</span>\n` +
+                `失败请求: <span class="error">${thirdPartyFailCount}</span>\n` +
+                `限流/熔断请求: <span class="warning">${thirdPartyLimitedCount}</span>\n` +
+                `成功率: ${Math.round((thirdPartySuccessCount / thirdPartyTotalRequests) * 100)}%`;
+            resultElement.scrollTop = resultElement.scrollHeight;
+        }
+
+        // 页面加载完成时自动聚焦
+        window.onload = function() {
+            document.getElementById('requestCount').focus();
+        };
+    </script>
+</body>
+</html>
