@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot 3.x + Ehcache 演示</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            border: none;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
+        }
+        .card-header {
+            background-color: #667eea;
+            color: white;
+            padding: 20px;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .card-body {
+            padding: 25px;
+        }
+        .btn {
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #667eea;
+        }
+        .btn-primary:hover {
+            background-color: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background-color: #48bb78;
+        }
+        .btn-secondary:hover {
+            background-color: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+        }
+        .btn-danger {
+            background-color: #f56565;
+        }
+        .btn-danger:hover {
+            background-color: #e53e3e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+        }
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            padding: 10px 15px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f7fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: 'Courier New', Courier, monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .performance {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        .time-info {
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        .time-first {
+            background-color: #fed7d7;
+            color: #c53030;
+        }
+        .time-cached {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+        .badge {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            border-radius: 50px;
+        }
+        .badge-success {
+            background-color: #48bb78;
+        }
+        .badge-warning {
+            background-color: #ed8936;
+        }
+        .badge-danger {
+            background-color: #f56565;
+        }
+        .alert {
+            border-radius: 8px;
+            border: none;
+            margin-top: 20px;
+        }
+        .alert-success {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+        .alert-info {
+            background-color: #bee3f8;
+            color: #2b6cb0;
+        }
+        .alert-warning {
+            background-color: #faf089;
+            color: #975a16;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>Spring Boot 3.x + Ehcache 演示</h1>
+            <p>缓存性能测试与功能演示平台</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="alert alert-info">
+            <strong>提示：</strong> 该页面展示了Ehcache缓存的实际效果。通过点击按钮测试API调用，观察缓存前后的性能差异。
+        </div>
+
+        <div class="grid">
+            <!-- 缓存性能测试卡片 -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-tachometer"></i> 缓存性能测试
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="userId" class="form-label">用户ID:</label>
+                        <input type="number" id="userId" class="form-control" value="1" min="1" max="3">
+                    </div>
+                    <button id="testCacheBtn" class="btn btn-primary w-100">
+                        <i class="fa fa-play"></i> 执行缓存测试
+                    </button>
+                    <div id="cacheTestResult" class="result"></div>
+                    <div id="performanceComparison" class="performance" style="display: none;">
+                        <span id="firstCallTime" class="time-info time-first"></span>
+                        <span id="cachedCallTime" class="time-info time-cached"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 获取单个用户卡片 -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-user"></i> 获取单个用户
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="getUserId" class="form-label">用户ID:</label>
+                        <input type="number" id="getUserId" class="form-control" value="1" min="1" max="3">
+                    </div>
+                    <button id="getUserBtn" class="btn btn-secondary w-100">
+                        <i class="fa fa-search"></i> 获取用户信息
+                    </button>
+                    <div id="getUserResult" class="result"></div>
+                    <div id="userCacheStatus" class="mt-2" style="display: none;">
+                        <span class="badge" id="cacheStatusBadge"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 获取所有用户卡片 -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-users"></i> 获取所有用户
+                </div>
+                <div class="card-body">
+                    <button id="getAllUsersBtn" class="btn btn-secondary w-100">
+                        <i class="fa fa-list"></i> 获取用户列表
+                    </button>
+                    <div id="getAllUsersResult" class="result"></div>
+                    <div id="userListCacheStatus" class="mt-2" style="display: none;">
+                        <span class="badge" id="userListCacheStatusBadge"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 清除缓存卡片 -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-refresh"></i> 缓存管理
+                </div>
+                <div class="card-body">
+                    <button id="clearCacheBtn" class="btn btn-danger w-100 mb-3">
+                        <i class="fa fa-trash"></i> 清除所有缓存
+                    </button>
+                    <div id="clearCacheResult" class="result"></div>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <strong>注意：</strong> 清除缓存后，下次查询将重新从"数据库"获取数据。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 缓存性能测试
+            document.getElementById('testCacheBtn').addEventListener('click', async function() {
+                const userId = document.getElementById('userId').value;
+                const resultDiv = document.getElementById('cacheTestResult');
+                const performanceDiv = document.getElementById('performanceComparison');
+                const firstCallTimeSpan = document.getElementById('firstCallTime');
+                const cachedCallTimeSpan = document.getElementById('cachedCallTime');
+                
+                resultDiv.textContent = '正在执行测试...';
+                performanceDiv.style.display = 'none';
+                
+                try {
+                    // 记录第一次调用时间
+                    const startTime1 = performance.now();
+                    const response1 = await axios.get(`/api/users/test-cache/${userId}`);
+                    const endTime1 = performance.now();
+                    const firstCallTime = (endTime1 - startTime1).toFixed(2);
+                    
+                    // 记录第二次调用时间（应该走缓存）
+                    const startTime2 = performance.now();
+                    const response2 = await axios.get(`/api/users/test-cache/${userId}`);
+                    const endTime2 = performance.now();
+                    const cachedCallTime = (endTime2 - startTime2).toFixed(2);
+                    
+                    // 计算性能提升百分比
+                    const improvement = ((firstCallTime - cachedCallTime) / firstCallTime * 100).toFixed(2);
+                    
+                    resultDiv.textContent = `测试结果:\n\n`;
+                    resultDiv.textContent += `第一次调用响应: ${JSON.stringify(response1.data, null, 2)}\n\n`;
+                    resultDiv.textContent += `第二次调用响应: ${JSON.stringify(response2.data, null, 2)}\n\n`;
+                    resultDiv.textContent += `性能对比: 缓存后的调用速度提升了 ${improvement}%`;
+                    
+                    firstCallTimeSpan.textContent = `首次调用: ${firstCallTime}ms (从数据库)`;
+                    cachedCallTimeSpan.textContent = `缓存调用: ${cachedCallTime}ms (从缓存)`;
+                    performanceDiv.style.display = 'flex';
+                    
+                } catch (error) {
+                    resultDiv.textContent = `测试失败: ${error.response?.data || error.message}`;
+                }
+            });
+
+            // 获取单个用户
+            document.getElementById('getUserBtn').addEventListener('click', async function() {
+                const userId = document.getElementById('getUserId').value;
+                const resultDiv = document.getElementById('getUserResult');
+                const cacheStatusDiv = document.getElementById('userCacheStatus');
+                const cacheStatusBadge = document.getElementById('cacheStatusBadge');
+                
+                resultDiv.textContent = '正在获取用户信息...';
+                cacheStatusDiv.style.display = 'none';
+                
+                try {
+                    const response = await axios.get(`/api/users/${userId}`);
+                    resultDiv.textContent = JSON.stringify(response.data, null, 2);
+                    
+                    // 检查是否从缓存获取
+                    const isFromCache = response.headers['x-cache-hit'] === 'true';
+                    cacheStatusBadge.textContent = isFromCache ? '来自缓存' : '来自数据库';
+                    cacheStatusBadge.className = isFromCache ? 'badge badge-success' : 'badge badge-warning';
+                    cacheStatusDiv.style.display = 'block';
+                    
+                } catch (error) {
+                    resultDiv.textContent = `获取失败: ${error.response?.data || error.message}`;
+                }
+            });
+
+            // 获取所有用户
+            document.getElementById('getAllUsersBtn').addEventListener('click', async function() {
+                const resultDiv = document.getElementById('getAllUsersResult');
+                const cacheStatusDiv = document.getElementById('userListCacheStatus');
+                const cacheStatusBadge = document.getElementById('userListCacheStatusBadge');
+                
+                resultDiv.textContent = '正在获取用户列表...';
+                cacheStatusDiv.style.display = 'none';
+                
+                try {
+                    const response = await axios.get('/api/users');
+                    resultDiv.textContent = JSON.stringify(response.data, null, 2);
+                    
+                    // 检查是否从缓存获取
+                    const isFromCache = response.headers['x-cache-hit'] === 'true';
+                    cacheStatusBadge.textContent = isFromCache ? '来自缓存' : '来自数据库';
+                    cacheStatusBadge.className = isFromCache ? 'badge badge-success' : 'badge badge-warning';
+                    cacheStatusDiv.style.display = 'block';
+                    
+                } catch (error) {
+                    resultDiv.textContent = `获取失败: ${error.response?.data || error.message}`;
+                }
+            });
+
+            // 清除缓存
+            document.getElementById('clearCacheBtn').addEventListener('click', async function() {
+                const resultDiv = document.getElementById('clearCacheResult');
+                
+                resultDiv.textContent = '正在清除缓存...';
+                
+                try {
+                    const response = await axios.post('/api/users/clear-cache');
+                    resultDiv.textContent = JSON.stringify(response.data, null, 2);
+                    
+                    // 显示成功消息
+                    resultDiv.classList.add('alert-success');
+                    setTimeout(() => {
+                        resultDiv.classList.remove('alert-success');
+                    }, 3000);
+                    
+                } catch (error) {
+                    resultDiv.textContent = `清除失败: ${error.response?.data || error.message}`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

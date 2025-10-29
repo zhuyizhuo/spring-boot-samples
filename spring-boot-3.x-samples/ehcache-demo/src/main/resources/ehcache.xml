@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns="http://www.ehcache.org/v3">
+    <!-- 持久化设置 -->
+    <persistence directory="java.io.tmpdir/ehcache-demo"/>
+    
+    <!-- 默认缓存模板 -->
+    <cache-template name="defaultTemplate">
+        <key-type>java.lang.Object</key-type>
+        <value-type>java.lang.Object</value-type>
+        <expiry>
+            <ttl unit="minutes">5</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">100</heap>
+        </resources>
+    </cache-template>
+    
+    <!-- 用户缓存配置 -->
+    <cache alias="userCache">
+        <key-type>java.lang.Long</key-type>
+        <value-type>java.io.Serializable</value-type>
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">100</heap>
+        </resources>
+    </cache>
+    
+    <!-- 用户列表缓存配置 -->
+    <cache alias="userListCache">
+        <key-type>java.lang.String</key-type>
+        <value-type>java.io.Serializable</value-type>
+        <expiry>
+            <ttl unit="minutes">5</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">10</heap>
+        </resources>
+    </cache>
+</config>
