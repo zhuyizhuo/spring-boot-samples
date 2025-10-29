@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot 3.x Memcache 集成测试</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .card-header {
+            background-color: #0d6efd;
+            color: white;
+            font-weight: bold;
+            padding: 15px;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+        }
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .result-area {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .time-info {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .cache-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .cache-status.hit {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .cache-status.miss {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .tab-content {
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 20px;
+            background-color: white;
+        }
+        .nav-tabs {
+            border-bottom: none;
+        }
+        .nav-tabs .nav-link {
+            border: 1px solid transparent;
+            border-radius: 8px 8px 0 0;
+            margin-right: 5px;
+        }
+        .nav-tabs .nav-link.active {
+            color: #0d6efd;
+            background-color: white;
+            border-color: #dee2e6 #dee2e6 white;
+        }
+        .alert {
+            margin-bottom: 20px;
+        }
+        .spinner {
+            display: none;
+            margin: 0 auto;
+        }
+        .operation-success {
+            color: #198754;
+        }
+        .operation-error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <div class="row">
+                    <div class="col-md-8">
+                        <i class="fa fa-database" aria-hidden="true"></i> Spring Boot 3.x Memcache 集成测试
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="badge bg-success">缓存演示</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 选项卡 -->
+            <ul class="nav nav-tabs" id="testTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="singleUser-tab" data-bs-toggle="tab" data-bs-target="#singleUser" type="button" role="tab" aria-controls="singleUser" aria-selected="true">
+                        <i class="fa fa-user" aria-hidden="true"></i> 获取单个用户
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="allUsers-tab" data-bs-toggle="tab" data-bs-target="#allUsers" type="button" role="tab" aria-controls="allUsers" aria-selected="false">
+                        <i class="fa fa-users" aria-hidden="true"></i> 获取所有用户
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button" role="tab" aria-controls="performance" aria-selected="false">
+                        <i class="fa fa-tachometer" aria-hidden="true"></i> 性能测试
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="cache-tab" data-bs-toggle="tab" data-bs-target="#cache" type="button" role="tab" aria-controls="cache" aria-selected="false">
+                        <i class="fa fa-refresh" aria-hidden="true"></i> 缓存管理
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="crud-tab" data-bs-toggle="tab" data-bs-target="#crud" type="button" role="tab" aria-controls="crud" aria-selected="false">
+                        <i class="fa fa-cogs" aria-hidden="true"></i> 用户管理
+                    </button>
+                </li>
+            </ul>
+
+            <!-- 选项卡内容 -->
+            <div class="tab-content" id="testTabsContent">
+                <!-- 获取单个用户 -->
+                <div class="tab-pane fade show active" id="singleUser" role="tabpanel" aria-labelledby="singleUser-tab">
+                    <div class="mb-3">
+                        <label for="userId" class="form-label">用户ID:</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="userId" placeholder="输入用户ID" value="1">
+                            <button class="btn btn-primary" type="button" id="getUserBtn">
+                                <i class="fa fa-search" aria-hidden="true"></i> 查询用户
+                            </button>
+                        </div>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa fa-info-circle" aria-hidden="true"></i> 第一次查询会从数据库获取，后续查询会从Memcache缓存获取。
+                    </div>
+                    <div>
+                        <h5>查询结果:</h5>
+                        <div id="userResult" class="result-area"></div>
+                        <div id="userTimeInfo" class="time-info"></div>
+                    </div>
+                </div>
+
+                <!-- 获取所有用户 -->
+                <div class="tab-pane fade" id="allUsers" role="tabpanel" aria-labelledby="allUsers-tab">
+                    <button class="btn btn-primary mb-3" id="getAllUsersBtn">
+                        <i class="fa fa-list" aria-hidden="true"></i> 获取所有用户
+                    </button>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa fa-info-circle" aria-hidden="true"></i> 第一次查询会从数据库获取，后续查询会从Memcache缓存获取。
+                    </div>
+                    <div>
+                        <h5>查询结果:</h5>
+                        <div id="allUsersResult" class="result-area"></div>
+                        <div id="allUsersTimeInfo" class="time-info"></div>
+                    </div>
+                </div>
+
+                <!-- 性能测试 -->
+                <div class="tab-pane fade" id="performance" role="tabpanel" aria-labelledby="performance-tab">
+                    <div class="mb-3">
+                        <label for="performanceUserId" class="form-label">用户ID:</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="performanceUserId" placeholder="输入用户ID" value="1">
+                            <button class="btn btn-primary" type="button" id="performanceTestBtn">
+                                <i class="fa fa-play-circle" aria-hidden="true"></i> 执行性能测试
+                            </button>
+                        </div>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa fa-info-circle" aria-hidden="true"></i> 性能测试将执行两次查询，第一次从数据库获取，第二次从缓存获取，展示性能提升。
+                    </div>
+                    <div>
+                        <h5>性能测试结果:</h5>
+                        <div id="performanceResult" class="result-area"></div>
+                        <div id="performanceTimeInfo" class="time-info"></div>
+                    </div>
+                </div>
+
+                <!-- 缓存管理 -->
+                <div class="tab-pane fade" id="cache" role="tabpanel" aria-labelledby="cache-tab">
+                    <div class="mb-3">
+                        <label for="clearCacheUserId" class="form-label">清除特定用户缓存:</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="clearCacheUserId" placeholder="输入用户ID，留空清除所有缓存">
+                            <button class="btn btn-warning" type="button" id="clearCacheBtn">
+                                <i class="fa fa-trash" aria-hidden="true"></i> 清除缓存
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <button class="btn btn-danger" type="button" id="clearAllCacheBtn">
+                            <i class="fa fa-exclamation-triangle" aria-hidden="true"></i> 清除所有缓存
+                        </button>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa fa-info-circle" aria-hidden="true"></i> 清除缓存后，下一次查询将重新从数据库获取数据。
+                    </div>
+                    <div>
+                        <h5>操作结果:</h5>
+                        <div id="cacheResult" class="result-area"></div>
+                    </div>
+                </div>
+
+                <!-- 用户管理 -->
+                <div class="tab-pane fade" id="crud" role="tabpanel" aria-labelledby="crud-tab">
+                    <div class="mb-4">
+                        <h5>添加用户</h5>
+                        <form id="addUserForm">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="username" class="form-label">用户名:</label>
+                                    <input type="text" class="form-control" id="username" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="email" class="form-label">邮箱:</label>
+                                    <input type="email" class="form-control" id="email" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="age" class="form-label">年龄:</label>
+                                    <input type="number" class="form-control" id="age" min="0" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-plus" aria-hidden="true"></i> 添加用户
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div>
+                        <h5>操作结果:</h5>
+                        <div id="crudResult" class="result-area"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 加载动画 -->
+        <div class="spinner mt-3" id="loading">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 显示加载动画
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+        
+        // 隐藏加载动画
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        // 格式化JSON显示
+        function formatJson(json) {
+            return JSON.stringify(json, null, 2);
+        }
+        
+        // 显示结果
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = formatJson(data);
+            
+            if (isError) {
+                element.classList.add('operation-error');
+                element.classList.remove('operation-success');
+            } else {
+                element.classList.add('operation-success');
+                element.classList.remove('operation-error');
+            }
+        }
+        
+        // 显示时间信息
+        function showTimeInfo(elementId, time, fromCache) {
+            const element = document.getElementById(elementId);
+            const cacheStatus = fromCache ? 
+                '<span class="cache-status hit">缓存命中</span>' : 
+                '<span class="cache-status miss">缓存未命中</span>';
+            element.innerHTML = `响应时间: ${time} ms ${cacheStatus}`;
+        }
+        
+        // 获取单个用户
+        document.getElementById('getUserBtn').addEventListener('click', function() {
+            const userId = document.getElementById('userId').value;
+            if (!userId) {
+                alert('请输入用户ID');
+                return;
+            }
+            
+            showLoading();
+            
+            fetch(`/api/users/get/${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showResult('userResult', data.data);
+                        showTimeInfo('userTimeInfo', data.time, data.fromCache);
+                    } else {
+                        showResult('userResult', { error: data.message }, true);
+                        document.getElementById('userTimeInfo').textContent = '';
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    showResult('userResult', { error: '请求失败: ' + error.message }, true);
+                    document.getElementById('userTimeInfo').textContent = '';
+                });
+        });
+        
+        // 获取所有用户
+        document.getElementById('getAllUsersBtn').addEventListener('click', function() {
+            showLoading();
+            
+            fetch('/api/users/all')
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showResult('allUsersResult', data.data);
+                        showTimeInfo('allUsersTimeInfo', data.time, data.fromCache);
+                    } else {
+                        showResult('allUsersResult', { error: data.message }, true);
+                        document.getElementById('allUsersTimeInfo').textContent = '';
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    showResult('allUsersResult', { error: '请求失败: ' + error.message }, true);
+                    document.getElementById('allUsersTimeInfo').textContent = '';
+                });
+        });
+        
+        // 执行性能测试
+        document.getElementById('performanceTestBtn').addEventListener('click', function() {
+            const userId = document.getElementById('performanceUserId').value;
+            if (!userId) {
+                alert('请输入用户ID');
+                return;
+            }
+            
+            showLoading();
+            
+            fetch(`/api/users/performance-test/${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showResult('performanceResult', data.data);
+                        document.getElementById('performanceTimeInfo').textContent = 
+                            `性能提升: ${data.data.improvement} ms (${data.data.improvementPercentage})`;
+                    } else {
+                        showResult('performanceResult', { error: data.message }, true);
+                        document.getElementById('performanceTimeInfo').textContent = '';
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    showResult('performanceResult', { error: '请求失败: ' + error.message }, true);
+                    document.getElementById('performanceTimeInfo').textContent = '';
+                });
+        });
+        
+        // 清除特定用户缓存
+        document.getElementById('clearCacheBtn').addEventListener('click', function() {
+            const userId = document.getElementById('clearCacheUserId').value;
+            
+            showLoading();
+            
+            let url = '/api/users/clear-cache';
+            if (userId) {
+                url += `?id=${userId}`;
+            }
+            
+            fetch(url, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                showResult('cacheResult', { message: data.message });
+            })
+            .catch(error => {
+                hideLoading();
+                showResult('cacheResult', { error: '请求失败: ' + error.message }, true);
+            });
+        });
+        
+        // 清除所有缓存
+        document.getElementById('clearAllCacheBtn').addEventListener('click', function() {
+            if (confirm('确定要清除所有缓存吗？')) {
+                showLoading();
+                
+                fetch('/api/users/clear-cache', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    showResult('cacheResult', { message: data.message });
+                })
+                .catch(error => {
+                    hideLoading();
+                    showResult('cacheResult', { error: '请求失败: ' + error.message }, true);
+                });
+            }
+        });
+        
+        // 添加用户表单提交
+        document.getElementById('addUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const userData = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                age: parseInt(document.getElementById('age').value)
+            };
+            
+            showLoading();
+            
+            fetch('/api/users/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    showResult('crudResult', data.data);
+                    // 重置表单
+                    document.getElementById('addUserForm').reset();
+                } else {
+                    showResult('crudResult', { error: data.message }, true);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showResult('crudResult', { error: '请求失败: ' + error.message }, true);
+            });
+        });
+        
+        // 初始化页面时加载一些数据作为演示
+        window.addEventListener('load', function() {
+            // 延迟执行，避免页面加载时过于拥挤
+            setTimeout(() => {
+                // 自动查询用户ID为1的用户
+                document.getElementById('getUserBtn').click();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
