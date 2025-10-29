@@ -23,6 +23,7 @@ spring-boot-3.x-samples/
 ├── rabbitmq-demo/         # RabbitMQ消息队列集成示例
 ├── redis-pubsub-demo/     # Redis发布订阅模式示例
 ├── spring-ai-demo/        # Spring AI人工智能集成示例
+├── spring-cloud-gateway-demo/ # Spring Cloud Gateway API网关示例
 └── wechat-message-demo/   # 微信消息推送示例
 ```
 
@@ -46,7 +47,8 @@ spring-boot-3.x-samples/
 | 10 | [rabbitmq-demo](rabbitmq-demo) | RabbitMQ消息队列集成示例 | 消息发布、订阅、路由等功能 |
 | 11 | [redis-pubsub-demo](redis-pubsub-demo) | Redis发布订阅模式示例 | 基于Redis的消息发布订阅实现 |
 | 12 | [spring-ai-demo](spring-ai-demo) | Spring AI人工智能集成示例 | 集成AI能力到Spring Boot应用 |
-| 13 | [wechat-message-demo](wechat-message-demo) | 微信消息推送示例 | 微信公众号消息推送功能 |
+| 13 | [spring-cloud-gateway-demo](spring-cloud-gateway-demo) | Spring Cloud Gateway API网关示例 | API路由、过滤、断言、负载均衡等功能 |
+| 14 | [wechat-message-demo](wechat-message-demo) | 微信消息推送示例 | 微信公众号消息推送功能 |
 
 ## 如何使用
 

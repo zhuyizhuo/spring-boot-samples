@@ -1,0 +1,102 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spring-cloud-gateway-demo
+  
+  # Spring Cloud Gateway 配置
+  cloud:
+    gateway:
+      # 全局过滤器配置
+      default-filters:
+        # 添加响应头
+        - AddResponseHeader=X-Response-Time, ${spring.application.name}
+        # 重试机制
+        - name: Retry
+          args:
+            retries: 3
+            statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+            backoff:
+              firstBackoff: 10ms
+              maxBackoff: 50ms
+              factor: 2
+      
+      # 路由配置
+      routes:
+        # 根路径路由 - 提供前端页面
+        - id: root_route
+          uri: forward:/
+          predicates:
+            - Path=/
+          filters:
+            - SetPath=/index.html
+            
+        # 动态路由API路由
+        - id: dynamic_route_api
+          uri: forward:/
+          predicates:
+            - Path=/api/routes/**
+        
+        # 示例1: 基本路由 - 转发到百度
+        - id: baidu_route
+          uri: https://www.baidu.com
+          predicates:
+            - Path=/baidu/**
+          filters:
+            - StripPrefix=1
+        
+        # 示例2: 带路径重写的路由
+        - id: httpbin_rewrite_route
+          uri: https://httpbin.org
+          predicates:
+            - Path=/api/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+        
+        # 示例3: 基于时间的路由
+        - id: time_route
+          uri: https://httpbin.org
+          predicates:
+            - Path=/time/**
+            - After=2024-01-01T00:00:00+08:00
+          filters:
+            - StripPrefix=1
+        
+        # 示例4: 基于请求头的路由
+        - id: header_route
+          uri: https://httpbin.org
+          predicates:
+            - Path=/header/**
+            - Header=X-Request-Id, \d+
+          filters:
+            - StripPrefix=1
+        
+        # 示例5: 限流路由示例
+        - id: rate_limit_route
+          uri: https://httpbin.org
+          predicates:
+            - Path=/rate/**
+          filters:
+            - StripPrefix=1
+            # 这里只是示例，实际使用需要配置Redis和自定义KeyResolver
+            # - name: RequestRateLimiter
+            #   args:
+            #     redis-rate-limiter.replenishRate: 10
+            #     redis-rate-limiter.burstCapacity: 20
+
+# 禁用Nacos服务发现
+spring.cloud.nacos.discovery.enabled: false
+
+# 使用传统的路径匹配器以支持复杂的路径模式
+spring.mvc.pathmatch.matching-strategy: ant_path_matcher
+
+# 启用所有Actuator端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
