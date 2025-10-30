@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建定时任务 - Spring Boot Quartz Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            padding-top: 5rem;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .card {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .card-header {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem 1.5rem;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        .mb-3 {
+            margin-bottom: 1.5rem !important;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .form-control,
+        .form-select {
+            border-radius: 6px;
+            padding: 0.625rem 0.75rem;
+            font-size: 1rem;
+            border: 1px solid #ced4da;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .form-text {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+            display: block;
+        }
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #545b62;
+            border-color: #4e555b;
+        }
+        .button-group {
+            margin-top: 2rem;
+        }
+        .alert {
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .text-center {
+            margin-top: 2rem;
+        }
+        .text-danger {
+            color: #dc3545 !important;
+        }
+        .text-primary {
+            color: #007bff !important;
+            text-decoration: none;
+            transition: color 0.15s ease-in-out;
+        }
+        .text-primary:hover {
+            color: #0056b3 !important;
+            text-decoration: underline;
+        }
+        .required::after {
+            content: " *";
+            color: #dc3545;
+        }
+        #showCronExamples {
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">Spring Boot Quartz Demo</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">首页</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/quartz/index">定时任务管理 <span class="visually-hidden">(current)</span></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main role="main" class="container mt-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="h5 card-title mb-0 font-semibold">创建定时任务</h2>
+                    <a class="btn btn-secondary btn-sm" href="/quartz/index" role="button">
+                        <i class="bi bi-arrow-left me-1"></i>返回列表
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="message" class="alert d-none mb-4" role="alert"></div>
+                
+                <form id="jobForm">
+                    <div class="mb-3">
+                        <label for="jobName" class="form-label required">任务名称</label>
+                        <input type="text" class="form-control" id="jobName" name="jobName" required placeholder="请输入任务名称">
+                        <div class="form-text">任务的唯一标识，不能重复</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="jobGroup" class="form-label required">任务组</label>
+                        <input type="text" class="form-control" id="jobGroup" name="jobGroup" value="default" required placeholder="请输入任务组">
+                        <div class="form-text">任务的分组，用于组织和管理任务</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="triggerName" class="form-label required">触发器名称</label>
+                        <input type="text" class="form-control" id="triggerName" name="triggerName" required placeholder="请输入触发器名称">
+                        <div class="form-text">触发器的唯一标识，与任务相关联</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="triggerGroup" class="form-label required">触发器组</label>
+                        <input type="text" class="form-control" id="triggerGroup" name="triggerGroup" value="default" required placeholder="请输入触发器组">
+                        <div class="form-text">触发器的分组，通常与任务组保持一致</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="jobClassName" class="form-label required">任务类名</label>
+                        <select class="form-select" id="jobClassName" name="jobClassName" required>
+                            <option value="com.example.quartzdemo.job.PrintTimeJob">com.example.quartzdemo.job.PrintTimeJob（打印时间任务）</option>
+                        </select>
+                        <div class="form-text">当前只支持 PrintTimeJob 任务，自定义任务需要先实现 Job 接口并重启应用。</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cronExpression" class="form-label required">Cron表达式</label>
+                        <input type="text" class="form-control" id="cronExpression" name="cronExpression" required placeholder="请输入Cron表达式">
+                        <div class="form-text">
+                            <a href="#" id="showCronExamples" class="text-primary">
+                                <i class="bi bi-info-circle me-1"></i>查看常用Cron表达式示例
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">任务描述</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="请输入任务描述"></textarea>
+                        <div class="form-text">对任务功能的简要描述，帮助识别任务用途</div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary me-3">
+                            <i class="bi bi-save me-2"></i>创建任务
+                        </button>
+                        <a href="/quartz/index" class="btn btn-secondary">
+                            <i class="bi bi-x-circle me-2"></i>取消
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Cron表达式示例模态框 -->
+    <div class="modal fade" id="cronExamplesModal" tabindex="-1" aria-labelledby="cronExamplesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cronExamplesModalLabel">常用Cron表达式示例</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Cron表达式</th>
+                                <th>说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>0/1 * * * * ?</code></td>
+                                <td>每秒执行一次</td>
+                            </tr>
+                            <tr>
+                                <td><code>0/5 * * * * ?</code></td>
+                                <td>每5秒执行一次</td>
+                            </tr>
+                            <tr>
+                                <td><code>0 * * * * ?</code></td>
+                                <td>每分钟执行一次</td>
+                            </tr>
+                            <tr>
+                                <td><code>0 */5 * * * ?</code></td>
+                                <td>每5分钟执行一次</td>
+                            </tr>
+                            <tr>
+                                <td><code>0 0 * * * ?</code></td>
+                                <td>每小时执行一次</td>
+                            </tr>
+                            <tr>
+                                <td><code>0 0 12 * * ?</code></td>
+                                <td>每天中午12点执行</td>
+                            </tr>
+                            <tr>
+                                <td><code>0 0 0 * * ?</code></td>
+                                <td>每天凌晨0点执行</td>
+                            </tr>
+                            <tr>
+                                <td><code>0 0 0 ? * MON</code></td>
+                                <td>每周一凌晨0点执行</td>
+                            </tr>
+                            <tr>
+                                <td><code>0 0 0 1 * ?</code></td>
+                                <td>每月1号凌晨0点执行</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 显示消息
+        function showMessage(message, isError = false) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = isError ? 'alert alert-danger' : 'alert alert-success';
+            messageDiv.classList.remove('d-none');
+            
+            // 添加淡入效果
+            messageDiv.style.opacity = '0';
+            messageDiv.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => {
+                messageDiv.style.opacity = '1';
+            }, 10);
+            
+            // 自动隐藏
+            setTimeout(() => {
+                messageDiv.style.opacity = '0';
+                setTimeout(() => {
+                    messageDiv.classList.add('d-none');
+                }, 300);
+            }, 3000);
+        }
+
+        // 表单提交处理
+        document.getElementById('jobForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(this);
+            const jobData = {};
+            formData.forEach((value, key) => {
+                jobData[key] = value;
+            });
+            
+            axios.post('/quartz/job', jobData)
+                .then(response => {
+                    if (response.data.success) {
+                        showMessage(response.data.message);
+                        // 延迟跳转到任务列表
+                        setTimeout(() => {
+                            window.location.href = '/quartz/index';
+                        }, 1500);
+                    } else {
+                        showMessage(response.data.message, true);
+                    }
+                })
+                .catch(error => {
+                    showMessage('创建任务失败: ' + error.message, true);
+                });
+        });
+
+        // 显示Cron表达式示例
+        document.getElementById('showCronExamples').addEventListener('click', function(event) {
+            event.preventDefault();
+            const modal = new bootstrap.Modal(document.getElementById('cronExamplesModal'));
+            modal.show();
+        });
+
+        // 自动生成触发器名称
+        document.getElementById('jobName').addEventListener('input', function() {
+            const jobName = this.value;
+            if (jobName && !document.getElementById('triggerName').value) {
+                document.getElementById('triggerName').value = jobName + 'Trigger';
+            }
+        });
+    </script>
+</body>
+</html>
