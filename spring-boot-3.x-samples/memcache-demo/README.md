@@ -84,27 +84,32 @@ mvn spring-boot:run
 
 ### 2. 配置参数说明
 
-在 `application.properties` 中可以配置以下 Memcache 参数：
+### 2.1 配置文件结构
+
+项目使用单独的配置文件来管理 Memcache 连接信息，以避免敏感信息被提交到版本控制系统：
+
+- **application-memcache.properties**：包含实际的 Memcache 连接配置（已添加到 .gitignore）
+- **application-memcache.properties.demo**：示例配置文件，提供配置模板
+
+### 2.2 使用方法
+
+1. 复制 `application-memcache.properties.demo` 并重命名为 `application-memcache.properties`
+2. 根据您的实际 Memcache 服务器配置修改以下参数：
 
 ```properties
-# Memcache 服务器配置
+# Memcache 服务器地址和端口
 memcache.servers=localhost:11211
-
 # 连接池大小
-memcache.pool-size=5
-
+memcache.connectionPoolSize=10
 # 操作超时时间（毫秒）
-memcache.op-timeout=3000
-
-# 连接超时时间（毫秒）
-memcache.connect-timeout=1000
-
-# 重试次数
-memcache.retries=3
-
-# 默认缓存过期时间（秒）
-memcache.default-expiry=3600
+memcache.opTimeout=3000
 ```
+
+### 2.3 主要配置参数说明
+
+- **memcache.servers**：Memcache 服务器地址和端口，格式为 `host:port`，多服务器用空格分隔
+- **memcache.connectionPoolSize**：连接池大小，控制并发连接数
+- **memcache.opTimeout**：操作超时时间，单位为毫秒
 
 ### 3. 缓存最佳实践实现
 

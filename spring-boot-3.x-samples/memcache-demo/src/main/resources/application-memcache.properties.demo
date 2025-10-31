@@ -1,0 +1,9 @@
+# Memcache配置示例文件
+# 使用方法：复制并重命名为application-memcache.properties并填写实际配置
+
+# Memcache服务器地址和端口
+memcache.servers=localhost:11211
+# 连接池大小
+memcache.connectionPoolSize=10
+# 操作超时时间（毫秒）
+memcache.opTimeout=3000

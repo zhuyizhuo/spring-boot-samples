@@ -1,0 +1,13 @@
+# PostgreSQL配置示例文件
+# 复制此文件为application-pgsql.properties并根据实际环境修改配置
+
+# 数据库连接URL
+# 格式: jdbc:postgresql://[主机名]:[端口]/[数据库名]
+spring.datasource.url=jdbc:postgresql://localhost:5432/example_db
+
+# 数据库用户名
+spring.datasource.username=postgres
+
+# 数据库密码
+# 注意：请勿将实际密码提交到版本控制系统
+spring.datasource.password=123456

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL Demo 测试页面</title>
+    <!-- 引入Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 20px;
+            background-color: #f8f9fa;
+        }
+        .card {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .action-buttons {
+            white-space: nowrap;
+        }
+        .success-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+        .badge {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.6rem;
+            font-weight: 600;
+        }
+        .ml-2 {
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1 class="text-center mb-5">PostgreSQL 功能测试</h1>
+                
+                <!-- 操作成功消息提示 -->
+                <div id="successMessage" class="alert alert-success success-message" style="display: none;">
+                    <span id="messageContent"></span>
+                </div>
+                
+                <!-- 用户表单卡片 -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h3>用户管理 <span id="formMode" class="badge bg-success ml-2">新增</span></h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="userForm">
+                            <input type="hidden" id="userId" value="">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="username">用户名 *</label>
+                                        <input type="text" class="form-control" id="username" placeholder="请输入用户名" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="password">密码 *</label>
+                                        <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="email">邮箱 *</label>
+                                        <input type="email" class="form-control" id="email" placeholder="请输入邮箱" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="name">姓名</label>
+                                        <input type="text" class="form-control" id="name" placeholder="请输入姓名">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">电话</label>
+                                <input type="tel" class="form-control" id="phone" placeholder="请输入电话">
+                            </div>
+                            <button type="submit" class="btn btn-primary">保存用户</button>
+                            <button type="button" id="resetForm" class="btn btn-secondary">重置</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- 用户列表卡片 -->
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h3>用户列表</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>用户名</th>
+                                        <th>邮箱</th>
+                                        <th>姓名</th>
+                                        <th>电话</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userList">
+                                    <!-- 用户列表将通过JavaScript动态加载 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入jQuery和Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // 加载用户列表
+            loadUsers();
+            
+            // 表单提交事件
+            $('#userForm').submit(function(event) {
+                event.preventDefault();
+                saveUser();
+            });
+            
+            // 重置表单按钮
+            $('#resetForm').click(function() {
+                resetForm();
+            });
+        });
+        
+        // 加载用户列表
+        function loadUsers() {
+            $.ajax({
+                url: '/api/users',
+                type: 'GET',
+                success: function(users) {
+                    let userListHtml = '';
+                    if (users && users.length > 0) {
+                        users.forEach(function(user) {
+                            userListHtml += `
+                                <tr>
+                                    <td>${user.id}</td>
+                                    <td>${user.username}</td>
+                                    <td>${user.email}</td>
+                                    <td>${user.name || '-'}</td>
+                                    <td>${user.phone || '-'}</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-warning mr-2" onclick="editUser(${user.id})">编辑</button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">删除</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        userListHtml = `
+                            <tr>
+                                <td colspan="6" class="text-center">暂无用户数据</td>
+                            </tr>
+                        `;
+                    }
+                    $('#userList').html(userListHtml);
+                },
+                error: function(xhr, status, error) {
+                    showMessage('加载用户列表失败: ' + error, 'error');
+                }
+            });
+        }
+        
+        // 保存用户
+        function saveUser() {
+            const userId = $('#userId').val();
+            const userData = {
+                username: $('#username').val(),
+                password: $('#password').val(),
+                email: $('#email').val(),
+                name: $('#name').val(),
+                phone: $('#phone').val()
+            };
+            
+            const url = userId ? `/api/users/${userId}` : '/api/users';
+            const type = userId ? 'PUT' : 'POST';
+            
+            $.ajax({
+                url: url,
+                type: type,
+                contentType: 'application/json',
+                data: JSON.stringify(userData),
+                success: function(response) {
+                    showMessage(userId ? '用户更新成功' : '用户创建成功', 'success');
+                    resetForm();
+                    loadUsers();
+                },
+                error: function(xhr, status, error) {
+                    showMessage(userId ? '更新用户失败: ' + error : '创建用户失败: ' + error, 'error');
+                }
+            });
+        }
+        
+        // 编辑用户
+        function editUser(id) {
+            $.ajax({
+                url: `/api/users/${id}`,
+                type: 'GET',
+                success: function(user) {
+                    $('#userId').val(user.id);
+                    $('#username').val(user.username);
+                    $('#password').val(''); // 不填充密码
+                    $('#email').val(user.email);
+                    $('#name').val(user.name || '');
+                    $('#phone').val(user.phone || '');
+                    
+                    // 更新表单模式标识为修改
+                    $('#formMode').text('修改').removeClass('bg-success').addClass('bg-warning');
+                    
+                    // 滚动到表单位置
+                    $('html, body').animate({ scrollTop: 0 }, 'fast');
+                },
+                error: function(xhr, status, error) {
+                    showMessage('获取用户信息失败: ' + error, 'error');
+                }
+            });
+        }
+        
+        // 删除用户
+        function deleteUser(id) {
+            // 显示二次确认对话框
+            if (window.confirm('确定要删除这个用户吗？此操作不可撤销！')) {
+                // 只有用户确认后才执行删除操作
+                $.ajax({
+                    url: `/api/users/${id}`,
+                    type: 'DELETE',
+                    success: function() {
+                        showMessage('用户删除成功', 'success');
+                        loadUsers();
+                    },
+                    error: function(xhr, status, error) {
+                        showMessage('删除用户失败: ' + error, 'error');
+                    }
+                });
+            }
+        }
+        
+        // 重置表单
+        function resetForm() {
+            $('#userId').val('');
+            $('#userForm')[0].reset();
+            // 更新表单模式标识为新增
+            $('#formMode').text('新增').removeClass('bg-warning').addClass('bg-success');
+        }
+        
+        // 显示消息
+        function showMessage(message, type) {
+            const messageElement = $('#successMessage');
+            const contentElement = $('#messageContent');
+            
+            contentElement.text(message);
+            
+            // 设置消息类型样式
+            messageElement.removeClass('alert-success alert-danger');
+            messageElement.addClass(type === 'success' ? 'alert-success' : 'alert-danger');
+            
+            // 显示消息
+            messageElement.fadeIn();
+            
+            // 3秒后自动隐藏
+            setTimeout(function() {
+                messageElement.fadeOut();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
