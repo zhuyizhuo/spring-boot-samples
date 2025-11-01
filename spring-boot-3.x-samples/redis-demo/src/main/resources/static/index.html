@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redis功能测试页面</title>
+    <!-- Tailwind CSS -->
+    <link href="https://unpkg.com/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    
+    <!-- 自定义样式 -->
+    <style>
+        :root {
+            --color-primary: #8b5cf6;
+            --color-secondary: #3b82f6;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-danger: #ef4444;
+            --color-dark: #1f2937;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        
+        .text-primary {
+            color: var(--color-primary);
+        }
+        
+        .bg-primary {
+            background-color: var(--color-primary);
+        }
+        
+        .text-secondary {
+            color: var(--color-secondary);
+        }
+        
+        .bg-secondary {
+            background-color: var(--color-secondary);
+        }
+        
+        .text-success {
+            color: var(--color-success);
+        }
+        
+        .bg-success {
+            background-color: var(--color-success);
+        }
+        
+        .text-warning {
+            color: var(--color-warning);
+        }
+        
+        .bg-warning {
+            background-color: var(--color-warning);
+        }
+        
+        .text-danger {
+            color: var(--color-danger);
+        }
+        
+        .bg-danger {
+            background-color: var(--color-danger);
+        }
+        
+        .text-dark {
+            color: var(--color-dark);
+        }
+        
+        .bg-dark {
+            background-color: var(--color-dark);
+        }
+    </script>
+    
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            }
+            .btn-hover {
+                @apply transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5;
+            }
+            .input-focus {
+                @apply focus:ring-2 focus:ring-primary/50 focus:border-primary;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter min-h-screen">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-database text-primary text-3xl"></i>
+                <h1 class="text-2xl font-bold text-dark">Redis 功能测试平台</h1>
+            </div>
+            <div class="text-gray-500">
+                <span id="connection-status" class="inline-flex items-center text-success">
+                    <i class="fa fa-check-circle mr-2"></i>
+                    <span>已连接</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 功能介绍 -->
+        <div class="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold text-dark mb-3">Redis 功能测试</h2>
+            <p class="text-gray-600">
+                这是一个Redis功能测试平台，您可以使用以下功能模块测试Redis的各种操作。
+                所有操作都通过后端API与Redis服务器进行交互。
+            </p>
+        </div>
+
+        <!-- 功能选项卡 -->
+        <div class="mb-6">
+            <div class="flex overflow-x-auto space-x-1 md:space-x-2 pb-2 md:pb-0 scrollbar-hide">
+                <button class="tab-button active whitespace-nowrap px-4 py-2 rounded-md bg-primary text-white font-medium text-sm md:text-base" data-tab="keys">
+                    <i class="fa fa-key mr-2"></i>键管理
+                </button>
+                <button class="tab-button whitespace-nowrap px-4 py-2 rounded-md bg-white text-gray-600 font-medium text-sm md:text-base hover:bg-gray-100" data-tab="string">
+                    <i class="fa fa-font mr-2"></i>字符串
+                </button>
+                <button class="tab-button whitespace-nowrap px-4 py-2 rounded-md bg-white text-gray-600 font-medium text-sm md:text-base hover:bg-gray-100" data-tab="hash">
+                    <i class="fa fa-th-large mr-2"></i>哈希
+                </button>
+                <button class="tab-button whitespace-nowrap px-4 py-2 rounded-md bg-white text-gray-600 font-medium text-sm md:text-base hover:bg-gray-100" data-tab="list">
+                    <i class="fa fa-list mr-2"></i>列表
+                </button>
+                <button class="tab-button whitespace-nowrap px-4 py-2 rounded-md bg-white text-gray-600 font-medium text-sm md:text-base hover:bg-gray-100" data-tab="set">
+                    <i class="fa fa-tags mr-2"></i>集合
+                </button>
+                <button class="tab-button whitespace-nowrap px-4 py-2 rounded-md bg-white text-gray-600 font-medium text-sm md:text-base hover:bg-gray-100" data-tab="zset">
+                    <i class="fa fa-sort-numeric-asc mr-2"></i>有序集合
+                </button>
+                <button class="tab-button whitespace-nowrap px-4 py-2 rounded-md bg-white text-gray-600 font-medium text-sm md:text-base hover:bg-gray-100" data-tab="counter">
+                    <i class="fa fa-plus-circle mr-2"></i>计数器
+                </button>
+                <button class="tab-button whitespace-nowrap px-4 py-2 rounded-md bg-white text-gray-600 font-medium text-sm md:text-base hover:bg-gray-100" data-tab="expiration">
+                    <i class="fa fa-clock-o mr-2"></i>键过期
+                </button>
+            </div>
+        </div>
+
+        <!-- 字符串操作 -->
+        <div class="tab-content hidden" id="string-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 设置字符串 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-pencil-square-o text-primary mr-2"></i>
+                        设置字符串
+                    </h3>
+                    <form id="string-set-form" class="space-y-4">
+                        <div>
+                            <label for="string-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="string-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <div>
+                            <label for="string-value" class="block text-sm font-medium text-gray-700 mb-1">值</label>
+                            <textarea id="string-value" name="value" required rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                      placeholder="输入值"></textarea>
+                        </div>
+                        <div>
+                            <label for="string-expire" class="block text-sm font-medium text-gray-700 mb-1">过期时间(秒)</label>
+                            <input type="number" id="string-expire" name="expire"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="可选，不填则永不过期" min="0">
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-save mr-2"></i>保存
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 获取字符串 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-search text-primary mr-2"></i>
+                        获取字符串
+                    </h3>
+                    <form id="string-get-form" class="space-y-4">
+                        <div>
+                            <label for="string-get-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="string-get-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <button type="submit" class="w-full bg-secondary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-eye mr-2"></i>查看
+                        </button>
+                        <div id="string-get-result" class="hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+                            <div class="text-sm font-medium text-gray-700 mb-2">结果：</div>
+                            <pre id="string-get-output" class="whitespace-pre-wrap word-break"></pre>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 删除键 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-trash text-primary mr-2"></i>
+                        删除键
+                    </h3>
+                    <form id="string-delete-form" class="space-y-4">
+                        <div>
+                            <label for="string-delete-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="string-delete-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <button type="submit" class="w-full bg-danger text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-times mr-2"></i>删除
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 键是否存在 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-question-circle text-primary mr-2"></i>
+                        键是否存在
+                    </h3>
+                    <form id="string-exists-form" class="space-y-4">
+                        <div>
+                            <label for="string-exists-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="string-exists-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <button type="submit" class="w-full bg-warning text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-check-square-o mr-2"></i>检查
+                        </button>
+                        <div id="string-exists-result" class="hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+                            <div class="text-sm font-medium text-gray-700 mb-2">结果：</div>
+                            <div id="string-exists-output"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 哈希操作 -->
+        <div class="tab-content hidden" id="hash-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 设置哈希字段 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-pencil-square-o text-primary mr-2"></i>
+                        设置哈希字段
+                    </h3>
+                    <form id="hash-set-form" class="space-y-4">
+                        <div>
+                            <label for="hash-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="hash-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <div>
+                            <label for="hash-field" class="block text-sm font-medium text-gray-700 mb-1">字段</label>
+                            <input type="text" id="hash-field" name="field" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入字段名">
+                        </div>
+                        <div>
+                            <label for="hash-value" class="block text-sm font-medium text-gray-700 mb-1">值</label>
+                            <input type="text" id="hash-value" name="value" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入值">
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-save mr-2"></i>保存
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 获取哈希字段 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-search text-primary mr-2"></i>
+                        获取哈希字段
+                    </h3>
+                    <form id="hash-get-field-form" class="space-y-4">
+                        <div>
+                            <label for="hash-get-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="hash-get-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <div>
+                            <label for="hash-get-field" class="block text-sm font-medium text-gray-700 mb-1">字段</label>
+                            <input type="text" id="hash-get-field" name="field" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入字段名">
+                        </div>
+                        <button type="submit" class="w-full bg-secondary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-eye mr-2"></i>查看
+                        </button>
+                        <div id="hash-get-field-result" class="hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+                            <div class="text-sm font-medium text-gray-700 mb-2">结果：</div>
+                            <pre id="hash-get-field-output" class="whitespace-pre-wrap word-break"></pre>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 获取全部哈希字段 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow md:col-span-2">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-list-alt text-primary mr-2"></i>
+                        获取全部哈希字段
+                    </h3>
+                    <form id="hash-get-all-form" class="space-y-4">
+                        <div>
+                            <label for="hash-get-all-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="hash-get-all-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <button type="submit" class="w-full bg-secondary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-table mr-2"></i>查看全部
+                        </button>
+                        <div id="hash-get-all-result" class="hidden">
+                            <div class="text-sm font-medium text-gray-700 mb-2">结果：</div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-white border border-gray-200 rounded-md">
+                                    <thead>
+                                        <tr class="bg-gray-50">
+                                            <th class="py-2 px-4 border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">字段</th>
+                                            <th class="py-2 px-4 border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">值</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="hash-get-all-output" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 列表操作 -->
+        <div class="tab-content hidden" id="list-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 添加到列表 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-plus-circle text-primary mr-2"></i>
+                        添加到列表
+                    </h3>
+                    <form id="list-add-form" class="space-y-4">
+                        <div>
+                            <label for="list-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="list-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <div>
+                            <label for="list-values" class="block text-sm font-medium text-gray-700 mb-1">值（每行一个）</label>
+                            <textarea id="list-values" name="values" required rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                      placeholder="输入值，每行一个"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">添加方向</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="direction" value="left" checked
+                                           class="form-radio text-primary">
+                                    <span class="ml-2">左侧 (LPUSH)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="direction" value="right"
+                                           class="form-radio text-primary">
+                                    <span class="ml-2">右侧 (RPUSH)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-plus mr-2"></i>添加
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 获取列表 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-list text-primary mr-2"></i>
+                        获取列表
+                    </h3>
+                    <form id="list-get-form" class="space-y-4">
+                        <div>
+                            <label for="list-get-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="list-get-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="list-get-start" class="block text-sm font-medium text-gray-700 mb-1">开始索引</label>
+                                <input type="number" id="list-get-start" name="start" value="0"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                       placeholder="开始索引">
+                            </div>
+                            <div>
+                                <label for="list-get-end" class="block text-sm font-medium text-gray-700 mb-1">结束索引</label>
+                                <input type="number" id="list-get-end" name="end" value="-1"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                       placeholder="结束索引 (-1表示全部)">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-secondary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-eye mr-2"></i>查看
+                        </button>
+                        <div id="list-get-result" class="hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+                            <div class="text-sm font-medium text-gray-700 mb-2">结果：</div>
+                            <ul id="list-get-output" class="list-disc pl-5 space-y-1"></ul>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 弹出列表元素 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-arrow-circle-right text-primary mr-2"></i>
+                        弹出列表元素
+                    </h3>
+                    <form id="list-pop-form" class="space-y-4">
+                        <div>
+                            <label for="list-pop-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="list-pop-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">弹出方向</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="pop-direction" value="left" checked
+                                           class="form-radio text-primary">
+                                    <span class="ml-2">左侧 (LPOP)</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="pop-direction" value="right"
+                                           class="form-radio text-primary">
+                                    <span class="ml-2">右侧 (RPOP)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-warning text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-arrow-up mr-2"></i>弹出
+                        </button>
+                        <div id="list-pop-result" class="hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+                            <div class="text-sm font-medium text-gray-700 mb-2">弹出的元素：</div>
+                            <pre id="list-pop-output" class="whitespace-pre-wrap word-break"></pre>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 集合操作 -->
+        <div class="tab-content hidden" id="set-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 添加到集合 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-plus-circle text-primary mr-2"></i>
+                        添加到集合
+                    </h3>
+                    <form id="set-add-form" class="space-y-4">
+                        <div>
+                            <label for="set-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="set-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <div>
+                            <label for="set-values" class="block text-sm font-medium text-gray-700 mb-1">值（每行一个）</label>
+                            <textarea id="set-values" name="values" required rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                      placeholder="输入值，每行一个"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-plus mr-2"></i>添加
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 获取集合 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-list text-primary mr-2"></i>
+                        获取集合
+                    </h3>
+                    <form id="set-get-form" class="space-y-4">
+                        <div>
+                            <label for="set-get-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="set-get-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <button type="submit" class="w-full bg-secondary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-eye mr-2"></i>查看
+                        </button>
+                        <div id="set-get-result" class="hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+                            <div class="text-sm font-medium text-gray-700 mb-2">结果：</div>
+                            <ul id="set-get-output" class="list-disc pl-5 space-y-1"></ul>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 检查元素是否在集合中 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-check-circle text-primary mr-2"></i>
+                        检查元素是否在集合中
+                    </h3>
+                    <form id="set-member-form" class="space-y-4">
+                        <div>
+                            <label for="set-member-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="set-member-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <div>
+                            <label for="set-member-value" class="block text-sm font-medium text-gray-700 mb-1">值</label>
+                            <input type="text" id="set-member-value" name="value" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入要检查的值">
+                        </div>
+                        <button type="submit" class="w-full bg-warning text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-search mr-2"></i>检查
+                        </button>
+                        <div id="set-member-result" class="hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+                            <div class="text-sm font-medium text-gray-700 mb-2">结果：</div>
+                            <div id="set-member-output"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 有序集合操作 -->
+        <div class="tab-content hidden" id="zset-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 添加到有序集合 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-plus-circle text-primary mr-2"></i>
+                        添加到有序集合
+                    </h3>
+                    <form id="zset-add-form" class="space-y-4">
+                        <div>
+                            <label for="zset-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="zset-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <div>
+                            <label for="zset-value" class="block text-sm font-medium text-gray-700 mb-1">值</label>
+                            <input type="text" id="zset-value" name="value" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入值">
+                        </div>
+                        <div>
+                            <label for="zset-score" class="block text-sm font-medium text-gray-700 mb-1">分数</label>
+                            <input type="number" step="any" id="zset-score" name="score" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入分数">
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-plus mr-2"></i>添加
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 获取有序集合 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-list text-primary mr-2"></i>
+                        获取有序集合
+                    </h3>
+                    <form id="zset-get-form" class="space-y-4">
+                        <div>
+                            <label for="zset-get-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="zset-get-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="zset-get-start" class="block text-sm font-medium text-gray-700 mb-1">开始索引</label>
+                                <input type="number" id="zset-get-start" name="start" value="0"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                       placeholder="开始索引">
+                            </div>
+                            <div>
+                                <label for="zset-get-end" class="block text-sm font-medium text-gray-700 mb-1">结束索引</label>
+                                <input type="number" id="zset-get-end" name="end" value="-1"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                       placeholder="结束索引 (-1表示全部)">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-secondary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-eye mr-2"></i>查看
+                        </button>
+                        <div id="zset-get-result" class="hidden">
+                            <div class="text-sm font-medium text-gray-700 mb-2">结果：</div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-white border border-gray-200 rounded-md">
+                                    <thead>
+                                        <tr class="bg-gray-50">
+                                            <th class="py-2 px-4 border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">排名</th>
+                                            <th class="py-2 px-4 border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">值</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="zset-get-output" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 获取有序集合元素分数 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-bar-chart text-primary mr-2"></i>
+                        获取元素分数
+                    </h3>
+                    <form id="zset-score-form" class="space-y-4">
+                        <div>
+                            <label for="zset-score-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="zset-score-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <div>
+                            <label for="zset-score-value" class="block text-sm font-medium text-gray-700 mb-1">值</label>
+                            <input type="text" id="zset-score-value" name="value" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入要查询的元素">
+                        </div>
+                        <button type="submit" class="w-full bg-warning text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-search mr-2"></i>查询分数
+                        </button>
+                        <div id="zset-score-result" class="hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+                            <div class="text-sm font-medium text-gray-700 mb-2">分数：</div>
+                            <div id="zset-score-output" class="text-2xl font-semibold text-primary"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 计数器操作 -->
+        <div class="tab-content hidden" id="counter-content">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 计数器自增 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-plus-square text-primary mr-2"></i>
+                        计数器自增
+                    </h3>
+                    <form id="counter-increment-form" class="space-y-4">
+                        <div>
+                            <label for="counter-increment-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="counter-increment-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入计数器键名">
+                        </div>
+                        <button type="submit" class="w-full bg-success text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-arrow-up mr-2"></i>自增 1
+                        </button>
+                        <div id="counter-increment-result" class="hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+                            <div class="text-sm font-medium text-gray-700 mb-2">当前值：</div>
+                            <div id="counter-increment-output" class="text-3xl font-bold text-success"></div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 计数器自增指定值 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-plus-square-o text-primary mr-2"></i>
+                        计数器自增指定值
+                    </h3>
+                    <form id="counter-increment-by-form" class="space-y-4">
+                        <div>
+                            <label for="counter-increment-by-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="counter-increment-by-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入计数器键名">
+                        </div>
+                        <div>
+                            <label for="counter-increment-by-delta" class="block text-sm font-medium text-gray-700 mb-1">增量</label>
+                            <input type="number" id="counter-increment-by-delta" name="delta" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入增量值">
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-calculator mr-2"></i>自增
+                        </button>
+                        <div id="counter-increment-by-result" class="hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+                            <div class="text-sm font-medium text-gray-700 mb-2">当前值：</div>
+                            <div id="counter-increment-by-output" class="text-3xl font-bold text-primary"></div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 计数器自减 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-minus-square text-primary mr-2"></i>
+                        计数器自减
+                    </h3>
+                    <form id="counter-decrement-form" class="space-y-4">
+                        <div>
+                            <label for="counter-decrement-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="counter-decrement-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入计数器键名">
+                        </div>
+                        <button type="submit" class="w-full bg-danger text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-arrow-down mr-2"></i>自减 1
+                        </button>
+                        <div id="counter-decrement-result" class="hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+                            <div class="text-sm font-medium text-gray-700 mb-2">当前值：</div>
+                            <div id="counter-decrement-output" class="text-3xl font-bold text-danger"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 键过期操作 -->
+        <div class="tab-content hidden" id="expiration-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 设置键过期时间 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-clock-o text-primary mr-2"></i>
+                        设置键过期时间
+                    </h3>
+                    <form id="expire-set-form" class="space-y-4">
+                        <div>
+                            <label for="expire-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="expire-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <div>
+                            <label for="expire-seconds" class="block text-sm font-medium text-gray-700 mb-1">过期时间(秒)</label>
+                            <input type="number" id="expire-seconds" name="seconds" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入过期时间" min="1">
+                        </div>
+                        <button type="submit" class="w-full bg-warning text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-clock-o mr-2"></i>设置过期
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 获取键剩余过期时间 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-hourglass-half text-primary mr-2"></i>
+                        获取剩余过期时间
+                    </h3>
+                    <form id="ttl-get-form" class="space-y-4">
+                        <div>
+                            <label for="ttl-key" class="block text-sm font-medium text-gray-700 mb-1">键</label>
+                            <input type="text" id="ttl-key" name="key" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键名">
+                        </div>
+                        <button type="submit" class="w-full bg-secondary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-eye mr-2"></i>查看剩余时间
+                        </button>
+                        <div id="ttl-get-result" class="hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+                            <div class="text-sm font-medium text-gray-700 mb-2">剩余过期时间：</div>
+                            <div id="ttl-get-output" class="text-2xl font-semibold text-secondary"></div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 键过期监听演示 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow md:col-span-2">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-bell text-primary mr-2"></i>
+                        键过期监听演示
+                    </h3>
+                    <div class="mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fa fa-info-circle text-yellow-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700">
+                                    此功能演示键过期监听。创建一个键后，当键过期时，后端监听器会接收到通知并记录日志。
+                                    请确保键名前缀已在Redis配置中设置为可监听。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <form id="expiration-demo-form" class="space-y-4">
+                        <div>
+                            <label for="demo-prefix" class="block text-sm font-medium text-gray-700 mb-1">键前缀</label>
+                            <input type="text" id="demo-prefix" name="prefix" required value="expire" disabled
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+                                   placeholder="输入键前缀">
+                        </div>
+                        <div>
+                            <label for="demo-expire-seconds" class="block text-sm font-medium text-gray-700 mb-1">过期时间(秒)</label>
+                            <input type="number" id="demo-expire-seconds" name="expireSeconds" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入过期时间" min="1">
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-play-circle mr-2"></i>开始演示
+                        </button>
+                        <div id="expiration-demo-result" class="hidden p-4 rounded-md bg-gray-50 border border-gray-200">
+                            <div class="text-sm font-medium text-gray-700 mb-2">演示状态：</div>
+                            <pre id="expiration-demo-output" class="whitespace-pre-wrap word-break"></pre>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 键管理 -->
+        <div class="tab-content" id="keys-content">
+            <div class="grid grid-cols-1 gap-6">
+                <!-- 查找键 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-search text-primary mr-2"></i>
+                        查找键
+                    </h3>
+                    <form id="keys-search-form" class="space-y-4">
+                        <div>
+                            <label for="keys-pattern" class="block text-sm font-medium text-gray-700 mb-1">模式</label>
+                            <input type="text" id="keys-pattern" name="pattern" required value="*"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键模式（如：user:*）">
+                            <p class="mt-1 text-xs text-gray-500">使用 * 匹配任意字符，? 匹配单个字符，[abc] 匹配括号内任意字符</p>
+                        </div>
+                        <button type="submit" class="w-full bg-secondary text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-search mr-2"></i>查找
+                        </button>
+                        <div id="keys-search-result" class="hidden">
+                            <div class="text-sm font-medium text-gray-700 mb-2">查找结果：</div>
+                            <div id="keys-search-count" class="text-sm text-gray-500 mb-2"></div>
+                            <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                                <table class="min-w-full bg-white border border-gray-200 rounded-md">
+                                    <thead>
+                                        <tr class="bg-gray-50 sticky top-0">
+                                            <th class="py-2 px-4 border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">键名</th>
+                                            <th class="py-2 px-4 border-b border-gray-200 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="keys-search-output" class="divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 批量删除键 -->
+                <div class="bg-white rounded-lg shadow-sm p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-trash text-primary mr-2"></i>
+                        批量删除键
+                    </h3>
+                    <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-400 rounded">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fa fa-exclamation-triangle text-red-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-red-700">
+                                    警告：此操作将删除所有匹配模式的键，请谨慎使用！
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <form id="keys-delete-form" class="space-y-4">
+                        <div>
+                            <label for="keys-delete-pattern" class="block text-sm font-medium text-gray-700 mb-1">模式</label>
+                            <input type="text" id="keys-delete-pattern" name="pattern" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md input-focus"
+                                   placeholder="输入键模式（如：temp:*）">
+                        </div>
+                        <button type="submit" class="w-full bg-danger text-white py-2 px-4 rounded-md btn-hover flex items-center justify-center">
+                            <i class="fa fa-trash mr-2"></i>批量删除
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-gray-400 py-8 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa fa-database text-primary text-2xl"></i>
+                        <span class="text-white font-bold text-lg">Redis 功能测试平台</span>
+                    </div>
+                    <p class="mt-2 text-sm">测试 Redis 各种功能的交互式界面</p>
+                </div>
+                <div class="text-sm">
+                    <p>© 2025 Redis Demo. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 通知组件 -->
+    <div id="notification" class="fixed top-4 right-4 p-4 rounded-md shadow-lg transform transition-all duration-300 translate-y-[-100px] opacity-0 z-50 max-w-md">
+        <div class="flex items-center">
+            <i id="notification-icon" class="fa fa-check-circle text-white mr-3 text-xl"></i>
+            <div>
+                <h3 id="notification-title" class="font-bold text-white"></h3>
+                <p id="notification-message" class="text-sm text-white/80"></p>
+            </div>
+            <button id="notification-close" class="ml-auto text-white/80 hover:text-white">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // 通知功能
+        function showNotification(type, title, message) {
+            const notification = document.getElementById('notification');
+            const icon = document.getElementById('notification-icon');
+            const titleEl = document.getElementById('notification-title');
+            const messageEl = document.getElementById('notification-message');
+            
+            // 设置图标和颜色
+            if (type === 'success') {
+                notification.className = 'fixed top-4 right-4 p-4 bg-success rounded-md shadow-lg transform transition-all duration-300 z-50 max-w-md';
+                icon.className = 'fa fa-check-circle text-white mr-3 text-xl';
+            } else if (type === 'error') {
+                notification.className = 'fixed top-4 right-4 p-4 bg-danger rounded-md shadow-lg transform transition-all duration-300 z-50 max-w-md';
+                icon.className = 'fa fa-exclamation-circle text-white mr-3 text-xl';
+            } else if (type === 'warning') {
+                notification.className = 'fixed top-4 right-4 p-4 bg-warning rounded-md shadow-lg transform transition-all duration-300 z-50 max-w-md';
+                icon.className = 'fa fa-exclamation-triangle text-white mr-3 text-xl';
+            } else if (type === 'info') {
+                notification.className = 'fixed top-4 right-4 p-4 bg-secondary rounded-md shadow-lg transform transition-all duration-300 z-50 max-w-md';
+                icon.className = 'fa fa-info-circle text-white mr-3 text-xl';
+            }
+            
+            // 设置标题和消息
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            
+            // 显示通知
+            notification.style.transform = 'translateY(0)';
+            notification.style.opacity = '1';
+            
+            // 自动关闭
+            setTimeout(() => {
+                hideNotification();
+            }, 5000);
+        }
+        
+        function hideNotification() {
+            const notification = document.getElementById('notification');
+            notification.style.transform = 'translateY(-100px)';
+            notification.style.opacity = '0';
+        }
+        
+        document.getElementById('notification-close').addEventListener('click', hideNotification);
+        
+        // 选项卡功能 - 重写为更可靠的实现
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 移除所有选项卡的活动状态
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('active', 'bg-primary', 'text-white');
+                        btn.classList.add('bg-white', 'text-gray-600');
+                    });
+                    
+                    // 添加当前选项卡的活动状态
+                    this.classList.add('active', 'bg-primary', 'text-white');
+                    this.classList.remove('bg-white', 'text-gray-600');
+                    
+                    // 隐藏所有内容
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    
+                    // 显示当前内容
+                    const tabId = this.getAttribute('data-tab');
+                    const currentContent = document.getElementById(tabId + '-content');
+                    if (currentContent) {
+                        currentContent.classList.remove('hidden');
+                    }
+                });
+            });
+        });
+        
+        // API 请求函数
+        async function apiRequest(endpoint, method = 'GET', data = null) {
+            try {
+                // 恢复：添加API前缀
+                let url = `/api/redis${endpoint}`;
+                const options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                };
+                
+                // 对于 GET 请求或需要查询参数的POST请求，如果有数据，添加到查询参数
+                if (data && (method === 'GET' || endpoint.includes('/string'))) {
+                    // 如果URL已经包含查询参数，使用&连接，否则使用?连接
+                    const separator = url.includes('?') ? '&' : '?';
+                    const queryParams = new URLSearchParams(data).toString();
+                    url += `${separator}${queryParams}`;
+                    // 移除Content-Type，使用默认的表单提交格式
+                    delete options.headers['Content-Type'];
+                } else if (data && (method === 'POST' || method === 'PUT' || method === 'DELETE')) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(url, options);
+                
+                // 确保只读取响应流一次
+                const responseText = await response.text();
+                console.log('Raw response text (url:', url, '):', responseText);
+                
+                // 检查响应是否成功
+                if (!response.ok) {
+                    const errorMessage = responseText || `请求失败: ${response.status}`;
+                    console.error('API Error:', errorMessage);
+                    throw new Error(errorMessage);
+                }
+                
+                // 只在内容明确看起来是JSON格式时才尝试解析
+                const trimmedText = responseText.trim();
+                if (trimmedText && (trimmedText.startsWith('{') || trimmedText.startsWith('['))) {
+                    try {
+                        const responseData = JSON.parse(trimmedText);
+                        console.log('Successfully parsed JSON response');
+                        return responseData;
+                    } catch (jsonError) {
+                        // 解析失败时返回原始文本
+                        console.log('Non-JSON response (not a valid JSON structure)');
+                        return responseText;
+                    }
+                } else {
+                    // 非JSON格式的响应直接返回
+                    console.log('Non-JSON response (not starting with { or [)');
+                    return responseText;
+                }
+            } catch (error) {
+                showNotification('error', '操作失败', error.message);
+                throw error;
+            }
+        }
+        
+        // 字符串操作表单处理
+        document.getElementById('string-set-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                // 构建查询参数
+                let queryParams = `?key=${encodeURIComponent(data.key)}&value=${encodeURIComponent(data.value)}`;
+                if (data.expire && data.expire > 0) {
+                    queryParams += `&expire=${data.expire}`;
+                }
+                
+                const response = await apiRequest(`/string${queryParams}`, 'POST');
+                showNotification('success', '设置成功', response);
+                form.reset();
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        document.getElementById('string-get-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            
+            try {
+                const response = await apiRequest(`/string/${key}`);
+                const resultDiv = document.getElementById('string-get-result');
+                const outputDiv = document.getElementById('string-get-output');
+                
+                outputDiv.textContent = JSON.stringify(response, null, 2);
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 处理 404 错误
+                if (error.message.includes('404')) {
+                    showNotification('info', '键不存在', `键 "${key}" 不存在`);
+                }
+            }
+        });
+        
+        document.getElementById('string-delete-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            
+            try {
+                const response = await apiRequest(`/string/${key}`, 'DELETE');
+                showNotification('success', '删除成功', response);
+                form.reset();
+            } catch (error) {
+                // 处理 404 错误
+                if (error.message.includes('404')) {
+                    showNotification('info', '键不存在', `键 "${key}" 不存在`);
+                }
+            }
+        });
+        
+        document.getElementById('string-exists-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            
+            try {
+                const response = await apiRequest(`/exists/${key}`);
+                const resultDiv = document.getElementById('string-exists-result');
+                const outputDiv = document.getElementById('string-exists-output');
+                
+                if (response.exists) {
+                    outputDiv.innerHTML = `<span class="text-success font-medium"><i class="fa fa-check-circle mr-1"></i>键 "${key}" 存在</span>`;
+                } else {
+                    outputDiv.innerHTML = `<span class="text-danger font-medium"><i class="fa fa-times-circle mr-1"></i>键 "${key}" 不存在</span>`;
+                }
+                
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        // 哈希操作表单处理
+        document.getElementById('hash-set-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                const queryParams = `?key=${encodeURIComponent(data.key)}&field=${encodeURIComponent(data.field)}&value=${encodeURIComponent(data.value)}`;
+                const response = await apiRequest(`/hash${queryParams}`, 'POST');
+                showNotification('success', '设置成功', response);
+                form.reset();
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        document.getElementById('hash-get-field-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            const field = form.elements.field.value;
+            
+            try {
+                const response = await apiRequest(`/hash/${key}/${field}`);
+                const resultDiv = document.getElementById('hash-get-field-result');
+                const outputDiv = document.getElementById('hash-get-field-output');
+                
+                outputDiv.textContent = typeof response === 'object' ? JSON.stringify(response, null, 2) : response;
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 处理 404 错误
+                if (error.message.includes('404')) {
+                    showNotification('info', '字段不存在', `字段 "${field}" 不存在`);
+                }
+            }
+        });
+        
+        document.getElementById('hash-get-all-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            
+            try {
+                const response = await apiRequest(`/hash/${key}`);
+                const resultDiv = document.getElementById('hash-get-all-result');
+                const outputDiv = document.getElementById('hash-get-all-output');
+                
+                // 清空之前的内容
+                outputDiv.innerHTML = '';
+                
+                // 添加新内容
+                Object.entries(response).forEach(([field, value]) => {
+                    const row = document.createElement('tr');
+                    const fieldCell = document.createElement('td');
+                    const valueCell = document.createElement('td');
+                    
+                    fieldCell.className = 'py-2 px-4 border-b border-gray-200';
+                    valueCell.className = 'py-2 px-4 border-b border-gray-200';
+                    
+                    fieldCell.textContent = field;
+                    valueCell.textContent = typeof value === 'object' ? JSON.stringify(value) : value;
+                    
+                    row.appendChild(fieldCell);
+                    row.appendChild(valueCell);
+                    outputDiv.appendChild(row);
+                });
+                
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 处理 404 错误
+                if (error.message.includes('404')) {
+                    showNotification('info', '键不存在', `键 "${key}" 不存在`);
+                }
+            }
+        });
+        
+        // 列表操作表单处理
+        document.getElementById('list-add-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            const valuesText = form.elements.values.value;
+            const direction = form.elements.direction.value;
+            
+            // 将多行文本转换为数组
+            const values = valuesText.split('\n').filter(val => val.trim() !== '');
+            
+            try {
+                const response = await apiRequest(`/list?key=${encodeURIComponent(key)}&direction=${direction}`, 'POST', values);
+                showNotification('success', '添加成功', response);
+                form.reset();
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        document.getElementById('list-get-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            const start = form.elements.start.value;
+            const end = form.elements.end.value;
+            
+            try {
+                const response = await apiRequest(`/list/${key}?start=${start}&end=${end}`);
+                const resultDiv = document.getElementById('list-get-result');
+                const outputDiv = document.getElementById('list-get-output');
+                
+                // 清空之前的内容
+                outputDiv.innerHTML = '';
+                
+                // 添加新内容
+                response.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = typeof item === 'object' ? JSON.stringify(item) : item;
+                    outputDiv.appendChild(li);
+                });
+                
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 处理 404 错误
+                if (error.message.includes('404')) {
+                    showNotification('info', '键不存在', `键 "${key}" 不存在`);
+                }
+            }
+        });
+        
+        document.getElementById('list-pop-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            const direction = form.elements['pop-direction'].value;
+            
+            try {
+                const response = await apiRequest(`/list/pop/${key}?direction=${direction}`, 'DELETE');
+                const resultDiv = document.getElementById('list-pop-result');
+                const outputDiv = document.getElementById('list-pop-output');
+                
+                outputDiv.textContent = typeof response === 'object' ? JSON.stringify(response, null, 2) : response;
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 处理 404 错误
+                if (error.message.includes('404')) {
+                    showNotification('info', '键不存在', `键 "${key}" 不存在或为空`);
+                }
+            }
+        });
+        
+        // 集合操作表单处理
+        document.getElementById('set-add-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            const valuesText = form.elements.values.value;
+            
+            // 将多行文本转换为数组
+            const values = valuesText.split('\n').filter(val => val.trim() !== '');
+            
+            try {
+                const response = await apiRequest(`/set?key=${encodeURIComponent(key)}`, 'POST', values);
+                showNotification('success', '添加成功', response);
+                form.reset();
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        document.getElementById('set-get-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            
+            try {
+                const response = await apiRequest(`/set/${key}`);
+                const resultDiv = document.getElementById('set-get-result');
+                const outputDiv = document.getElementById('set-get-output');
+                
+                // 清空之前的内容
+                outputDiv.innerHTML = '';
+                
+                // 添加新内容
+                response.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = typeof item === 'object' ? JSON.stringify(item) : item;
+                    outputDiv.appendChild(li);
+                });
+                
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 处理 404 错误
+                if (error.message.includes('404')) {
+                    showNotification('info', '键不存在', `键 "${key}" 不存在`);
+                }
+            }
+        });
+        
+        document.getElementById('set-member-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            const value = form.elements.value.value;
+            
+            try {
+                const response = await apiRequest(`/set/member?key=${encodeURIComponent(key)}&value=${encodeURIComponent(value)}`);
+                const resultDiv = document.getElementById('set-member-result');
+                const outputDiv = document.getElementById('set-member-output');
+                
+                if (response) {
+                    outputDiv.innerHTML = `<span class="text-success font-medium"><i class="fa fa-check-circle mr-1"></i>元素 "${value}" 存在于集合中</span>`;
+                } else {
+                    outputDiv.innerHTML = `<span class="text-danger font-medium"><i class="fa fa-times-circle mr-1"></i>元素 "${value}" 不存在于集合中</span>`;
+                }
+                
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        // 有序集合操作表单处理
+        document.getElementById('zset-add-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            const value = form.elements.value.value;
+            const score = form.elements.score.value;
+            
+            try {
+                const queryParams = `?key=${encodeURIComponent(key)}&value=${encodeURIComponent(value)}&score=${score}`;
+                const response = await apiRequest(`/zset${queryParams}`, 'POST');
+                showNotification('success', '添加成功', response);
+                form.reset();
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        document.getElementById('zset-get-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            const start = form.elements.start.value;
+            const end = form.elements.end.value;
+            
+            try {
+                const response = await apiRequest(`/zset/${key}?start=${start}&end=${end}`);
+                const resultDiv = document.getElementById('zset-get-result');
+                const outputDiv = document.getElementById('zset-get-output');
+                
+                // 清空之前的内容
+                outputDiv.innerHTML = '';
+                
+                // 添加新内容
+                response.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    const rankCell = document.createElement('td');
+                    const valueCell = document.createElement('td');
+                    
+                    rankCell.className = 'py-2 px-4 border-b border-gray-200';
+                    valueCell.className = 'py-2 px-4 border-b border-gray-200';
+                    
+                    rankCell.textContent = index;
+                    valueCell.textContent = typeof item === 'object' ? JSON.stringify(item) : item;
+                    
+                    row.appendChild(rankCell);
+                    row.appendChild(valueCell);
+                    outputDiv.appendChild(row);
+                });
+                
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 处理 404 错误
+                if (error.message.includes('404')) {
+                    showNotification('info', '键不存在', `键 "${key}" 不存在`);
+                }
+            }
+        });
+        
+        document.getElementById('zset-score-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            const value = form.elements.value.value;
+            
+            try {
+                const response = await apiRequest(`/zset/score?key=${encodeURIComponent(key)}&value=${encodeURIComponent(value)}`);
+                const resultDiv = document.getElementById('zset-score-result');
+                const outputDiv = document.getElementById('zset-score-output');
+                
+                outputDiv.textContent = response;
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 处理 404 错误
+                if (error.message.includes('404')) {
+                    showNotification('info', '元素不存在', `元素 "${value}" 不存在于有序集合中`);
+                }
+            }
+        });
+        
+        // 计数器操作表单处理
+        document.getElementById('counter-increment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            
+            try {
+                const response = await apiRequest(`/counter/increment/${key}`, 'POST');
+                const resultDiv = document.getElementById('counter-increment-result');
+                const outputDiv = document.getElementById('counter-increment-output');
+                
+                outputDiv.textContent = response;
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        document.getElementById('counter-increment-by-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            const delta = form.elements.delta.value;
+            
+            try {
+                const response = await apiRequest(`/counter/increment/${key}/${delta}`, 'POST');
+                const resultDiv = document.getElementById('counter-increment-by-result');
+                const outputDiv = document.getElementById('counter-increment-by-output');
+                
+                outputDiv.textContent = response;
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        document.getElementById('counter-decrement-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            
+            try {
+                const response = await apiRequest(`/counter/decrement/${key}`, 'POST');
+                const resultDiv = document.getElementById('counter-decrement-result');
+                const outputDiv = document.getElementById('counter-decrement-output');
+                
+                outputDiv.textContent = response;
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        // 键过期操作表单处理
+        document.getElementById('expire-set-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            const seconds = form.elements.seconds.value;
+            
+            try {
+                const response = await apiRequest(`/expire/${key}?seconds=${seconds}`, 'PUT');
+                showNotification('success', '设置成功', response);
+                form.reset();
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        document.getElementById('ttl-get-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const key = form.elements.key.value;
+            
+            try {
+                const response = await apiRequest(`/ttl/${key}`);
+                const resultDiv = document.getElementById('ttl-get-result');
+                const outputDiv = document.getElementById('ttl-get-output');
+                
+                if (response.ttl === -1) {
+                    outputDiv.textContent = '键永不过期';
+                    outputDiv.className = 'text-xl font-semibold text-gray-500';
+                } else if (response.ttl === -2) {
+                    outputDiv.textContent = '键不存在';
+                    outputDiv.className = 'text-xl font-semibold text-danger';
+                } else {
+                    outputDiv.textContent = `${response.ttl} 秒`;
+                    outputDiv.className = 'text-xl font-semibold text-secondary';
+                }
+                
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        document.getElementById('expiration-demo-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const prefix = form.elements.prefix.value;
+            const expireSeconds = form.elements.expireSeconds.value;
+            
+            // 生成一个随机键名
+            const randomKey = `${prefix}:demo:${Date.now()}`;
+            const demoValue = `这是一个演示值，将在 ${expireSeconds} 秒后过期`;
+            
+            try {
+                // 创建一个带有过期时间的键
+                const response = await apiRequest('/string', 'POST', {
+                    key: randomKey,
+                    value: demoValue,
+                    expire: expireSeconds
+                });
+                
+                const resultDiv = document.getElementById('expiration-demo-result');
+                const outputDiv = document.getElementById('expiration-demo-output');
+                
+                outputDiv.textContent = `键 "${randomKey}" 已创建，将在 ${expireSeconds} 秒后过期。\n请在后端日志中查看键过期事件的通知。`;
+                resultDiv.classList.remove('hidden');
+                
+                showNotification('success', '演示开始', `键已创建，将在 ${expireSeconds} 秒后过期`);
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        // 键管理操作表单处理
+        document.getElementById('keys-search-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const pattern = form.elements.pattern.value;
+            
+            try {
+                const response = await apiRequest(`/keys?pattern=${encodeURIComponent(pattern)}`);
+                const resultDiv = document.getElementById('keys-search-result');
+                const countDiv = document.getElementById('keys-search-count');
+                const outputDiv = document.getElementById('keys-search-output');
+                
+                // 清空之前的内容
+                outputDiv.innerHTML = '';
+                
+                // 设置计数
+                countDiv.textContent = `找到 ${response.length} 个键`;
+                
+                // 添加新内容
+                response.forEach(async key => {
+                    const row = document.createElement('tr');
+                    const keyCell = document.createElement('td');
+                    const actionCell = document.createElement('td');
+                    
+                    // 改进表格样式
+                    keyCell.className = 'py-2 px-4 border border-gray-200';
+                    actionCell.className = 'py-2 px-4 border border-gray-200 text-center';
+                    
+                    // 设置交替行背景色
+                    row.className = 'hover:bg-gray-50';
+                    if (outputDiv.children.length % 2 === 0) {
+                        row.className += ' bg-gray-50';
+                    }
+                    
+                    keyCell.textContent = key;
+                    
+                    // 添加删除按钮
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'text-danger hover:text-red-700';
+                    deleteBtn.innerHTML = '<i class="fa fa-trash"></i> 删除';
+                    deleteBtn.onclick = async () => {
+                        if (confirm(`确定要删除键 "${key}" 吗？`)) {
+                            try {
+                                await apiRequest(`/keys/${encodeURIComponent(key)}`, 'DELETE');
+                                showNotification('success', '删除成功', `键 "${key}" 已删除`);
+                                // 刷新列表
+                                form.dispatchEvent(new Event('submit'));
+                            } catch (error) {
+                                // 错误已在 apiRequest 中处理
+                            }
+                        }
+                    };
+                    
+                    actionCell.appendChild(deleteBtn);
+                    row.appendChild(keyCell);
+                    row.appendChild(actionCell);
+                    outputDiv.appendChild(row);
+                });
+                
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        document.getElementById('keys-delete-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const pattern = form.elements.pattern.value;
+            
+            // 确认操作
+            if (!confirm(`确定要删除所有匹配 "${pattern}" 的键吗？此操作无法撤销！`)) {
+                return;
+            }
+            
+            try {
+                const response = await apiRequest(`/keys?pattern=${encodeURIComponent(pattern)}`, 'DELETE');
+                // 直接使用响应消息作为通知内容
+                showNotification('success', '删除成功', response);
+                form.reset();
+            } catch (error) {
+                // 错误已在 apiRequest 中处理
+            }
+        });
+        
+        // 初始化选项卡状态函数
+        function initTabs() {
+            // 首先隐藏所有内容区域
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // 找到激活的选项卡按钮
+            const activeButton = document.querySelector('.tab-button.active');
+            if (activeButton) {
+                const tabId = activeButton.getAttribute('data-tab');
+                // 直接显示对应内容
+                const activeContent = document.getElementById(tabId + '-content');
+                if (activeContent) {
+                    activeContent.classList.remove('hidden');
+                    console.log('Init tabs: showing ' + tabId + '-content');
+                }
+            }
+        }
+        
+        // 页面加载时自动获取所有键和确保正确的选项卡显示
+        window.addEventListener('DOMContentLoaded', async () => {
+            // 首先调用initTabs确保基础选项卡状态正确
+            initTabs();
+            
+            // 强制确保键管理内容显示，字符串内容隐藏
+            const keysContent = document.getElementById('keys-content');
+            const stringContent = document.getElementById('string-content');
+            
+            if (keysContent) {
+                keysContent.classList.remove('hidden');
+            }
+            
+            if (stringContent) {
+                stringContent.classList.add('hidden');
+            }
+            
+            // 确保活动状态正确设置
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(btn => {
+                if (btn.getAttribute('data-tab') === 'keys') {
+                    btn.classList.add('active', 'bg-primary', 'text-white');
+                    btn.classList.remove('bg-white', 'text-gray-600');
+                } else {
+                    btn.classList.remove('active', 'bg-primary', 'text-white');
+                    btn.classList.add('bg-white', 'text-gray-600');
+                }
+            });
+            
+            // 自动触发查找键操作，显示所有键
+            const keysSearchForm = document.getElementById('keys-search-form');
+            if (keysSearchForm) {
+                // 直接触发查询，因为我们已经确保keys内容可见
+                setTimeout(() => {
+                    keysSearchForm.dispatchEvent(new Event('submit'));
+                }, 100);
+            }
+            
+            // 测试连接状态
+            try {
+                await apiRequest('/ping');
+                document.getElementById('connection-status').innerHTML = '<i class="fa fa-check-circle mr-2"></i><span>已连接</span>';
+                document.getElementById('connection-status').className = 'inline-flex items-center text-success';
+            } catch (error) {
+                document.getElementById('connection-status').innerHTML = '<i class="fa fa-times-circle mr-2"></i><span>连接失败</span>';
+                document.getElementById('connection-status').className = 'inline-flex items-center text-danger';
+                showNotification('error', '连接失败', '无法连接到Redis服务器，请检查服务是否正常运行。');
+            }
+        });
+    </script>
+</body>
+</html>

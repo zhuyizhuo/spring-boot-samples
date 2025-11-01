@@ -1,0 +1,18 @@
+spring:
+  # 激活额外的Redis配置文件
+  profiles:
+    active: redis
+  
+  # 应用配置
+  application:
+    name: redis-demo
+
+# 服务器配置
+server:
+  port: 8080
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.example.redisdemo: DEBUG
