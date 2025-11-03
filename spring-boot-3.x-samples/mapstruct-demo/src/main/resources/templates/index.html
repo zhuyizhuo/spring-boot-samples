@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapStruct Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        .section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .code-block {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .feature-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .feature-list li:before {
+            content: "✓ ";
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .demo-link {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>MapStruct 演示项目</h1>
+    
+    <div class="section">
+        <h2>什么是 MapStruct？</h2>
+        <p>MapStruct 是一个 Java 注解处理器，用于生成类型安全的 bean 映射代码。它可以自动生成实体类和 DTO 之间的转换代码，避免手动编写大量的 getter/setter 调用。</p>
+    </div>
+    
+    <div class="section">
+        <h2>MapStruct 特点</h2>
+        <ul class="feature-list">
+            <li>编译时类型安全 - 避免运行时类型转换错误</li>
+            <li>高性能 - 生成的代码使用直接的 getter/setter 调用，没有反射开销</li>
+            <li>减少样板代码 - 自动处理大部分映射逻辑</li>
+            <li>可定制性 - 支持自定义映射方法、表达式和转换逻辑</li>
+            <li>IDE 支持 - 在主流 IDE 中提供代码补全和错误检查</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>本演示项目包含的功能</h2>
+        <ul class="feature-list">
+            <li>基本字段映射 - 自动映射名称相同的字段</li>
+            <li>字段名称映射 - 使用 @Mapping 注解指定不同名称的字段映射</li>
+            <li>自定义转换方法 - 使用 @Named 注解定义自定义转换逻辑</li>
+            <li>列表映射 - 自动映射集合类型</li>
+            <li>忽略字段 - 使用 ignore 属性跳过某些字段的映射</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>示例代码</h2>
+        <p>以下是本项目中使用的 MapStruct 映射器定义示例：</p>
+        <div class="code-block">
+            <pre>@Mapper(componentModel = "spring")
+public interface UserMapper {
+    @Mappings({
+            @Mapping(source = "phone", target = "phoneNumber"),
+            @Mapping(source = "birthDate", target = "age", qualifiedByName = "calculateAge"),
+            @Mapping(source = "active", target = "status", qualifiedByName = "mapStatus")
+    })
+    UserDTO toDTO(UserEntity userEntity);
+    
+    // 反向映射，忽略password字段
+    @Mappings({
+            @Mapping(source = "phoneNumber", target = "phone"),
+            @Mapping(source = "status", target = "active", qualifiedByName = "mapActiveStatus"),
+            @Mapping(target = "password", ignore = true)
+    })
+    UserEntity toEntity(UserDTO userDTO);
+    
+    // 自定义转换方法
+    @Named("calculateAge")
+    default Integer calculateAge(LocalDate birthDate) {
+        if (birthDate == null) return null;
+        return Period.between(birthDate, LocalDate.now()).getYears();
+    }
+}</pre>
+        </div>
+    </div>
+    
+    <div class="section demo-link">
+        <h2>开始体验</h2>
+        <p>点击下方按钮，查看实际运行效果：</p>
+        <a href="/test" class="button">进入演示页面</a>
+    </div>
+</body>
+</html>

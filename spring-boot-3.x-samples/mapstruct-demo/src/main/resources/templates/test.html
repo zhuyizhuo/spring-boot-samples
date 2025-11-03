@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MapStruct 演示 - 用户数据</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .status-active {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .status-inactive {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .info-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .mapping-example {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>MapStruct 数据映射演示</h1>
+    
+    <div class="info-box">
+        <h3>映射说明</h3>
+        <p>本页面展示了 UserEntity 和 UserDTO 之间通过 MapStruct 进行的自动映射结果。</p>
+        <ul>
+            <li><strong>字段名称映射</strong>：phone → phoneNumber</li>
+            <li><strong>自定义转换</strong>：birthDate → 自动计算并映射为 age</li>
+            <li><strong>状态映射</strong>：active (boolean) → status (字符串)</li>
+            <li><strong>忽略字段</strong>：password 字段在反向映射时被忽略</li>
+        </ul>
+    </div>
+    
+    <div class="mapping-example">
+        <h3>映射效果演示</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>邮箱</th>
+                    <th>电话号码</th>
+                    <th>出生日期</th>
+                    <th>年龄</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="user : ${users}">
+                    <td th:text="${user.id}"></td>
+                    <td th:text="${user.username}"></td>
+                    <td th:text="${user.email}"></td>
+                    <td th:text="${user.phoneNumber}"></td>
+                    <td th:text="${user.birthDate}"></td>
+                    <td th:text="${user.age}"></td>
+                    <td>
+                        <span th:class="${user.status == '激活' ? 'status-active' : 'status-inactive'}" 
+                              th:text="${user.status}"></span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="info-box">
+        <h3>MapStruct 优势</h3>
+        <ul>
+            <li><strong>编译时类型检查</strong>：如果字段类型不匹配，编译时就会报错</li>
+            <li><strong>高性能</strong>：生成的代码使用直接的 getter/setter 调用，没有反射开销</li>
+            <li><strong>减少样板代码</strong>：避免手动编写大量的映射代码</li>
+            <li><strong>易于维护</strong>：映射关系清晰，修改方便</li>
+        </ul>
+    </div>
+    
+    <a href="/" class="back-link">返回首页</a>
+</body>
+</html>
