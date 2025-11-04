@@ -1,0 +1,25 @@
+# RocketMQ 配置示例文件
+# 使用方法：复制此文件并重命名为 application-rocketmq.yml，然后根据实际环境修改配置
+
+rocketmq:
+  # RocketMQ NameServer 地址，格式为 ip:port
+  name-server: 127.0.0.1:9876
+  
+  # 生产者配置
+  producer:
+    # 生产者组名，必须唯一
+    group: springboot-rocketmq-group
+    # 发送消息超时时间（毫秒）
+    send-message-timeout: 300000
+    # 同步发送失败重试次数
+    retry-times-when-send-failed: 2
+    # 异步发送失败重试次数
+    retry-times-when-send-async-failed: 2
+    # 发送失败时是否重试其他 Broker
+    retry-next-server: true
+    # 消息最大大小（字节），默认4MB
+    max-message-size: 4194304
+    # 消息体压缩阈值（字节）
+    compress-message-body-over-howmuch: 4096
+    # 主题队列数量
+    topic-queue-nums: 4

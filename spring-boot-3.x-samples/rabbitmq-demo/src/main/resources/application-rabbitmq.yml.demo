@@ -1,0 +1,76 @@
+# RabbitMQ 配置示例文件
+# 使用说明：复制此文件并重命名为 application-rabbitmq.yml，然后根据实际环境修改配置
+
+spring:
+  rabbitmq:
+    # RabbitMQ 服务器主机地址
+    host: localhost
+    # RabbitMQ 服务器端口
+    port: 5672
+    # RabbitMQ 用户名
+    username: guest
+    # RabbitMQ 密码
+    password: guest
+    # 虚拟主机
+    virtual-host: /
+    # 连接超时时间（毫秒）
+    connection-timeout: 60000
+    
+    # 发布者确认配置
+    publisher-confirms: true
+    # 发布者返回配置
+    publisher-returns: true
+    
+    # 缓存配置
+    cache:
+      connection:
+        size: 10
+        mode: CHANNEL
+    
+    # 监听器配置
+    listener:
+      simple:
+        # 并发消费者数量
+        concurrency: 1
+        # 最大并发消费者数量
+        max-concurrency: 10
+        # 预取计数
+        prefetch: 1
+        # 重试配置
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000ms
+          max-interval: 10000ms
+          multiplier: 2.0
+
+# 应用自定义 RabbitMQ 配置
+app:
+  rabbitmq:
+    # 消息重试配置
+    retry:
+      max-attempts: 3
+      backoff-initial-interval: 1000
+      backoff-max-interval: 10000
+      backoff-multiplier: 2.0
+    
+    # 死信队列配置
+    dead-letter:
+      enabled: true
+      ttl: 60000
+    
+    # 消息持久化配置
+    durable: true
+    
+    # 队列配置
+    queues:
+      direct:
+        name: demo.direct.queue
+        routing-key: demo.direct.routing.key
+      topic:
+        user-queue: demo.topic.queue.user
+        order-queue: demo.topic.queue.order
+      fanout:
+        email-queue: demo.fanout.queue.email
+        sms-queue: demo.fanout.queue.sms
+        push-queue: demo.fanout.queue.push

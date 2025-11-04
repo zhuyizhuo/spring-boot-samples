@@ -83,21 +83,9 @@ app:
         user-queue: demo.topic.queue.user
         order-queue: demo.topic.queue.order
       fanout:
-        email-queue: demo.fanout.queue.email
-        sms-queue: demo.fanout.queue.sms
-        push-queue: demo.fanout.queue.push
-
----
-# 开发环境配置
-spring:
-  config:
-    activate:
-      on-profile: dev
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+          email-queue: demo.fanout.queue.email
+          sms-queue: demo.fanout.queue.sms
+          push-queue: demo.fanout.queue.push
 
 logging:
   level:

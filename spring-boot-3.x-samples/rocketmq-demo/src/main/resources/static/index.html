@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RocketMQ Demo - 消息发送测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        h2 {
+            color: #666;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-primary {
+            background-color: #1890ff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #40a9ff;
+        }
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background-color: #e6f7ff;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-right: 10px;
+        }
+        .tab.active {
+            border-bottom-color: #1890ff;
+            color: #1890ff;
+            font-weight: 500;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f5f5f5;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            border-left: 4px solid #52c41a;
+        }
+        .error {
+            border-left: 4px solid #ff4d4f;
+        }
+        .info {
+            border-left: 4px solid #1890ff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background-color: #fafafa;
+            font-weight: 500;
+        }
+        .batch-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .add-batch-item {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RocketMQ Demo - 消息发送测试</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('sync')">同步消息</div>
+            <div class="tab" onclick="switchTab('async')">异步消息</div>
+            <div class="tab" onclick="switchTab('oneway')">单向消息</div>
+            <div class="tab" onclick="switchTab('delay')">延时消息</div>
+            <div class="tab" onclick="switchTab('batch')">批量消息</div>
+        </div>
+
+        <div id="sync" class="tab-content active">
+            <h2>发送同步消息</h2>
+            <div class="form-group">
+                <label for="sync-topic">主题 (Topic):</label>
+                <input type="text" id="sync-topic" value="demo-topic" placeholder="请输入消息主题">
+            </div>
+            <div class="form-group">
+                <label for="sync-content">消息内容:</label>
+                <textarea id="sync-content" placeholder="请输入消息内容">这是一条同步消息</textarea>
+            </div>
+            <div class="form-group">
+                <label for="sync-type">消息类型:</label>
+                <select id="sync-type">
+                    <option value="TEXT">文本消息</option>
+                    <option value="NOTIFICATION">通知消息</option>
+                    <option value="ORDER">订单消息</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="sendSyncMessage()">发送同步消息</button>
+                <button class="btn-secondary" onclick="clearResult()">清除结果</button>
+            </div>
+        </div>
+
+        <div id="async" class="tab-content">
+            <h2>发送异步消息</h2>
+            <div class="form-group">
+                <label for="async-topic">主题 (Topic):</label>
+                <input type="text" id="async-topic" value="demo-topic" placeholder="请输入消息主题">
+            </div>
+            <div class="form-group">
+                <label for="async-content">消息内容:</label>
+                <textarea id="async-content" placeholder="请输入消息内容">这是一条异步消息</textarea>
+            </div>
+            <div class="form-group">
+                <label for="async-type">消息类型:</label>
+                <select id="async-type">
+                    <option value="TEXT">文本消息</option>
+                    <option value="NOTIFICATION">通知消息</option>
+                    <option value="ORDER">订单消息</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="sendAsyncMessage()">发送异步消息</button>
+                <button class="btn-secondary" onclick="clearResult()">清除结果</button>
+            </div>
+        </div>
+
+        <div id="oneway" class="tab-content">
+            <h2>发送单向消息</h2>
+            <div class="form-group">
+                <label for="oneway-topic">主题 (Topic):</label>
+                <input type="text" id="oneway-topic" value="demo-topic" placeholder="请输入消息主题">
+            </div>
+            <div class="form-group">
+                <label for="oneway-content">消息内容:</label>
+                <textarea id="oneway-content" placeholder="请输入消息内容">这是一条单向消息</textarea>
+            </div>
+            <div class="form-group">
+                <label for="oneway-type">消息类型:</label>
+                <select id="oneway-type">
+                    <option value="TEXT">文本消息</option>
+                    <option value="NOTIFICATION">通知消息</option>
+                    <option value="ORDER">订单消息</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="sendOnewayMessage()">发送单向消息</button>
+                <button class="btn-secondary" onclick="clearResult()">清除结果</button>
+            </div>
+        </div>
+
+        <div id="delay" class="tab-content">
+            <h2>发送延时消息</h2>
+            <div class="form-group">
+                <label for="delay-topic">主题 (Topic):</label>
+                <input type="text" id="delay-topic" value="demo-delay-topic" placeholder="请输入消息主题">
+            </div>
+            <div class="form-group">
+                <label for="delay-content">消息内容:</label>
+                <textarea id="delay-content" placeholder="请输入消息内容">这是一条延时消息</textarea>
+            </div>
+            <div class="form-group">
+                <label for="delay-type">消息类型:</label>
+                <select id="delay-type">
+                    <option value="TEXT">文本消息</option>
+                    <option value="NOTIFICATION">通知消息</option>
+                    <option value="ORDER">订单消息</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="delay-level">延时级别:</label>
+                <select id="delay-level">
+                    <option value="1">1 - 1秒</option>
+                    <option value="2">2 - 5秒</option>
+                    <option value="3" selected>3 - 10秒</option>
+                    <option value="4">4 - 30秒</option>
+                    <option value="5">5 - 1分钟</option>
+                    <option value="6">6 - 2分钟</option>
+                    <option value="7">7 - 3分钟</option>
+                    <option value="8">8 - 4分钟</option>
+                    <option value="9">9 - 5分钟</option>
+                    <option value="10">10 - 6分钟</option>
+                    <option value="11">11 - 7分钟</option>
+                    <option value="12">12 - 8分钟</option>
+                    <option value="13">13 - 9分钟</option>
+                    <option value="14">14 - 10分钟</option>
+                    <option value="15">15 - 20分钟</option>
+                    <option value="16">16 - 30分钟</option>
+                    <option value="17">17 - 1小时</option>
+                    <option value="18">18 - 2小时</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="sendDelayMessage()">发送延时消息</button>
+                <button class="btn-secondary" onclick="clearResult()">清除结果</button>
+            </div>
+        </div>
+
+        <div id="batch" class="tab-content">
+            <h2>发送批量消息</h2>
+            <div class="form-group">
+                <label for="batch-topic">主题 (Topic):</label>
+                <input type="text" id="batch-topic" value="demo-topic" placeholder="请输入消息主题">
+            </div>
+            
+            <div id="batch-items">
+                <div class="batch-item">
+                    <div class="form-group">
+                        <label>消息内容 1:</label>
+                        <textarea placeholder="请输入消息内容">批量消息 1</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>消息类型 1:</label>
+                        <select>
+                            <option value="TEXT">文本消息</option>
+                            <option value="NOTIFICATION">通知消息</option>
+                            <option value="ORDER">订单消息</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="batch-item">
+                    <div class="form-group">
+                        <label>消息内容 2:</label>
+                        <textarea placeholder="请输入消息内容">批量消息 2</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>消息类型 2:</label>
+                        <select>
+                            <option value="TEXT">文本消息</option>
+                            <option value="NOTIFICATION">通知消息</option>
+                            <option value="ORDER">订单消息</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="add-batch-item" onclick="addBatchItem()">添加消息</button>
+            
+            <div class="button-group">
+                <button class="btn-primary" onclick="sendBatchMessage()">发送批量消息</button>
+                <button class="btn-secondary" onclick="clearResult()">清除结果</button>
+            </div>
+        </div>
+
+        <div id="result" class="info">
+            操作结果将显示在这里...
+        </div>
+    </div>
+
+    <script>
+        // 切换标签页
+        function switchTab(tabId) {
+            // 隐藏所有内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            // 移除所有标签的激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // 激活选中的标签和内容
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+        }
+
+        // 显示结果
+        function showResult(data, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = isError ? 'error' : 'success';
+            resultDiv.textContent = JSON.stringify(data, null, 2);
+        }
+
+        // 清除结果
+        function clearResult() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'info';
+            resultDiv.textContent = '操作结果将显示在这里...';
+        }
+
+        // 添加批量消息项
+        function addBatchItem() {
+            const container = document.getElementById('batch-items');
+            const count = container.children.length + 1;
+            
+            const batchItem = document.createElement('div');
+            batchItem.className = 'batch-item';
+            batchItem.innerHTML = `
+                <div class="form-group">
+                    <label>消息内容 ${count}:</label>
+                    <textarea placeholder="请输入消息内容">批量消息 ${count}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>消息类型 ${count}:</label>
+                    <select>
+                        <option value="TEXT">文本消息</option>
+                        <option value="NOTIFICATION">通知消息</option>
+                        <option value="ORDER">订单消息</option>
+                    </select>
+                </div>
+                <button onclick="removeBatchItem(this)" style="margin-top: 5px; padding: 5px 10px; background-color: #ff4d4f; color: white; border: none; border-radius: 4px;">删除</button>
+            `;
+            
+            container.appendChild(batchItem);
+        }
+
+        // 移除批量消息项
+        function removeBatchItem(button) {
+            const batchItem = button.parentElement;
+            batchItem.remove();
+            // 重新编号
+            const items = document.querySelectorAll('#batch-items .batch-item');
+            items.forEach((item, index) => {
+                const labels = item.querySelectorAll('label');
+                labels[0].textContent = `消息内容 ${index + 1}:`;
+                labels[1].textContent = `消息类型 ${index + 1}:`;
+            });
+        }
+
+        // 发送同步消息
+        async function sendSyncMessage() {
+            try {
+                const topic = document.getElementById('sync-topic').value;
+                const content = document.getElementById('sync-content').value;
+                const messageType = document.getElementById('sync-type').value;
+                
+                const response = await axios.post('/api/messages/sync', {
+                    topic,
+                    content,
+                    messageType
+                });
+                
+                showResult({ request: { topic, content, messageType }, response: response.data });
+            } catch (error) {
+                showResult({ error: error.message || '发送失败' }, true);
+            }
+        }
+
+        // 发送异步消息
+        async function sendAsyncMessage() {
+            try {
+                const topic = document.getElementById('async-topic').value;
+                const content = document.getElementById('async-content').value;
+                const messageType = document.getElementById('async-type').value;
+                
+                const response = await axios.post('/api/messages/async', {
+                    topic,
+                    content,
+                    messageType
+                });
+                
+                showResult({ request: { topic, content, messageType }, response: response.data });
+            } catch (error) {
+                showResult({ error: error.message || '发送失败' }, true);
+            }
+        }
+
+        // 发送单向消息
+        async function sendOnewayMessage() {
+            try {
+                const topic = document.getElementById('oneway-topic').value;
+                const content = document.getElementById('oneway-content').value;
+                const messageType = document.getElementById('oneway-type').value;
+                
+                const response = await axios.post('/api/messages/oneway', {
+                    topic,
+                    content,
+                    messageType
+                });
+                
+                showResult({ request: { topic, content, messageType }, response: response.data });
+            } catch (error) {
+                showResult({ error: error.message || '发送失败' }, true);
+            }
+        }
+
+        // 发送延时消息
+        async function sendDelayMessage() {
+            try {
+                const topic = document.getElementById('delay-topic').value;
+                const content = document.getElementById('delay-content').value;
+                const messageType = document.getElementById('delay-type').value;
+                const delayLevel = document.getElementById('delay-level').value;
+                
+                const response = await axios.post('/api/messages/delay', {
+                    topic,
+                    content,
+                    messageType,
+                    delayLevel
+                });
+                
+                showResult({ request: { topic, content, messageType, delayLevel }, response: response.data });
+            } catch (error) {
+                showResult({ error: error.message || '发送失败' }, true);
+            }
+        }
+
+        // 发送批量消息
+        async function sendBatchMessage() {
+            try {
+                const topic = document.getElementById('batch-topic').value;
+                const batchItems = document.querySelectorAll('#batch-items .batch-item');
+                
+                const messages = Array.from(batchItems).map(item => {
+                    const textarea = item.querySelector('textarea');
+                    const select = item.querySelector('select');
+                    return {
+                        content: textarea.value,
+                        messageType: select.value
+                    };
+                });
+                
+                const response = await axios.post('/api/messages/batch', {
+                    topic,
+                    messages
+                });
+                
+                showResult({ request: { topic, messages }, response: response.data });
+            } catch (error) {
+                showResult({ error: error.message || '发送失败' }, true);
+            }
+        }
+    </script>
+</body>
+</html>
