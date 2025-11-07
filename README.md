@@ -13,7 +13,7 @@
 
 ## 📚 项目简介
 
-本项目是一个全面的 Spring Boot 教程与示例代码集合，包含 Spring Boot 2.x 和 Spring Boot 3.x 两个主要版本，涵盖各种常用组件、框架的集成与实战案例，帮助开发者快速上手并掌握 Spring Boot 生态系统。
+本项目是一个全面的 Spring Boot 教程与示例代码集合，包含 Spring Boot 2.x 和 Spring Boot 3.x 两个主要版本，涵盖各种常用组件、框架的集成与实战案例，帮助开发者快速上手并掌握 Spring Boot 生态系统。特别说明：Spring Boot 3.x 示例项目基本都提供了直观的页面操作界面，便于开发者学习和测试。
 
 ### 🔥 项目特点
 
@@ -103,11 +103,21 @@ spring-boot-samples/
 ├── spring-boot-3.x-samples/   # Spring Boot 3.x 示例集合
 │   ├── data-jpa/              # Spring Boot 3.x集成JPA和MySQL示例
 │   ├── dingtalk-message-demo/ # 钉钉消息推送示例
+│   ├── ehcache-demo/          # Ehcache缓存集成示例
+│   ├── elasticsearch-demo/    # Elasticsearch搜索引擎集成示例
 │   ├── h2-demo/               # Spring Boot 3.x集成H2内存数据库示例
 │   ├── hello-world/           # Hello World基础示例
+│   ├── kafka-demo/            # Kafka消息队列集成示例
+│   ├── mapstruct-demo/        # MapStruct对象映射示例
+│   ├── memcache-demo/         # Memcached缓存集成示例
+│   ├── minio-demo/            # MinIO对象存储集成示例
+│   ├── mybatis-plus-demo/     # MyBatis-Plus集成示例
 │   ├── nacos-demo/            # Nacos服务发现与配置管理示例
+│   ├── postgresql-demo/       # PostgreSQL数据库集成示例
 │   ├── rabbitmq-demo/         # RabbitMQ消息队列集成示例
+│   ├── redis-demo/            # Redis缓存与数据结构示例
 │   ├── redis-pubsub-demo/     # Redis发布订阅模式示例
+│   ├── rocketmq-demo/         # RocketMQ消息队列集成示例
 │   ├── spring-ai-demo/        # Spring AI人工智能集成示例
 │   └── wechat-message-demo/   # 微信消息推送示例
 └── spring-boot-extension/     # Spring Boot 扩展功能
@@ -131,6 +141,16 @@ Spring Boot 3.x 是最新的稳定版本，基于 Java 17+，提供了更好的�
 | [redis-pubsub-demo](spring-boot-3.x-samples/redis-pubsub-demo) | Redis发布订阅模式示例，支持多种主题的消息发布与订阅，提供REST API接口、Swagger文档和HTML测试页面 | [查看详情](./spring-boot-3.x-samples/redis-pubsub-demo/README.md) |
 | [spring-ai-demo](spring-boot-3.x-samples/spring-ai-demo) | Spring AI人工智能集成示例，支持OpenAI GPT模型和本地Ollama模型，提供文本生成API和向量数据库检索功能 | [查看详情](./spring-boot-3.x-samples/spring-ai-demo/README.md) |
 | [wechat-message-demo](spring-boot-3.x-samples/wechat-message-demo) | 微信消息推送示例，使用微信公众号SDK实现文本消息和模板消息的发送功能 | [查看详情](./spring-boot-3.x-samples/wechat-message-demo/README.md) |
+| [ehcache-demo](spring-boot-3.x-samples/ehcache-demo) | Ehcache缓存集成示例，提供缓存配置、使用方式和缓存策略示例 | [查看详情](./spring-boot-3.x-samples/ehcache-demo/README.md) |
+| [elasticsearch-demo](spring-boot-3.x-samples/elasticsearch-demo) | Elasticsearch搜索引擎集成示例，实现文档索引、查询和聚合功能 | [查看详情](./spring-boot-3.x-samples/elasticsearch-demo/README.md) |
+| [kafka-demo](spring-boot-3.x-samples/kafka-demo) | Kafka消息队列集成示例，支持消息生产、消费、序列化和分区策略 | [查看详情](./spring-boot-3.x-samples/kafka-demo/README.md) |
+| [mapstruct-demo](spring-boot-3.x-samples/mapstruct-demo) | MapStruct对象映射示例，展示高效的对象间转换实现 | [查看详情](./spring-boot-3.x-samples/mapstruct-demo/README.md) |
+| [memcache-demo](spring-boot-3.x-samples/memcache-demo) | Memcached缓存集成示例，提供缓存操作和配置最佳实践 | [查看详情](./spring-boot-3.x-samples/memcache-demo/README.md) |
+| [minio-demo](spring-boot-3.x-samples/minio-demo) | MinIO对象存储集成示例，实现文件上传、下载和管理功能 | [查看详情](./spring-boot-3.x-samples/minio-demo/README.md) |
+| [mybatis-plus-demo](spring-boot-3.x-samples/mybatis-plus-demo) | MyBatis-Plus集成示例，展示CRUD、分页、条件查询等功能 | [查看详情](./spring-boot-3.x-samples/mybatis-plus-demo/README.md) |
+| [postgresql-demo](spring-boot-3.x-samples/postgresql-demo) | PostgreSQL数据库集成示例，实现数据访问和操作 | [查看详情](./spring-boot-3.x-samples/postgresql-demo/README.md) |
+| [redis-demo](spring-boot-3.x-samples/redis-demo) | Redis缓存与数据结构示例，展示Redis的各种使用场景 | [查看详情](./spring-boot-3.x-samples/redis-demo/README.md) |
+| [rocketmq-demo](spring-boot-3.x-samples/rocketmq-demo) | RocketMQ消息队列集成示例，支持消息发送、消费和事务消息 | [查看详情](./spring-boot-3.x-samples/rocketmq-demo/README.md) |
 
 ### Spring Boot 2.x 示例 (适用于维护现有项目)
 Spring Boot 2.x 是成熟稳定的版本，适用于需要保持兼容性的现有项目。

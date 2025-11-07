@@ -1,16 +1,5 @@
-- SpringBoot 集成 mybatis plus
-- SpringBoot 集成 web service
-- fastdfs
-- quartz
-- shiro
-- redis
-  - redis Template 使用教程
-- async demo
-- spring retry  
-    - 参考链接 https://mp.weixin.qq.com/s/x5Ps8SB7Gzr9fFYus2lxDw
-- SpringBoot + Sharding JDBC
-- SpringBoot 属性注入 List Map @Value
-- skyWalking
-- Spring Security
-- ecache
-- okhttp
+- [ ] fastdfs
+- [ ] shiro
+- [ ] async demo
+- [ ] SpringBoot + Sharding JDBC
+- [ ] Spring Security
