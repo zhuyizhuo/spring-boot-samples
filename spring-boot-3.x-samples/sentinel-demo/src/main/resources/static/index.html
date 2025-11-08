@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot 3.x Sentinel 示例</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+        .card h2 {
+            color: #4a5568;
+            margin-top: 0;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #3182ce;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #2c5aa0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .btn-danger {
+            background: #e53e3e;
+        }
+        .btn-danger:hover {
+            background: #c53030;
+        }
+        .btn-warning {
+            background: #ed8936;
+        }
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+        .btn-success {
+            background: #38a169;
+        }
+        .btn-success:hover {
+            background: #2f855a;
+        }
+        .btn-info {
+            background: #3182ce;
+        }
+        .btn-info:hover {
+            background: #2c5aa0;
+        }
+        .result-area {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            min-height: 80px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .param-input {
+            margin-bottom: 15px;
+        }
+        .param-input label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .param-input input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 300px;
+        }
+        .info-box {
+            background: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 4px 4px 0;
+        }
+        .warning-box {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 4px 4px 0;
+        }
+        .instruction {
+            background: #f0fff4;
+            border: 1px solid #c6f6d5;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .instruction ol {
+            margin-top: 10px;
+        }
+        .instruction li {
+            margin-bottom: 8px;
+        }
+        .quick-test {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .quick-test input {
+            width: 80px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Spring Boot 3.x Sentinel 示例</h1>
+        <p>限流、熔断、降级一站式解决方案演示</p>
+    </div>
+
+    <div class="info-box">
+        <strong>注意：</strong> Sentinel默认是懒加载模式，需要先访问API才能在控制台看到数据。建议先启动Sentinel控制台，再运行本应用。
+    </div>
+
+    <div class="card">
+        <h2>基础限流演示</h2>
+        <p>演示基于QPS的限流控制，默认QPS阈值为5。</p>
+        <div class="btn-group">
+            <button id="testHello" class="btn-info">测试基础限流API</button>
+        </div>
+        <div class="result-area" id="helloResult">API调用结果将显示在这里...</div>
+    </div>
+
+    <div class="card">
+        <h2>熔断降级演示</h2>
+        <p>演示服务熔断和降级处理。包含正常调用和异常调用两种模式。</p>
+        <div class="param-input">
+            <label for="demoParam">输入参数：</label>
+            <input type="text" id="demoParam" value="test" placeholder="输入测试参数，包含'error'会触发异常">
+        </div>
+        <div class="btn-group">
+            <button id="testDemo" class="btn-success">测试熔断API</button>
+            <button id="testErrorDemo" class="btn-danger">测试异常熔断（触发错误）</button>
+        </div>
+        <div class="result-area" id="demoResult">API调用结果将显示在这里...</div>
+    </div>
+
+    <div class="card">
+        <h2>热点参数限流演示</h2>
+        <p>演示针对特定参数的限流控制。</p>
+        <div class="param-input">
+            <label for="hotParam">热点参数：</label>
+            <input type="text" id="hotParam" value="hot-key" placeholder="输入热点参数">
+        </div>
+        <div class="btn-group">
+            <button id="testHotParam" class="btn-warning">测试热点参数限流</button>
+        </div>
+        <div class="result-area" id="hotResult">API调用结果将显示在这里...</div>
+    </div>
+
+    <div class="card">
+        <h2>系统保护演示</h2>
+        <p>演示Sentinel的系统自适应保护功能。</p>
+        <div class="btn-group">
+            <button id="testSystem" class="btn-info">测试系统保护</button>
+        </div>
+        <div class="result-area" id="systemResult">API调用结果将显示在这里...</div>
+    </div>
+
+    <div class="card">
+        <h2>编码方式限流演示</h2>
+        <p>演示使用Sentinel API手动进行资源保护。</p>
+        <div class="btn-group">
+            <button id="testCodingStyle" class="btn-success">测试编码方式限流</button>
+        </div>
+        <div class="result-area" id="codingResult">API调用结果将显示在这里...</div>
+    </div>
+
+    <div class="card">
+        <h2>快速测试限流</h2>
+        <p>用于快速触发限流的测试工具，可以设置调用次数和间隔。</p>
+        <div class="quick-test">
+            <input type="number" id="callCount" value="10" min="1" max="100">
+            <span>次调用，间隔</span>
+            <input type="number" id="callInterval" value="100" min="0" max="1000">
+            <span>毫秒</span>
+            <button id="quickTest" class="btn-danger">开始快速测试</button>
+        </div>
+        <div class="result-area" id="quickTestResult">准备就绪...</div>
+    </div>
+
+    <!-- 移除底部集中的结果区域 -->
+
+    <div class="card">
+        <h2>使用说明</h2>
+        <div class="instruction">
+            <ol>
+                <li>确保Sentinel控制台已启动（可选但推荐）：<code>java -jar sentinel-dashboard-1.8.6.jar</code></li>
+                <li>访问Sentinel控制台：<a href="http://localhost:8080" target="_blank">http://localhost:8080</a>（默认账号密码：sentinel/sentinel）</li>
+                <li>点击上方按钮测试各种限流场景</li>
+                <li>在控制台中可以实时查看监控数据和配置限流规则</li>
+                <li>建议使用快速测试功能来快速触发限流效果</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // 更新特定结果显示区域
+        function updateResult(elementId, data) {
+            const resultArea = document.getElementById(elementId);
+            resultArea.textContent = JSON.stringify(data, null, 2);
+        }
+
+        // 基础限流测试
+        document.getElementById('testHello').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/sentinel-demo/api/hello');
+                const data = await response.json();
+                updateResult('helloResult', data);
+            } catch (error) {
+                updateResult('helloResult', { error: error.message });
+            }
+        });
+
+        // 熔断API测试
+        document.getElementById('testDemo').addEventListener('click', async () => {
+            const param = document.getElementById('demoParam').value;
+            try {
+                const response = await fetch(`/sentinel-demo/api/demo?param=${encodeURIComponent(param)}`);
+                const data = await response.json();
+                updateResult('demoResult', data);
+            } catch (error) {
+                updateResult('demoResult', { error: error.message });
+            }
+        });
+
+        // 异常熔断测试
+        document.getElementById('testErrorDemo').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/sentinel-demo/api/demo?param=error');
+                const data = await response.json();
+                updateResult('demoResult', data);
+            } catch (error) {
+                updateResult('demoResult', { error: error.message });
+            }
+        });
+
+        // 热点参数限流测试
+        document.getElementById('testHotParam').addEventListener('click', async () => {
+            const param = document.getElementById('hotParam').value;
+            try {
+                const response = await fetch(`/sentinel-demo/api/hot?param=${encodeURIComponent(param)}`);
+                const data = await response.json();
+                updateResult('hotResult', data);
+            } catch (error) {
+                updateResult('hotResult', { error: error.message });
+            }
+        });
+
+        // 系统保护测试
+        document.getElementById('testSystem').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/sentinel-demo/api/system');
+                const data = await response.json();
+                updateResult('systemResult', data);
+            } catch (error) {
+                updateResult('systemResult', { error: error.message });
+            }
+        });
+
+        // 编码方式限流测试
+        document.getElementById('testCodingStyle').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/sentinel-demo/api/coding-style');
+                const data = await response.json();
+                updateResult('codingResult', data);
+            } catch (error) {
+                updateResult('codingResult', { error: error.message });
+            }
+        });
+
+        // 快速测试限流
+        document.getElementById('quickTest').addEventListener('click', async () => {
+            const count = parseInt(document.getElementById('callCount').value);
+            const interval = parseInt(document.getElementById('callInterval').value);
+            const quickTestResult = document.getElementById('quickTestResult');
+            
+            quickTestResult.textContent = `开始测试：${count}次调用，间隔${interval}毫秒...\n`;
+            
+            let successCount = 0;
+            let failCount = 0;
+            
+            for (let i = 0; i < count; i++) {
+                try {
+                    const response = await fetch('/sentinel-demo/api/test-limit');
+                    if (response.ok) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                    }
+                    
+                    // 每10次更新一次显示
+                    if ((i + 1) % 10 === 0 || i === count - 1) {
+                        quickTestResult.textContent += 
+                            `进度：${i + 1}/${count}，成功：${successCount}，失败：${failCount}\n`;
+                    }
+                } catch (error) {
+                    failCount++;
+                }
+                
+                if (i < count - 1) {
+                    await new Promise(resolve => setTimeout(resolve, interval));
+                }
+            }
+            
+            quickTestResult.textContent += 
+                `\n测试完成！总调用：${count}，成功：${successCount}，失败：${failCount}\n`;
+            quickTestResult.textContent += 
+                `成功率：${((successCount / count) * 100).toFixed(2)}%`;
+        });
+    </script>
+</body>
+</html>
