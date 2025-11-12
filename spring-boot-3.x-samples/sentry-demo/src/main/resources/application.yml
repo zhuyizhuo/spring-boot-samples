@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: sentry-demo
+  
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.github.zhuyizhuo.sentry: INFO
+    org.springframework.web: INFO
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
+
+server:
+  port: 8082
+  servlet:
+    context-path: /sentry-demo
+
+# Sentry 配置
+sentry:
+  # 请替换为您的真实 Sentry DSN
+  dsn: https://2123456.sentry.io/7865412
+  # 环境设置
+  environment: development
+  # 版本号
+  release: 1.0.0
+  # 采样率，1.0 表示 100% 捕获
+  traces-sample-rate: 1.0
+  # 异常采样率
+  sample-rate: 1.0
+  # 启用 Spring Boot 自动配置
+  spring:
+    enabled: true
+  # 启用请求数据捕获
+  send-default-pii: true
+  # 日志集成
+  integrations:
+    logback:
+      enabled: true
+    java:
+      enabled: true
+  # 调试配置
+  debug: true
+  # 设置日志级别为DEBUG以查看详细信息
+  diagnostic-level: debug
+  # 连接超时设置
+  connect-timeout: 15000
+  # 读取超时设置
+  read-timeout: 15000
+  # 写入超时设置
+  write-timeout: 15000
+  # 确保所有异常都被发送
+  attach-stacktrace: true
+  # 禁用采样决策缓存
+  sample-rate-session-flag: true
+
+# OpenAPI 配置
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    docExpansion: none

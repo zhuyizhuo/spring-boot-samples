@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentry 异常上报测试页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            margin-bottom: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .intro {
+            background: white;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .intro p {
+            margin-bottom: 15px;
+            line-height: 1.8;
+            color: #666;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .feature-card p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            outline: none;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-red {
+            background: #e53e3e;
+        }
+        
+        .btn-red:hover {
+            background: #c53030;
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
+        }
+        
+        .btn-yellow {
+            background: #d69e2e;
+        }
+        
+        .btn-yellow:hover {
+            background: #b7791f;
+            box-shadow: 0 4px 12px rgba(214, 158, 46, 0.4);
+        }
+        
+        .btn-green {
+            background: #38a169;
+        }
+        
+        .btn-green:hover {
+            background: #2f855a;
+            box-shadow: 0 4px 12px rgba(56, 161, 105, 0.4);
+        }
+        
+        .btn-purple {
+            background: #9f7aea;
+        }
+        
+        .btn-purple:hover {
+            background: #805ad5;
+            box-shadow: 0 4px 12px rgba(159, 122, 234, 0.4);
+        }
+        
+        .btn-blue {
+            background: #3182ce;
+        }
+        
+        .btn-blue:hover {
+            background: #2c5282;
+            box-shadow: 0 4px 12px rgba(49, 130, 206, 0.4);
+        }
+        
+        .results-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+        
+        .results-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        #results {
+            min-height: 200px;
+            padding: 20px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .response-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        .success-message {
+            color: #38a169;
+            font-weight: 600;
+        }
+        
+        .error-message {
+            color: #e53e3e;
+            font-weight: 600;
+        }
+        
+        .info-message {
+            color: #3182ce;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sentry 异常上报测试平台</h1>
+            <p class="subtitle">通过点击下方按钮触发不同类型的异常，测试 Sentry 异常监控功能</p>
+        </header>
+        
+        <div class="intro">
+            <p>欢迎使用 Sentry 异常上报测试平台！这个页面提供了多种按钮，用于触发不同类型的异常和事件上报到 Sentry 服务。</p>
+            <p>点击下方按钮后，系统将向对应的后端接口发送请求，并在右侧结果区域显示请求的响应信息。您可以通过查看 Sentry 控制台来验证异常是否成功上报。</p>
+        </div>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>正常接口测试</h3>
+                <p>测试正常请求的处理流程，不触发任何异常</p>
+                <button class="btn btn-green" onclick="callApi('/sentry-demo/api/sentry/normal', this)">触发正常请求</button>
+            </div>
+            
+            <div class="feature-card">
+                <h3>自动捕获异常</h3>
+                <p>触发一个运行时异常，由 Sentry 自动捕获并上报</p>
+                <button class="btn btn-red" onclick="callApi('/sentry-demo/api/sentry/exception', this)">触发自动异常</button>
+            </div>
+            
+            <div class="feature-card">
+                <h3>手动异常上报</h3>
+                <p>触发一个异常，在代码中手动捕获并发送到 Sentry</p>
+                <button class="btn btn-yellow" onclick="callApi('/sentry-demo/api/sentry/manual-exception', this)">触发手动异常</button>
+            </div>
+            
+            <div class="feature-card">
+                <h3>性能监控测试</h3>
+                <p>测试 Sentry 的性能监控功能</p>
+                <button class="btn btn-blue" onclick="callApi('/sentry-demo/api/sentry/performance', this)">触发性能监控</button>
+            </div>
+            
+            <div class="feature-card">
+                <h3>服务层异常</h3>
+                <p>触发服务层的异常，测试多层调用的异常捕获</p>
+                <button class="btn btn-purple" onclick="callApi('/sentry-demo/api/sentry/service-exception', this)">触发服务层异常</button>
+            </div>
+            
+            <div class="feature-card">
+                <h3>慢操作测试</h3>
+                <p>测试慢操作的性能监控（模拟3秒延迟）</p>
+                <button class="btn btn-blue" onclick="callApi('/sentry-demo/api/sentry/slow-operation', this)">触发慢操作</button>
+            </div>
+            
+            <div class="feature-card">
+                <h3>自定义标签测试</h3>
+                <p>测试带有自定义标签的异常上报</p>
+                <button class="btn btn-green" onclick="callApi('/sentry-demo/api/sentry/custom-tags', this)">触发自定义标签</button>
+            </div>
+            
+            <div class="feature-card">
+                <h3>用户信息跟踪</h3>
+                <p>测试用户信息的跟踪和关联</p>
+                <button class="btn btn-yellow" onclick="callUserTrackingApi(this)">触发用户跟踪</button>
+            </div>
+        </div>
+        
+        <div class="results-section">
+            <h2>请求结果</h2>
+            <div id="results">点击上方按钮开始测试...</div>
+        </div>
+        
+        <footer>
+            <p>© 2024 Sentry Demo 测试平台 | 使用 Spring Boot + Sentry 构建</p>
+        </footer>
+    </div>
+    
+    <script>
+        // API调用函数
+        async function callApi(endpoint, button) {
+            const resultsDiv = document.getElementById('results');
+            const originalText = button.textContent;
+            
+            try {
+                // 显示加载状态
+                button.innerHTML = '<span class="loading"></span>处理中...';
+                button.disabled = true;
+                
+                // 记录开始时间
+                const startTime = performance.now();
+                
+                // 显示请求信息
+                resultsDiv.innerHTML = `正在请求: ${endpoint}\n\n等待响应中...`;
+                
+                // 发送请求
+                const response = await fetch(endpoint);
+                
+                // 计算响应时间
+                const endTime = performance.now();
+                const responseTime = (endTime - startTime).toFixed(2);
+                
+                // 在任何读取操作之前先克隆响应对象
+                const clonedResponse = response.clone();
+                
+                // 尝试解析响应
+                let result;
+                try {
+                    // 先尝试使用原始响应对象解析JSON
+                    result = await response.json();
+                } catch (e) {
+                    // 如果JSON解析失败，使用预先克隆的对象读取文本
+                    try {
+                        const textContent = await clonedResponse.text();
+                        result = { error: '无法解析JSON响应', responseText: textContent };
+                    } catch (textError) {
+                        result = { error: '无法解析响应', originalError: e.message };
+                    }
+                }
+                
+                // 显示结果
+                let resultHtml = `请求: ${endpoint}\n`;
+                resultHtml += `状态码: ${response.status} ${response.statusText}\n`;
+                resultHtml += `响应时间: ${responseTime} ms\n\n`;
+                
+                if (response.ok) {
+                    resultHtml += `<span class="success-message">✅ 请求成功</span>\n`;
+                } else {
+                    resultHtml += `<span class="error-message">❌ 请求失败</span>\n`;
+                }
+                
+                resultHtml += `\n响应数据:\n${JSON.stringify(result, null, 2)}`;
+                resultsDiv.innerHTML = resultHtml;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `请求: ${endpoint}\n\n<span class="error-message">❌ 发生错误: ${error.message}</span>`;
+            } finally {
+                // 恢复按钮状态
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // 用户跟踪API调用
+        async function callUserTrackingApi(button) {
+            const resultsDiv = document.getElementById('results');
+            const originalText = button.textContent;
+            
+            try {
+                button.innerHTML = '<span class="loading"></span>处理中...';
+                button.disabled = true;
+                
+                const startTime = performance.now();
+                
+                resultsDiv.innerHTML = '正在请求用户跟踪接口...\n\n等待响应中...';
+                
+                // 构建用户数据
+                const userData = {
+                    id: 'test-user-' + Date.now(),
+                    username: 'testuser',
+                    email: 'test@example.com'
+                };
+                
+                // 发送POST请求
+                const response = await fetch('/sentry-demo/api/sentry/user-tracking', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                const endTime = performance.now();
+                const responseTime = (endTime - startTime).toFixed(2);
+                
+                // 在任何读取操作之前先克隆响应对象
+                const clonedResponse = response.clone();
+                
+                let result;
+                try {
+                    result = await response.json();
+                } catch (e) {
+                    // 如果JSON解析失败，使用预先克隆的对象读取文本
+                    result = { error: '无法解析JSON响应', responseText: await clonedResponse.text() };
+                }
+                
+                let resultHtml = `请求: /api/sentry/user-tracking (POST)\n`;
+                resultHtml += `状态码: ${response.status} ${response.statusText}\n`;
+                resultHtml += `响应时间: ${responseTime} ms\n\n`;
+                resultHtml += `发送的用户数据:\n${JSON.stringify(userData, null, 2)}\n\n`;
+                
+                if (response.ok) {
+                    resultHtml += `<span class="success-message">✅ 请求成功</span>\n`;
+                } else {
+                    resultHtml += `<span class="error-message">❌ 请求失败</span>\n`;
+                }
+                
+                resultHtml += `\n响应数据:\n${JSON.stringify(result, null, 2)}`;
+                resultsDiv.innerHTML = resultHtml;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `请求用户跟踪接口时发生错误: ${error.message}`;
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // 添加页面加载完成后的初始化逻辑
+        window.addEventListener('load', function() {
+            console.log('Sentry测试页面已加载完成');
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += '\n\n💡 提示：点击上方按钮开始测试各种异常场景';
+        });
+    </script>
+</body>
+</html>
