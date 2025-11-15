@@ -5,6 +5,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.ChatPromptTemplate;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +36,11 @@ public class OpenAIServiceImpl implements AIService {
     
     @Override
     public AIMessage chat(AIMessage request, List<AIMessage> history, String style) {
+        System.out.println("[OpenAIServiceImpl] ===== 开始处理聊天请求 =====");
+        System.out.println("[OpenAIServiceImpl] 请求内容: " + request.getContent());
+        System.out.println("[OpenAIServiceImpl] 回复风格: " + style);
+        System.out.println("[OpenAIServiceImpl] 历史消息数量: " + (history != null ? history.size() : 0));
+        
         checkRateLimit();
         
         AIMessage responseMessage = new AIMessage();
@@ -43,6 +49,7 @@ public class OpenAIServiceImpl implements AIService {
         try {
             // 构建系统提示
             String systemPrompt = getSystemPromptByStyle(style);
+            System.out.println("[OpenAIServiceImpl] 系统提示: " + systemPrompt);
             
             // 构建消息列表
             List<org.springframework.ai.chat.messages.Message> messages = new ArrayList<>();
@@ -50,7 +57,10 @@ public class OpenAIServiceImpl implements AIService {
             
             // 添加历史消息
             if (history != null) {
-                for (AIMessage msg : history) {
+                System.out.println("[OpenAIServiceImpl] 处理历史消息:");
+                for (int i = 0; i < history.size(); i++) {
+                    AIMessage msg = history.get(i);
+                    System.out.println("[OpenAIServiceImpl] 历史消息[" + i + "] - " + msg.getRole() + ": " + msg.getContent());
                     if ("user".equals(msg.getRole())) {
                         messages.add(new org.springframework.ai.chat.messages.UserMessage(msg.getContent()));
                     } else if ("assistant".equals(msg.getRole())) {
@@ -60,24 +70,39 @@ public class OpenAIServiceImpl implements AIService {
             }
             
             // 添加当前用户消息
+            System.out.println("[OpenAIServiceImpl] 添加用户消息: " + request.getContent());
             messages.add(new org.springframework.ai.chat.messages.UserMessage(request.getContent()));
             
-            // 构建提示文本
-            StringBuilder promptBuilder = new StringBuilder();
-            for (org.springframework.ai.chat.messages.Message msg : messages) {
-                promptBuilder.append(msg.getContent()).append("\n");
-            }
-            String content = chatClient.call(promptBuilder.toString());
+            System.out.println("[OpenAIServiceImpl] 准备调用AI服务...");
+            System.out.println("[OpenAIServiceImpl] 消息总数: " + messages.size());
+            System.out.println("[OpenAIServiceImpl] 使用模型配置（从application.yml）...");
+            
+            // 使用ChatClient直接传递消息列表，它会自动使用配置的模型
+            // ChatClient会从配置中读取模型名称
+            String content = chatClient.prompt()
+                    .messages(messages)
+                    .call()
+                    .content();
+            
+            System.out.println("[OpenAIServiceImpl] AI服务调用成功!");
+            System.out.println("[OpenAIServiceImpl] 收到回复长度: " + (content != null ? content.length() : 0));
             
             responseMessage.setContent(content);
             responseMessage.setModelUsed("gpt-3.5-turbo");
             
         } catch (Exception e) {
+            System.out.println("[OpenAIServiceImpl] ===== AI服务调用失败 =====");
+            System.out.println("[OpenAIServiceImpl] 异常类型: " + e.getClass().getName());
+            System.out.println("[OpenAIServiceImpl] 异常消息: " + e.getMessage());
+            System.out.println("[OpenAIServiceImpl] 完整异常堆栈:");
+            e.printStackTrace();
+            
             responseMessage.setError(true);
             responseMessage.setErrorMessage("AI服务调用失败: " + e.getMessage());
             responseMessage.setContent("抱歉，处理您的请求时遇到了问题。请稍后重试。");
         }
         
+        System.out.println("[OpenAIServiceImpl] ===== 聊天请求处理完成 =====");
         return responseMessage;
     }
     
@@ -106,8 +131,7 @@ public class OpenAIServiceImpl implements AIService {
             );
             
             Prompt promptObj = promptTemplate.create();
-            ChatResponse response = chatClient.call(promptObj);
-            return response.getResult().getOutput().getContent();
+            return chatClient.prompt(promptObj).call().content();
         } catch (Exception e) {
             return "生成代码失败: " + e.getMessage();
         }
@@ -122,7 +146,8 @@ public class OpenAIServiceImpl implements AIService {
                 "以及可能的优化建议。\n\n" + code;
         
         try {
-            return chatClient.call(prompt);
+            PromptTemplate promptTemplate = new PromptTemplate(prompt);
+            return chatClient.prompt(promptTemplate.create()).call().content();
         } catch (Exception e) {
             return "解释代码失败: " + e.getMessage();
         }
@@ -140,7 +165,8 @@ public class OpenAIServiceImpl implements AIService {
         prompt += "\n\n请分析代码的：1) 潜在错误和Bug 2) 代码质量和可读性 3) 性能优化建议 4) 安全性考虑 5) 最佳实践遵循情况";
         
         try {
-            return chatClient.call(prompt);
+            PromptTemplate promptTemplate = new PromptTemplate(prompt);
+            return chatClient.prompt(promptTemplate.create()).call().content();
         } catch (Exception e) {
             return "审查代码失败: " + e.getMessage();
         }
@@ -159,7 +185,8 @@ public class OpenAIServiceImpl implements AIService {
         String prompt = "请生成以下文本的" + lengthDesc + "摘要，保留关键信息和核心观点。\n\n" + text;
         
         try {
-            return chatClient.call(prompt);
+            PromptTemplate promptTemplate = new PromptTemplate(prompt);
+            return chatClient.prompt(promptTemplate.create()).call().content();
         } catch (Exception e) {
             return "生成摘要失败: " + e.getMessage();
         }
@@ -172,7 +199,8 @@ public class OpenAIServiceImpl implements AIService {
         String prompt = "请从以下文本中提取" + count + "个最相关的关键词，用逗号分隔。\n\n" + text + "\n\n请只返回关键词列表，不要其他文本。";
         
         try {
-            String keywordsStr = chatClient.call(prompt);
+            PromptTemplate promptTemplate = new PromptTemplate(prompt);
+            String keywordsStr = chatClient.prompt(promptTemplate.create()).call().content();
             return Arrays.stream(keywordsStr.split(","))
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
@@ -189,7 +217,8 @@ public class OpenAIServiceImpl implements AIService {
         String prompt = "请将以下文本翻译成" + targetLanguage + "。\n\n" + text + "\n\n请只返回翻译后的文本，不要其他说明。";
         
         try {
-            return chatClient.call(prompt);
+            PromptTemplate promptTemplate = new PromptTemplate(prompt);
+            return chatClient.prompt(promptTemplate.create()).call().content();
         } catch (Exception e) {
             return "翻译失败: " + e.getMessage();
         }
@@ -205,7 +234,8 @@ public class OpenAIServiceImpl implements AIService {
                 "请生成完整的邮件，包括主题行、称呼、正文和结束语。";
         
         try {
-            return chatClient.call(prompt);
+            PromptTemplate promptTemplate = new PromptTemplate(prompt);
+            return chatClient.prompt(promptTemplate.create()).call().content();
         } catch (Exception e) {
             return "生成邮件失败: " + e.getMessage();
         }
@@ -220,7 +250,8 @@ public class OpenAIServiceImpl implements AIService {
                 "请确保大纲结构清晰，逻辑连贯，涵盖主题的所有重要方面。";
         
         try {
-            return chatClient.call(prompt);
+            PromptTemplate promptTemplate = new PromptTemplate(prompt);
+            return chatClient.prompt(promptTemplate.create()).call().content();
         } catch (Exception e) {
             return "创建大纲失败: " + e.getMessage();
         }
@@ -235,7 +266,8 @@ public class OpenAIServiceImpl implements AIService {
                 "请确保计划循序渐进，由浅入深，并且包含足够的实践环节。";
         
         try {
-            return chatClient.call(prompt);
+            PromptTemplate promptTemplate = new PromptTemplate(prompt);
+            return chatClient.prompt(promptTemplate.create()).call().content();
         } catch (Exception e) {
             return "创建学习计划失败: " + e.getMessage();
         }
@@ -243,11 +275,40 @@ public class OpenAIServiceImpl implements AIService {
     
     @Override
     public boolean checkConnection() {
+        System.out.println("=== [CHECK-CONNECTION] 开始检查AI连接 ===");
+        System.out.println("=== [CHECK-CONNECTION] 当前时间: " + new Date() + " ===");
+        
         try {
-            // 发送一个简单的请求来测试连接
-            String response = chatClient.call("测试连接");
-            return response != null && !response.isEmpty();
+            // 发送一个简单的请求来测试连接，使用更合理的提示词
+            System.out.println("=== [CHECK-CONNECTION] 发送测试请求到AI服务 ===");
+            String testPrompt = "你好，请回复'连接正常'";
+            PromptTemplate promptTemplate = new PromptTemplate(testPrompt);
+            
+            System.out.println("=== [CHECK-CONNECTION] 构建的提示内容: " + testPrompt + " ===");
+            System.out.println("=== [CHECK-CONNECTION] 开始调用chatClient.prompt() ===");
+            
+            String response = chatClient.prompt(promptTemplate.create()).call().content();
+            
+            System.out.println("=== [CHECK-CONNECTION] 收到AI响应 ===");
+            System.out.println("=== [CHECK-CONNECTION] 响应内容长度: " + (response != null ? response.length() : "null") + " ===");
+            System.out.println("=== [CHECK-CONNECTION] 响应内容预览: " + (response != null && response.length() > 100 ? response.substring(0, 100) + "..." : response) + " ===");
+            
+            boolean result = response != null && !response.isEmpty();
+            System.out.println("=== [CHECK-CONNECTION] 连接检查结果: " + result + " ===");
+            System.out.println("=== [CHECK-CONNECTION] 检查完成 ===");
+            
+            return result;
         } catch (Exception e) {
+            System.out.println("=== [CHECK-CONNECTION] 连接检查异常 ===");
+            System.out.println("=== [CHECK-CONNECTION] 异常类型: " + e.getClass().getName() + " ===");
+            System.out.println("=== [CHECK-CONNECTION] 异常消息: " + e.getMessage() + " ===");
+            
+            // 如果是404错误，可能是模型名称或API端点问题
+            if (e.getMessage() != null && e.getMessage().contains("404")) {
+                System.out.println("=== [CHECK-CONNECTION] 检测到404错误，可能是模型名称或API端点配置问题 ===");
+            }
+            
+            System.out.println("=== [CHECK-CONNECTION] 连接检查失败，返回false ===");
             return false;
         }
     }

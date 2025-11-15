@@ -8,6 +8,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,8 +41,14 @@ public class SpringAiService {
         String content = chatRequest.getContent();
         String style = chatRequest.getStyle();
 
+        System.out.println("=== [DEBUG] 开始处理聊天请求 ===");
+        System.out.println("=== [DEBUG] 会话ID: " + conversationId);
+        System.out.println("=== [DEBUG] 用户输入: " + content);
+        System.out.println("=== [DEBUG] 回复风格: " + style);
+
         // 获取或创建会话历史
         List<Message> messages = conversationHistory.computeIfAbsent(conversationId, k -> new ArrayList<>());
+        System.out.println("=== [DEBUG] 当前会话历史条数: " + messages.size());
 
         // 构建提示，根据不同的风格添加额外指令
         StringBuilder promptBuilder = new StringBuilder();
@@ -64,24 +71,40 @@ public class SpringAiService {
             }
         }
 
+        String finalPrompt = promptBuilder.toString();
+        System.out.println("=== [DEBUG] 构建的完整提示: " + finalPrompt);
+
         // 添加用户消息到历史记录
-        UserMessage userMessage = new UserMessage(promptBuilder.toString());
+        UserMessage userMessage = new UserMessage(finalPrompt);
         messages.add(userMessage);
+        System.out.println("=== [DEBUG] 已添加用户消息到历史记录");
 
         // 限制历史消息数量，防止上下文过长
         if (messages.size() > 10) {
             messages = messages.subList(messages.size() - 10, messages.size());
             conversationHistory.put(conversationId, messages);
+            System.out.println("=== [DEBUG] 历史消息已截断到最新10条");
         }
 
         // 创建提示并发送请求
         Prompt prompt = new Prompt(messages);
-        String response = chatClient.call(prompt).getResult().getOutput().getContent();
-
-        // 保留历史记录，以便下次交互
-        // 注意：实际应用中可能需要对历史记录进行更复杂的管理
-
-        return response;
+        System.out.println("=== [DEBUG] 准备发送AI请求...");
+        try {
+            String response = chatClient.prompt(prompt).call().content();
+            System.out.println("=== [DEBUG] AI响应成功: " + response);
+            System.out.println("=== [DEBUG] 请求处理完成 ===");
+            
+            // 保留历史记录，以便下次交互
+            // 注意：实际应用中可能需要对历史记录进行更复杂的管理
+            
+            return response;
+        } catch (Exception e) {
+            System.out.println("=== [DEBUG] AI请求失败: " + e.getMessage());
+            System.out.println("=== [DEBUG] 异常类型: " + e.getClass().getName());
+            e.printStackTrace();
+            System.out.println("=== [DEBUG] 请求处理失败 ===");
+            throw new RuntimeException("AI服务调用失败: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -133,9 +156,18 @@ public class SpringAiService {
      */
     private String generateCode(Map<String, Object> requestData) {
         String language = (String) requestData.get("language");
-        String description = (String) requestData.get("description");
+        // 支持 prompt 或 description 字段
+        String description = (String) requestData.getOrDefault("prompt", requestData.get("description"));
         String framework = requestData.containsKey("framework") ? (String) requestData.get("framework") : "";
         String complexity = requestData.containsKey("complexity") ? (String) requestData.get("complexity") : "medium";
+        
+        // 处理额外要求
+        boolean requireComments = requestData.containsKey("requireComments") && 
+                                  (Boolean) requestData.getOrDefault("requireComments", false);
+        boolean requireErrorHandling = requestData.containsKey("requireErrorHandling") && 
+                                       (Boolean) requestData.getOrDefault("requireErrorHandling", false);
+        boolean requireTestCases = requestData.containsKey("requireTestCases") && 
+                                   (Boolean) requestData.getOrDefault("requireTestCases", false);
 
         StringBuilder prompt = new StringBuilder();
         prompt.append("请生成").append(language).append("代码，");
@@ -147,9 +179,30 @@ public class SpringAiService {
         prompt.append("复杂度为").append(complexity).append("，");
         prompt.append("实现以下功能：\n\n");
         prompt.append(description).append("\n\n");
-        prompt.append("请提供完整的、可运行的代码，并添加适当的注释。");
+        
+        // 添加额外要求
+        if (requireComments) {
+            prompt.append("请包含详细的注释说明代码功能和关键逻辑。\n");
+        }
+        if (requireErrorHandling) {
+            prompt.append("请包含适当的错误处理机制。\n");
+        }
+        if (requireTestCases) {
+            prompt.append("请包含测试用例或使用示例。\n");
+        }
+        
+        prompt.append("请提供完整的、可运行的代码。");
 
-        return chatClient.call(prompt.toString());
+        // 使用ChatClient直接传递消息，而不是PromptTemplate
+        List<org.springframework.ai.chat.messages.Message> messages = new ArrayList<>();
+        messages.add(new org.springframework.ai.chat.messages.SystemMessage(
+            "你是一个专业的" + language + "程序员。请根据用户的要求生成高质量的" + language + "代码。"));
+        messages.add(new org.springframework.ai.chat.messages.UserMessage(prompt.toString()));
+        
+        return chatClient.prompt()
+                .messages(messages)
+                .call()
+                .content();
     }
 
     /**
@@ -168,7 +221,16 @@ public class SpringAiService {
         prompt.append("3. 重要函数或方法的作用\n");
         prompt.append("4. 可能的优化建议（如果有）");
 
-        return chatClient.call(prompt.toString());
+        // 使用ChatClient直接传递消息
+        List<org.springframework.ai.chat.messages.Message> messages = new ArrayList<>();
+        messages.add(new org.springframework.ai.chat.messages.SystemMessage(
+            "你是一个专业的" + language + "代码解释专家，擅长详细解释代码的功能和实现原理。"));
+        messages.add(new org.springframework.ai.chat.messages.UserMessage(prompt.toString()));
+        
+        return chatClient.prompt()
+                .messages(messages)
+                .call()
+                .content();
     }
 
     /**
@@ -205,7 +267,16 @@ public class SpringAiService {
                 prompt.append("- 可能的优化建议");
         }
 
-        return chatClient.call(prompt.toString());
+        // 使用ChatClient直接传递消息
+        List<org.springframework.ai.chat.messages.Message> messages = new ArrayList<>();
+        messages.add(new org.springframework.ai.chat.messages.SystemMessage(
+            "你是一个专业的" + language + "代码审查专家，擅长发现代码中的问题并提供改进建议。"));
+        messages.add(new org.springframework.ai.chat.messages.UserMessage(prompt.toString()));
+        
+        return chatClient.prompt()
+                .messages(messages)
+                .call()
+                .content();
     }
 
     /**
@@ -300,7 +371,8 @@ public class SpringAiService {
         prompt.append("- 保持原文的核心信息\n");
         prompt.append("- 使用简洁明了的语言");
 
-        return chatClient.call(prompt.toString());
+        PromptTemplate promptTemplate = new PromptTemplate(prompt.toString());
+        return chatClient.prompt(promptTemplate.create()).call().content();
     }
 
     /**
@@ -341,7 +413,8 @@ public class SpringAiService {
         prompt.append("- 关键词应该能够准确反映文本的主题和核心内容\n");
         prompt.append("- 请以列表形式返回，每个关键词占一行");
 
-        return chatClient.call(prompt.toString());
+        PromptTemplate promptTemplate = new PromptTemplate(prompt.toString());
+        return chatClient.prompt(promptTemplate.create()).call().content();
     }
 
     /**
@@ -405,7 +478,8 @@ public class SpringAiService {
         prompt.append("- 确保翻译流畅自然\n");
         prompt.append("- 请只返回翻译结果，不要添加其他解释");
 
-        return chatClient.call(prompt.toString());
+        PromptTemplate promptTemplate = new PromptTemplate(prompt.toString());
+        return chatClient.prompt(promptTemplate.create()).call().content();
     }
 
     /**
@@ -527,7 +601,8 @@ public class SpringAiService {
         prompt.append("- 请同时提供合适的邮件主题行\n");
         prompt.append("- 以完整的邮件格式返回，包括主题和正文");
 
-        return chatClient.call(prompt.toString());
+        PromptTemplate promptTemplate = new PromptTemplate(prompt.toString());
+        return chatClient.prompt(promptTemplate.create()).call().content();
     }
 
     /**
@@ -562,7 +637,8 @@ public class SpringAiService {
         prompt.append("- 每个部分提供简洁明了的标题\n");
         prompt.append("- 以层级列表形式返回大纲");
 
-        return chatClient.call(prompt.toString());
+        PromptTemplate promptTemplate = new PromptTemplate(prompt.toString());
+        return chatClient.prompt(promptTemplate.create()).call().content();
     }
 
     /**
@@ -605,7 +681,8 @@ public class SpringAiService {
         prompt.append("6. 计划应该循序渐进，从基础到进阶\n");
         prompt.append("7. 时间安排合理，考虑每周可用学习时间");
 
-        return chatClient.call(prompt.toString());
+        PromptTemplate promptTemplate = new PromptTemplate(prompt.toString());
+        return chatClient.prompt(promptTemplate.create()).call().content();
     }
 
     /**

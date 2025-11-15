@@ -1,9 +1,18 @@
 server:
-  port: 8080
+  port: 8083
   servlet:
     context-path: /
 
 spring:
+  profiles:
+    active: siliconflow
+    group:
+      siliconflow: siliconflow
+      deepseek: deepseek
+      qwen: qwen
+      glm: glm
+      minimax: minimax
+      ollama: ollama
   # Thymeleaf配置
   thymeleaf:
     cache: false
@@ -11,29 +20,14 @@ spring:
     suffix: .html
     mode: HTML
     encoding: UTF-8
-  
-  # Spring AI配置
+  # Spring AI基础配置
   ai:
-    # OpenAI配置（Spring AI 1.0.0-M1格式）
     openai:
-      api-key: demo-api-key-for-test
+      api-key: ${SILICONFLOW_API_KEY:dummy-key-for-profile-testing}
+      base-url: https://api.siliconflow.cn/v1
       chat:
         options:
-          model: gpt-3.5-turbo
-    
-    # Azure OpenAI配置（如果使用Azure OpenAI服务）
-    # azure:
-    #   openai:
-    #     api-key: ${AZURE_OPENAI_API_KEY:your-api-key}
-    #     endpoint: ${AZURE_OPENAI_ENDPOINT:your-endpoint}
-    #     chat:
-    #       options:
-    #         model: your-model-name
-    
-    # 本地模型配置（如果使用本地部署的模型）
-    # chat:
-    #   options:
-    #     model: gpt-4o  # 默认模型名称，实际部署时需要根据环境调整
+          model: deepseek-chat
 
 # 应用程序配置
 spring-ai-demo:
@@ -52,5 +46,105 @@ logging:
   level:
     root: INFO
     com.github.zhuyizhuo.ai.demo: DEBUG
+    org.springframework.ai: DEBUG
+    org.springframework.web.client: DEBUG
+    org.springframework.ai.openai: DEBUG
+    org.springframework.web.client.RestClient: DEBUG
+    org.apache.http: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+---
+# 硅基流动配置 - 推荐配置
+spring:
+  config:
+    activate:
+      on-profile: siliconflow
+  ai:
+    openai:
+      api-key: YOUR_SILICONFLOW_API_KEY_HERE
+      base-url: https://api.siliconflow.cn
+      chat:
+        options:
+          model: Qwen/Qwen2.5-7B-Instruct
+          temperature: 0.7
+          max-tokens: 2048
+
+---
+# DeepSeek官方配置
+spring:
+  config:
+    activate:
+      on-profile: deepseek
+  ai:
+    openai:
+      api-key: YOUR_DEEPSEEK_API_KEY_HERE
+      base-url: https://api.deepseek.com/v1
+      chat:
+        options:
+          model: deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+          temperature: 0.3
+          max-tokens: 4096
+
+---
+# 通义千问配置
+spring:
+  config:
+    activate:
+      on-profile: qwen
+  ai:
+    openai:
+      api-key: YOUR_QWEN_API_KEY_HERE
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      chat:
+        options:
+          model: qwen-turbo
+          temperature: 0.7
+          max-tokens: 2000
+
+---
+# GLM智谱配置
+spring:
+  config:
+    activate:
+      on-profile: glm
+  ai:
+    openai:
+      api-key: YOUR_GLM_API_KEY_HERE
+      base-url: https://open.bigmodel.cn/api/paas/v4
+      chat:
+        options:
+          model: chatglm-turbo
+          temperature: 0.7
+          max-tokens: 2048
+
+---
+# MiniMax配置
+spring:
+  config:
+    activate:
+      on-profile: minimax
+  ai:
+    openai:
+      api-key: YOUR_MINIMAX_API_KEY_HERE
+      base-url: https://api.minimax.chat/v1
+      chat:
+        options:
+          model: minimax-latest
+          temperature: 0.7
+          max-tokens: 2048
+
+---
+# Ollama本地配置
+spring:
+  config:
+    activate:
+      on-profile: ollama
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: llama2
+          temperature: 0.7
+          max-tokens: 2048

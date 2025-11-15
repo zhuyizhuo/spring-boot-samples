@@ -1,10 +1,11 @@
 package com.github.zhuyizhuo.ai.demo;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ai.chat.model.ChatResponse;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -12,9 +13,16 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -27,105 +35,80 @@ public class SpringAiDemoApplication {
         SpringApplication.run(SpringAiDemoApplication.class, args);
     }
 
-    // 配置RestTemplate用于HTTP请求
+    // 配置RestTemplate用于HTTP请求，添加日志拦截器
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getInterceptors().add(new ClientHttpRequestInterceptor() {
+            @Override
+            public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+                System.out.println("=== [HTTP REQUEST] URL: " + request.getURI() + " ===");
+                System.out.println("=== [HTTP REQUEST] Method: " + request.getMethod() + " ===");
+                System.out.println("=== [HTTP REQUEST] Headers: " + request.getHeaders() + " ===");
+                if (body != null && body.length > 0) {
+                    System.out.println("=== [HTTP REQUEST] Body: " + new String(body, StandardCharsets.UTF_8) + " ===");
+                }
+                ClientHttpResponse response = execution.execute(request, body);
+                System.out.println("=== [HTTP RESPONSE] Status: " + response.getStatusCode() + " ===");
+                return response;
+            }
+        });
+        return restTemplate;
+    }
+
+    // 配置OpenAiApi用于AI服务
+    @Bean
+    public OpenAiApi openAiApi(
+            @Value("${spring.ai.openai.base-url:}") String baseUrl,
+            @Value("${spring.ai.openai.api-key}") String apiKey) {
+        // 如果baseUrl为空，使用硅基流动的默认URL
+        if (baseUrl == null || baseUrl.trim().isEmpty()) {
+            baseUrl = "https://api.siliconflow.cn";
+        }
+        
+        // 确保base-url不以斜杠结尾（Spring AI会自动添加路径）
+        if (baseUrl.endsWith("/")) {
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+        }
+        
+        // 如果base-url包含/v1，移除它（Spring AI会自动添加/v1）
+        if (baseUrl.endsWith("/v1")) {
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 3);
+            System.out.println("=== [CONFIG] Removed /v1 from base-url, new base-url: " + baseUrl + " ===");
+        }
+        
+        System.out.println("=== [CONFIG] OpenAiApi Base URL: " + baseUrl + " ===");
+        System.out.println("=== [CONFIG] OpenAiApi API Key: " + (apiKey != null ? apiKey.substring(0, Math.min(10, apiKey.length())) + "..." : "null") + " ===");
+        System.out.println("=== [CONFIG] Expected API Endpoint: " + baseUrl + "/chat/completions ===");
+        
+        return new OpenAiApi(baseUrl, apiKey);
+    }
+    
+    // 配置OpenAiChatModel用于AI聊天
+    @Bean
+    public OpenAiChatModel openAiChatModel(
+            OpenAiApi openAiApi,
+            @Value("${spring.ai.openai.chat.options.model:gpt-4o}") String model,
+            @Value("${spring.ai.openai.chat.options.temperature:0.7}") Double temperature,
+            @Value("${spring.ai.openai.chat.options.max-tokens:2048}") Integer maxTokens) {
+        System.out.println("=== [CONFIG] OpenAiChatModel Model: " + model + " ===");
+        System.out.println("=== [CONFIG] OpenAiChatModel Temperature: " + temperature + " ===");
+        System.out.println("=== [CONFIG] OpenAiChatModel Max Tokens: " + maxTokens + " ===");
+        
+        // 创建ChatOptions并设置模型名称
+        OpenAiChatOptions chatOptions = OpenAiChatOptions.builder()
+                .withModel(model)
+                .withTemperature(temperature)
+                .withMaxTokens(maxTokens)
+                .build();
+        
+        return new OpenAiChatModel(openAiApi, chatOptions);
     }
 
     // 配置ChatClient用于AI聊天
     @Bean
-    public ChatClient chatClient() {
-        // 使用动态代理实现ChatClient接口
-        return (ChatClient) Proxy.newProxyInstance(
-                ChatClient.class.getClassLoader(),
-                new Class<?>[] { ChatClient.class },
-                (proxy, method, args) -> {
-                    // 处理Object类方法
-                    if (method.getDeclaringClass() == Object.class) {
-                        if (method.getName().equals("equals")) {
-                            return proxy == args[0];
-                        } else if (method.getName().equals("hashCode")) {
-                            return System.identityHashCode(proxy);
-                        } else if (method.getName().equals("toString")) {
-                            return "ChatClient Proxy Implementation";
-                        }
-                        return method.invoke(this, args);
-                    }
-                    
-                    // 处理call方法，返回ChatResponse对象
-                    if (method.getName().equals("call")) {
-                        System.out.println("接收到聊天请求，返回模拟响应");
-                        
-                        // 处理Prompt参数
-                        Object arg = args[0];
-                        String content = "未知输入";
-                        try {
-                            // 通过反射获取Prompt中的指令内容
-                            Method getInstructionsMethod = arg.getClass().getMethod("getInstructions");
-                            Object instructions = getInstructionsMethod.invoke(arg);
-                            Method getContentMethod = instructions.getClass().getMethod("getContent");
-                            content = (String) getContentMethod.invoke(instructions);
-                        } catch (Exception e) {
-                            System.out.println("无法获取提示内容: " + e.getMessage());
-                        }
-                        
-                        // 创建一个简单的模拟ChatResponse对象
-                        // 由于ChatResponse是类不是接口，我们需要创建一个简单的实现类
-                        try {
-                            // 创建响应实现类
-                            return new ChatResponseImpl(content);
-                        } catch (Exception e) {
-                            throw new RuntimeException("创建响应对象失败", e);
-                        }
-                    }
-                    
-                    // 处理mutate方法
-                    if (method.getName().equals("mutate")) {
-                        return proxy;
-                    }
-                    
-                    // 对于其他方法，返回proxy
-                    return proxy;
-                }
-        );
-    }
-    
-    // 简单的ChatResponse实现类
-    private static class ChatResponseImpl {
-        private final String content;
-        
-        public ChatResponseImpl(String content) {
-            this.content = "这是一个模拟的AI响应，您的输入是: " + content;
-        }
-        
-        public Object getResult() {
-            return new ResultImpl(content);
-        }
-    }
-    
-    private static class ResultImpl {
-        private final String content;
-        
-        public ResultImpl(String content) {
-            this.content = content;
-        }
-        
-        public Object getOutput() {
-            return new OutputImpl(content);
-        }
-    }
-    
-    private static class OutputImpl {
-        private final String content;
-        
-        public OutputImpl(String content) {
-            this.content = content;
-        }
-        
-        public String getContent() {
-            return content;
-        }
+    public ChatClient chatClient(OpenAiChatModel chatModel) {
+        return ChatClient.builder(chatModel).build();
     }
 
     /**
@@ -153,6 +136,9 @@ public class SpringAiDemoApplication {
             System.out.println("访问地址: " + protocol + "://" + hostAddress + ":" + serverPort + contextPath);
             System.out.println("健康检查: " + protocol + "://" + hostAddress + ":" + serverPort + contextPath + "actuator/health");
             System.out.println("H2数据库: " + protocol + "://" + hostAddress + ":" + serverPort + contextPath + "h2-console");
+            System.out.println("当前Profile: " + String.join(",", env.getActiveProfiles()));
+            System.out.println("AI Base URL: " + env.getProperty("spring.ai.openai.base-url", "未配置"));
+            System.out.println("AI Model: " + env.getProperty("spring.ai.openai.chat.options.model", "未配置"));
             System.out.println("----------------------------------------\n");
         }
     }

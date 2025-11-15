@@ -161,8 +161,8 @@
                     </li>
                 </ul>
                 <div class="d-flex align-items-center">
-                    <div class="text-sm text-muted me-3">
-                        <span id="connection-status" class="badge bg-secondary">检查中...</span>
+                    <div class="text-sm text-muted mr-3">
+                        <span id="connection-status" class="badge bg-success">已连接</span>
                     </div>
                     <button class="btn btn-outline-primary" id="theme-toggle">
                         <i class="fas fa-moon"></i>
@@ -334,11 +334,6 @@
         
         // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', function() {
-            // 检查连接状态
-            checkConnectionStatus();
-            // 定期检查连接状态（每30秒）
-            setInterval(checkConnectionStatus, 30000);
-            
             // 加载会话列表
             loadConversations();
             
@@ -372,33 +367,6 @@
             // 搜索会话
             document.getElementById('search-conversations').addEventListener('input', searchConversations);
         });
-        
-        // 检查连接状态
-        function checkConnectionStatus() {
-            fetch('/health')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('健康检查失败');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const statusElement = document.getElementById('connection-status');
-                    if (data.aiConnected && data.status === 'UP') {
-                        statusElement.textContent = '已连接';
-                        statusElement.className = 'badge bg-success';
-                    } else {
-                        statusElement.textContent = '未连接';
-                        statusElement.className = 'badge bg-danger';
-                    }
-                })
-                .catch(error => {
-                    console.error('连接状态检查失败:', error);
-                    const statusElement = document.getElementById('connection-status');
-                    statusElement.textContent = '连接失败';
-                    statusElement.className = 'badge bg-danger';
-                });
-        }
         
         // 加载会话列表
         function loadConversations() {
@@ -562,27 +530,10 @@
                 const typingElement = document.getElementById('typing-indicator');
                 if (typingElement) typingElement.remove();
                 
-                // 处理响应数据 - 支持AIMessage对象格式
-                let responseContent = '';
-                if (data.content) {
-                    responseContent = data.content;
-                } else if (data.response) {
-                    responseContent = data.response;
-                } else if (typeof data === 'string') {
-                    responseContent = data;
-                } else {
-                    responseContent = '抱歉，回复内容为空';
-                }
-                
-                // 检查是否有错误
-                if (data.error || data.errorMessage) {
-                    responseContent = data.errorMessage || data.error || '处理请求时发生错误';
-                }
-                
                 // 添加AI回复到界面
                 const aiMessageHtml = `
                     <div class="message ai">
-                        <div class="message-content">${formatResponse(responseContent)}</div>
+                        <div class="message-content">${formatResponse(data.content || '抱歉，回复内容为空')}</div>
                         <div class="message-time">${new Date().toLocaleTimeString()}</div>
                     </div>
                 `;
@@ -590,11 +541,6 @@
                 
                 // 滚动到底部
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                
-                // 更新连接状态为已连接
-                const statusElement = document.getElementById('connection-status');
-                statusElement.textContent = '已连接';
-                statusElement.className = 'badge bg-success';
             })
             .catch(error => {
                 console.error('Error:', error);

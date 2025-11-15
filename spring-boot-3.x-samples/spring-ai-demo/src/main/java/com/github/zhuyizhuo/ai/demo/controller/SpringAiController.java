@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 处理所有AI相关的HTTP请求
  */
 @Controller
-@RequestMapping("/api/ai")
+@RequestMapping("/api")
 public class SpringAiController {
 
     @Autowired
