@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL Spring Boot 用户管理</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #1a73e8;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background-color: #1a73e8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            margin-right: 5px;
+        }
+        .btn:hover {
+            background-color: #1557b0;
+        }
+        .btn-danger {
+            background-color: #d93025;
+        }
+        .btn-danger:hover {
+            background-color: #c53929;
+        }
+        .btn-success {
+            background-color: #34a853;
+        }
+        .btn-success:hover {
+            background-color: #2d8640;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .message {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .message.success {
+            background-color: #e6f4ea;
+            color: #0d6836;
+        }
+        .message.error {
+            background-color: #fce8e6;
+            color: #c53929;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>用户管理系统</h1>
+        
+        <!-- 消息显示区域 -->
+        <div id="message" class="message" style="display: none;"></div>
+        
+        <!-- 用户表单 -->
+        <div class="card">
+            <h2>添加/编辑用户</h2>
+            <form id="userForm">
+                <input type="hidden" id="userId">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">邮箱</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="name">姓名</label>
+                    <input type="text" id="name" name="name">
+                </div>
+                <div class="form-group">
+                    <label for="phone">电话</label>
+                    <input type="text" id="phone" name="phone">
+                </div>
+                <button type="submit" class="btn">保存用户</button>
+                <button type="button" class="btn" onclick="resetForm()">重置</button>
+            </form>
+        </div>
+        
+        <!-- 用户列表 -->
+        <div class="card">
+            <h2>用户列表</h2>
+            <div class="table-container">
+                <table id="userTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>用户名</th>
+                            <th>邮箱</th>
+                            <th>姓名</th>
+                            <th>电话</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        <!-- 用户数据将通过JavaScript动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // API基础URL
+        const API_BASE_URL = '/api/users';
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUsers();
+            setupFormSubmit();
+        });
+        
+        // 加载所有用户
+        function loadUsers() {
+            fetch(API_BASE_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应错误');
+                    }
+                    return response.json();
+                })
+                .then(users => {
+                    renderUsers(users);
+                })
+                .catch(error => {
+                    showMessage('加载用户失败: ' + error.message, 'error');
+                });
+        }
+        
+        // 渲染用户列表
+        function renderUsers(users) {
+            const tbody = document.getElementById('userTableBody');
+            tbody.innerHTML = '';
+            
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td>${user.name || '-'}</td>
+                    <td>${user.phone || '-'}</td>
+                    <td>
+                        <button class="btn" onclick="editUser(${user.id})">编辑</button>
+                        <button class="btn btn-danger" onclick="deleteUser(${user.id})">删除</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 设置表单提交事件
+        function setupFormSubmit() {
+            const form = document.getElementById('userForm');
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                saveUser();
+            });
+        }
+        
+        // 保存用户
+        function saveUser() {
+            const id = document.getElementById('userId').value;
+            const user = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                email: document.getElementById('email').value,
+                name: document.getElementById('name').value,
+                phone: document.getElementById('phone').value
+            };
+            
+            const url = id ? `${API_BASE_URL}/${id}` : API_BASE_URL;
+            const method = id ? 'PUT' : 'POST';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(user)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || '操作失败');
+                    });
+                }
+                return response.json();
+            })
+            .then(savedUser => {
+                showMessage(id ? '用户更新成功' : '用户添加成功', 'success');
+                resetForm();
+                loadUsers();
+            })
+            .catch(error => {
+                showMessage('保存失败: ' + error.message, 'error');
+            });
+        }
+        
+        // 编辑用户
+        function editUser(id) {
+            fetch(`${API_BASE_URL}/${id}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应错误');
+                    }
+                    return response.json();
+                })
+                .then(user => {
+                    document.getElementById('userId').value = user.id;
+                    document.getElementById('username').value = user.username;
+                    document.getElementById('password').value = ''; // 不显示密码
+                    document.getElementById('email').value = user.email;
+                    document.getElementById('name').value = user.name || '';
+                    document.getElementById('phone').value = user.phone || '';
+                    showMessage('编辑用户: ' + user.username, 'success');
+                })
+                .catch(error => {
+                    showMessage('加载用户失败: ' + error.message, 'error');
+                });
+        }
+        
+        // 删除用户
+        function deleteUser(id) {
+            if (confirm('确定要删除这个用户吗？')) {
+                fetch(`${API_BASE_URL}/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.error || '删除失败');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(result => {
+                    showMessage('用户删除成功', 'success');
+                    loadUsers();
+                })
+                .catch(error => {
+                    showMessage('删除失败: ' + error.message, 'error');
+                });
+            }
+        }
+        
+        // 重置表单
+        function resetForm() {
+            document.getElementById('userForm').reset();
+            document.getElementById('userId').value = '';
+        }
+        
+        // 显示消息
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = 'message ' + type;
+            messageDiv.style.display = 'block';
+            
+            // 3秒后自动隐藏消息
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
